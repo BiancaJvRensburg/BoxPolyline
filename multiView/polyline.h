@@ -19,6 +19,7 @@ private:
     double angle(Vec &a, Vec &b);
     double getBendAngle(Vec &a, Vec &b);
     void rotateSegment(unsigned int index, double angle, const Vec &axis);
+    void recalculateNormal(unsigned int index, const Vec &origin, const Vec &newPoint);
 
     ManipulatedFrame frame;
     const Vec tangent = Vec(1,0,0);

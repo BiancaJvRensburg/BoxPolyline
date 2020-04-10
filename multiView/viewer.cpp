@@ -100,7 +100,7 @@ void Viewer::extendPolyline(int position){
 }
 
 void Viewer::bendPolyline(){
-    Vec newPos(1,0,1);
-    //Vec newPos(1,0,0);
-    poly.bend(0, newPos);
+    Vec newPos(.3,0,.5);
+   // Vec newPos(1,0,0);
+    poly.bend(1, newPos);
 }

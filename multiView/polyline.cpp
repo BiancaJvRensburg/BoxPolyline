@@ -90,16 +90,27 @@ Vec Polyline::projection(Vec &a, Vec &planeNormal){
 }
 
 void Polyline::bend(unsigned int index, Vec &newPosition){
-    if(index >= points.size()) return;
+    if(index >= points.size()-1) return;
 
-    Vec pointToBend = points[index+1] - points[index];
-    double bendAngle = getBendAngle(pointToBend, newPosition);
 
-    rotateSegment(index, bendAngle, binormal);
+    //Vec pointToBend = points[index] - origin;
+
+    /*double bendAngle = getBendAngle(pointToBend, pos);
+
+    rotateSegment(index, bendAngle, binormal);*/
+    const Vec &origin = points[index+1];
+    points[index] = newPosition;
+    if(index!=0) recalculateNormal(index-1, newPosition, points[index-1]);
+    recalculateNormal(index, origin, newPosition);
+}
+
+void Polyline::recalculateNormal(unsigned int index, const Vec &origin, const Vec &newPosition){
+    Vec pos = newPosition - origin;
+    segmentNormals[index] = -cross(pos, binormal);
+    segmentNormals[index].normalize();
 }
 
 void Polyline::rotateSegment(unsigned int index, double theta, const Vec &axis){
-    theta += M_PI/2.0;
     Quaternion r(cos(theta/2.0)*axis.x, cos(theta/2.0)*axis.y, cos(theta/2.0)*axis.z, sin(theta/2.0));      // rotation
 
     Quaternion q = Quaternion();            // the base
