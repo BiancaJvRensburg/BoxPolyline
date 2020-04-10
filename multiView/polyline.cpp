@@ -51,7 +51,16 @@ void Polyline::draw(){
     for(unsigned int i=0; i<points.size(); i++) glVertex3f(points[i].x, points[i].y, points[i].z);
     glEnd();
 
+    // The cutting lines
     glPopMatrix();
+    glColor3f(0.,1.,1.);
+    glBegin(GL_LINES);
+    for(unsigned int i=0; i<cuttingLines.size(); i++){
+        endPoint = points[i+1]+0.5*cuttingLines[i];
+        glVertex3f(points[i+1].x, points[i+1].y, points[i+1].z);
+        glVertex3f(endPoint.x, endPoint.y, endPoint.z);
+    }
+    glEnd();
 }
 
 void Polyline::update(const std::vector<Vec> &newPoints){
@@ -102,6 +111,8 @@ void Polyline::bend(unsigned int index, Vec &newPosition){
     points[index] = newPosition;
     if(index!=0) recalculateNormal(index-1, newPosition, points[index-1]);
     recalculateNormal(index, origin, newPosition);
+
+    getCuttingAngles();
 }
 
 void Polyline::recalculateNormal(unsigned int index, const Vec &origin, const Vec &newPosition){
@@ -120,4 +131,15 @@ void Polyline::rotateSegment(unsigned int index, double theta, const Vec &axis){
     f.rotate(r);
 
     segmentNormals[index] = f.localInverseTransformOf(normal);
+}
+
+void Polyline::getCuttingAngles(){
+    cuttingLines.clear();
+
+    for(unsigned int i=0; i<segmentNormals.size()-1; i++){
+        Vec v = segmentNormals[i] + segmentNormals[i+1];
+        v /= 2.0;
+        v.normalize();
+        cuttingLines.push_back(v);
+    }
 }

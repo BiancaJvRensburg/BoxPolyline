@@ -13,6 +13,7 @@ public:
     void update(const std::vector<Vec> &newPoints);
     int getNbPoints(){ return points.size(); }
     void bend(unsigned int index, Vec &newPosition);
+    void getCuttingAngles();
 
 private:
     Vec projection(Vec &a, Vec &planeNormal);
@@ -27,6 +28,7 @@ private:
     const Vec binormal = Vec(0,1,0);
     std::vector<Vec> points;
     std::vector<Vec> segmentNormals;
+    std::vector<Vec> cuttingLines;
 };
 
 #endif // POLYLINE_H
