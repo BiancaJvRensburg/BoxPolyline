@@ -18,11 +18,17 @@ public :
 
 public Q_SLOTS:
     void toUpdate();
+    void extendPolyline(int);
+    void bendPolyline();
+
+Q_SIGNALS:
+    void polylineUpdate(const std::vector<Vec>&);
 
 protected:
     void draw();
     void init();
     void updateCamera(const Vec& center, float radius);
+    void updatePolyline(const std::vector<Vec> &newPoints);
 
     double angle(Vec a, Vec b);
     double segmentLength(const Vec a, const Vec b);

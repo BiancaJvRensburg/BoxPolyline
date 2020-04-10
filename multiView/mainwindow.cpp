@@ -78,6 +78,12 @@ void MainWindow::initDisplayDockWidgets(){
     contentsMand->setLayout(contentLayoutMand);
     contentsFibula->setLayout(contentLayoutFibula);
 
+    QSlider *extendPolylineSlider = new QSlider(Qt::Horizontal);
+    extendPolylineSlider->setMaximum(100);
+    contentLayoutMand->addRow("Extend polyline", extendPolylineSlider);
+    connect(extendPolylineSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::extendPolyline);
+    connect(extendPolylineSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::extendPolyline);
+
     layout->addWidget(contentsMand);
     layout->addWidget(contentsFibula);
 

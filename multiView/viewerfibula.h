@@ -9,6 +9,9 @@ class ViewerFibula : public Viewer
 
 public:
     ViewerFibula(QWidget *parent, StandardCamera *camera, int sliderMax, int fibulaOffsetMax);
+
+public Q_SLOTS:
+    void updateFibPolyline(const std::vector<Vec>&);
 };
 
 #endif // VIEWERFIBULA_H

@@ -4,3 +4,7 @@ ViewerFibula::ViewerFibula(QWidget *parent, StandardCamera *camera, int sliderMa
 {
 
 }
+
+void ViewerFibula::updateFibPolyline(const std::vector<Vec>& newPoints){
+    updatePolyline(newPoints);
+}

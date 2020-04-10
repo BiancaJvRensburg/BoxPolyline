@@ -2,11 +2,8 @@
 
 CurvePoint::CurvePoint(Vec& p) : ControlPoint (p)
 {
-    //this->p = p;
     this->mf = ManipulatedFrame();
-    //this->curveIndex = curveIndex;
     connect(&mf, &ManipulatedFrame::manipulated, this, &ControlPoint::cntrlMoved);
-    //connect(&(dynamic_cast<ManipulatedFrame&>(mf)), &ManipulatedFrame::manipulated, this, &ControlPoint::cntrlMoved);
 }
 
 void CurvePoint::draw(){

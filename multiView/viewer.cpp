@@ -31,6 +31,7 @@ void Viewer::init() {
   setManipulatedFrame(viewerFrame);
   setAxisIsDrawn(false);
   poly.init(viewerFrame);
+  bendPolyline();
 
   // Camera without mesh
   Vec centre(0,0,0);
@@ -82,17 +83,24 @@ void Viewer::updateCamera(const Vec& center, float radius){
     camera()->showEntireScene();
 }
 
-double Viewer::angle(Vec a, Vec b){
-    double na = a.norm();
-    double nb = b.norm();
-    double ab = a*b;
-
-    double val = ab / (na*nb);
-    if(val >= static_cast<double>(1)) val = 1;          // protection from floating point errors (comparing it to an epsilon didn't work)
-    else if(val < static_cast<double>(-1)) val = -1;
-    return acos(val);
-}
-
 double Viewer::segmentLength(const Vec a, const Vec b){
     return sqrt( pow((b.x - a.x), 2) + pow((b.y - a.y), 2) + pow((b.z - a.z), 2));
+}
+
+void Viewer::updatePolyline(const std::vector<Vec> &newPoints){
+    poly.update(newPoints);
+    //Q_EMIT updatePolyline(newPoints);
+    update();
+}
+
+void Viewer::extendPolyline(int position){
+    std::vector<Vec> newPoints;
+    for(unsigned int i=0; i<poly.getNbPoints(); i++) newPoints.push_back(Vec(i*position, 0, 0));
+    updatePolyline(newPoints);
+}
+
+void Viewer::bendPolyline(){
+    Vec newPos(1,0,1);
+    //Vec newPos(1,0,0);
+    poly.bend(0, newPos);
 }
