@@ -1,8 +1,9 @@
 #include "curvepoint.h"
 
-CurvePoint::CurvePoint(Vec& p) : ControlPoint (p)
+CurvePoint::CurvePoint(Vec& p, const unsigned int &id) : ControlPoint (p)
 {
     this->mf = ManipulatedFrame();
+    this->id = id;
     connect(&mf, &ManipulatedFrame::manipulated, this, &ControlPoint::cntrlMoved);
 }
 
@@ -27,13 +28,14 @@ void CurvePoint::cntrlMoved(){
 
     mf.getPosition(x,y,z);
 
-    Vec offset = Vec(x - p.x, y - p.y , z - p.z);
-
+    //Vec offset = Vec(x - p.x, y - p.y , z - p.z);
+    Vec position(x,y,z);
     p.x = x;
     p.y = y;
     p.z = z;
 
-    Q_EMIT CurvePoint::curvePointTranslated(offset);
+   // Q_EMIT CurvePoint::curvePointTranslated(id, offset);
+    Q_EMIT CurvePoint::curvePointTranslated(id, position);
 }
 
 void CurvePoint::matchCurvepoint(CurvePoint &c){

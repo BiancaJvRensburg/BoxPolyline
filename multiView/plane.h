@@ -13,7 +13,7 @@ using namespace qglviewer;
 class Plane
 {
 public:
-    Plane(double s, Movable status, Vec& pos, float alpha);
+    Plane(double s, Movable status, Vec& pos, float alpha, unsigned int id);
 
     void toggleIsVisible(){ isVisible = !isVisible; }
     void setAlpha(float alpha){ this->alpha = alpha; }
@@ -75,6 +75,7 @@ private:
     CurvePoint cp;
     bool isVisible;
     float alpha;
+    unsigned int id;
 };
 
 #endif // PLANE_H

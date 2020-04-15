@@ -100,6 +100,11 @@ void MainWindow::initDisplayDockWidgets(){
 
 void MainWindow::initFileActions(){
     fileActionGroup = new QActionGroup(this);
+
+    QAction *tempBendAction = new QAction("Temp bend", this);
+    connect(tempBendAction, &QAction::triggered, skullViewer, &Viewer::tempBend);
+
+    fileActionGroup->addAction(tempBendAction);
 }
 
 void MainWindow::initFileMenu(){

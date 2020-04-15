@@ -9,11 +9,12 @@ class ViewerFibula : public Viewer
 
 public:
     ViewerFibula(QWidget *parent, StandardCamera *camera, int sliderMax, int fibulaOffsetMax);
+    void initGhostPlanes();
 
 public Q_SLOTS:
     void updateFibPolyline(const std::vector<Vec>&);
     void bendPolylineNormals(const std::vector<Vec>&);
-    void bendPolyline(Vec& v);
+    void bendPolyline(unsigned int pointIndex, Vec v);
 };
 
 #endif // VIEWERFIBULA_H

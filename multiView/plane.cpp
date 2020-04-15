@@ -1,6 +1,6 @@
 #include "plane.h"
 
-Plane::Plane(double s, Movable status, Vec& pos, float alpha) : cp(pos)
+Plane::Plane(double s, Movable status, Vec& pos, float alpha, unsigned int id) : cp(pos, id)
 {
     size = s;
     rotationPercentage = 0;

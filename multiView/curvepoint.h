@@ -8,7 +8,7 @@ class CurvePoint : public ControlPoint
     Q_OBJECT
 
 public:
-    CurvePoint(Vec& p);
+    CurvePoint(Vec& p, const unsigned int &id);
     //CurvePoint(CurvePoint &cp);
     /*~CurvePoint(){
         disconnect((ManipulatedFrame*)mf, &ManipulatedFrame::manipulated, this, &ControlPoint::cntrlMoved);
@@ -25,7 +25,11 @@ public Q_SLOTS:
     void cntrlMoved();
 
 Q_SIGNALS:
-    void curvePointTranslated(Vec offset);
+    void curvePointTranslated(unsigned int pointIndex, Vec offset);
+
+private:
+    unsigned int id;
+
 };
 
 #endif // CURVEPOINT_H

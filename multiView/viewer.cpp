@@ -35,8 +35,6 @@ void Viewer::init() {
   setManipulatedFrame(viewerFrame);
   setAxisIsDrawn(false);
   poly.init(viewerFrame);
-  Vec newPos(.3,0,.5);
-  bendPolyline(newPos);
 
   // Camera without mesh
   Vec centre(0,0,0);
@@ -48,6 +46,26 @@ void Viewer::init() {
   glLineWidth (1.0f);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_BLEND);
+
+  initGhostPlanes();
+}
+
+void Viewer::tempBend(){
+    Vec newPos(.3,0,.5);
+    bendPolyline(1, newPos);
+    update();
+}
+
+void Viewer::initGhostPlanes(){
+    deleteGhostPlanes();
+    for(unsigned int i=1; i<poly.getNbPoints()-1; i++){
+        Vec pos(0,0,0);
+        Plane *p = new Plane(1., Movable::DYNAMIC, pos, .5f, i);
+        p->setPosition(poly.getPoint(i));
+        ghostPlanes.push_back(p);
+    }
+
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) connect(&(ghostPlanes[i]->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolyline);        // connnect the ghost planes
 }
 
 void swap(int& a, int& b){
@@ -104,21 +122,18 @@ void Viewer::extendPolyline(int position){
     updatePolyline(newPoints);
 }
 
-void Viewer::bendPolyline(Vec &v){
+void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
     std::vector<Vec> relativeNorms;
     std::vector<Vec> planeAxes;     // the x,y,z vectors of each frame
-    poly.bend(1, v, relativeNorms, planeAxes);
+    poly.bend(pointIndex, v, relativeNorms, planeAxes);
     Q_EMIT polylineBent(relativeNorms);
 
-    // reinitialise the planes
-    deleteGhostPlanes();
-    for(unsigned int i=0; i<relativeNorms.size()/2; i++){
-        Vec pos(0,0,0);
-        Plane *p = new Plane(1., Movable::DYNAMIC, pos, .5f);
-        p->setFrameFromBasis(planeAxes[3*i], planeAxes[3*i+1], planeAxes[3*i+2]);
-        p->setPosition(poly.getPoint(i+1));
-        ghostPlanes.push_back(p);
+    // set the planes' orientations
+    for(unsigned int i=0; i<ghostPlanes.size(); i++){
+        ghostPlanes[i]->setPosition(poly.getPoint(i+1));
+        ghostPlanes[i]->setFrameFromBasis(planeAxes[3*i], planeAxes[3*i+1], planeAxes[3*i+2]);
     }
+
 }
 
 void Viewer::deleteGhostPlanes(){

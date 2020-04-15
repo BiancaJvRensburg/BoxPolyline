@@ -19,7 +19,8 @@ public :
 public Q_SLOTS:
     void toUpdate();
     void extendPolyline(int);
-    virtual void bendPolyline(Vec& v);
+    virtual void bendPolyline(unsigned int pointIndex, Vec v);
+    void tempBend();
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
@@ -28,6 +29,7 @@ Q_SIGNALS:
 protected:
     void draw();
     void init();
+    virtual void initGhostPlanes();
     void updateCamera(const Vec& center, float radius);
     void updatePolyline(const std::vector<Vec> &newPoints);
     void deleteGhostPlanes();
