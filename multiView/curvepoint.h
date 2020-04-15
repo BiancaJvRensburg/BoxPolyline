@@ -9,10 +9,6 @@ class CurvePoint : public ControlPoint
 
 public:
     CurvePoint(Vec& p, const unsigned int &id);
-    //CurvePoint(CurvePoint &cp);
-    /*~CurvePoint(){
-        disconnect((ManipulatedFrame*)mf, &ManipulatedFrame::manipulated, this, &ControlPoint::cntrlMoved);
-    }*/
 
     void setPosition(Vec& p){ this->p = p; mf.setPosition(getX(), getY(), getZ()); }
 

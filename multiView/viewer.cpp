@@ -62,6 +62,7 @@ void Viewer::initGhostPlanes(){
         Vec pos(0,0,0);
         Plane *p = new Plane(1., Movable::DYNAMIC, pos, .5f, i);
         p->setPosition(poly.getPoint(i));
+        p->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
         ghostPlanes.push_back(p);
     }
 
@@ -130,8 +131,9 @@ void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
 
     // set the planes' orientations
     for(unsigned int i=0; i<ghostPlanes.size(); i++){
+        Vec binormal(0,1,0);
         ghostPlanes[i]->setPosition(poly.getPoint(i+1));
-        ghostPlanes[i]->setFrameFromBasis(planeAxes[3*i], planeAxes[3*i+1], planeAxes[3*i+2]);
+        ghostPlanes[i]->setFrameFromBasis(planeAxes[i], binormal, cross(planeAxes[i],binormal));
     }
 
 }

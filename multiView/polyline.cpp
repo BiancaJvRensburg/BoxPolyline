@@ -166,10 +166,6 @@ void Polyline::getCuttingAngles(std::vector<Vec>& relativeNorms, std::vector<Vec
         relativeNorms.push_back(f.localInverseTransformOf(segmentNormals[i+1]));
 
         planeNormals.push_back(cuttingLines[i]);            // save for the mandible
-        planeNormals.push_back(binormal);
-        Vec c = cross(cuttingLines[i], binormal);
-        c.normalize();
-        planeNormals.push_back(c);
     }
 
 }

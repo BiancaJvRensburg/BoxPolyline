@@ -19,7 +19,6 @@ void ViewerFibula::bendPolylineNormals(const std::vector<Vec>& normals){
         Vec z = cross(normals[i], binormal);
         ghostPlanes[i]->setFrameFromBasis(normals[i], binormal, z);
         ghostPlanes[i]->setPosition(poly.getPoint((i+2)/2));
-
     }
 
     update();
@@ -36,5 +35,6 @@ void ViewerFibula::initGhostPlanes(){
         Plane *p1 = new Plane(1., Movable::STATIC, pos, .5f, i+1);
         ghostPlanes.push_back(p1);
         ghostPlanes[i]->setPosition(poly.getPoint((i+2)/2));
+        ghostPlanes[i]->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
     }
 }
