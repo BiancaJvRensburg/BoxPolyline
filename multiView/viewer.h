@@ -19,10 +19,11 @@ public :
 public Q_SLOTS:
     void toUpdate();
     void extendPolyline(int);
-    void bendPolyline();
+    virtual void bendPolyline(Vec& v);
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
+    void polylineBent(const std::vector<Vec>&);
 
 protected:
     void draw();
@@ -40,6 +41,7 @@ protected:
 private:
     int partition(int sorted[], int start, int end);
     void quicksort(int sorted[], int start, int end);
+
 };
 
 #endif // VIEWER_H

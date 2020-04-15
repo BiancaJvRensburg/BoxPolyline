@@ -84,6 +84,9 @@ void MainWindow::initDisplayDockWidgets(){
     connect(extendPolylineSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::extendPolyline);
     connect(extendPolylineSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::extendPolyline);
 
+    // Connect the two views
+    connect(skullViewer, &Viewer::polylineBent, fibulaViewer, &ViewerFibula::bendPolylineNormals);
+
     layout->addWidget(contentsMand);
     layout->addWidget(contentsFibula);
 

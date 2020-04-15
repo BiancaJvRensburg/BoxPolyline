@@ -11,10 +11,9 @@ void Viewer::draw() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glPushMatrix();
-    glMultMatrixd(manipulatedFrame()->matrix());
+    glMultMatrixd(viewerFrame->matrix());
 
     poly.draw();
-
     glPopMatrix();
 }
 
@@ -31,7 +30,8 @@ void Viewer::init() {
   setManipulatedFrame(viewerFrame);
   setAxisIsDrawn(false);
   poly.init(viewerFrame);
-  bendPolyline();
+  Vec newPos(.3,0,.5);
+  bendPolyline(newPos);
 
   // Camera without mesh
   Vec centre(0,0,0);
@@ -99,8 +99,8 @@ void Viewer::extendPolyline(int position){
     updatePolyline(newPoints);
 }
 
-void Viewer::bendPolyline(){
-    Vec newPos(.3,0,.5);
-   // Vec newPos(1,0,0);
-    poly.bend(1, newPos);
+void Viewer::bendPolyline(Vec &v){
+    std::vector<Vec> relativeNorms;
+    poly.bend(1, v, relativeNorms);
+    Q_EMIT polylineBent(relativeNorms);
 }

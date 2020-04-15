@@ -6,6 +6,7 @@ Polyline::Polyline()
 
     for(unsigned int i=0; i<4; i++) points.push_back(Vec(i, 0, 0));
     for(unsigned int i=0; i<points.size()-1; i++) segmentNormals.push_back(normal);
+    for(unsigned int i=1; i<points.size()-1; i++) cuttingLines.push_back(normal);
 }
 
 void Polyline::init(const Frame *const refFrame){
@@ -21,34 +22,35 @@ void Polyline::draw(){
     glColor3f(0.,0.,1.);
     glBegin(GL_LINES);
     for(unsigned int i=0; i<points.size()-1; i++){
-        glVertex3f(points[i].x, points[i].y, points[i].z);
-        glVertex3f(points[i+1].x, points[i+1].y, points[i+1].z);
+        glVertex3d(points[i].x, points[i].y, points[i].z);
+        glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
     }
     glEnd();
 
     // The normals
     glColor3f(1., 0., 0.);
     glBegin(GL_LINES);
-    Vec endPoint = points[0]+0.5*segmentNormals[0];
-    glVertex3f(points[0].x, points[0].y, points[0].z);
-    glVertex3f(endPoint.x, endPoint.y, endPoint.z);
+    Vec endPoint = points[0]+0.5*displayNormals[0];
+    glVertex3d(points[0].x, points[0].y, points[0].z);
+    glVertex3d(endPoint.x, endPoint.y, endPoint.z);
     for(unsigned int i=1; i<points.size()-1; i++){
-        for(unsigned int j=0; j<2; j++){
-            endPoint = points[i]+0.5*segmentNormals[i-j];
-            glVertex3f(points[i].x, points[i].y, points[i].z);
-            glVertex3f(endPoint.x, endPoint.y, endPoint.z);
-        }
+        endPoint = points[i]+0.5*displayNormals[2*i-1];
+        glVertex3d(points[i].x, points[i].y, points[i].z);
+        glVertex3d(endPoint.x, endPoint.y, endPoint.z);
+        endPoint = points[i]+0.5*displayNormals[2*i];
+        glVertex3d(points[i].x, points[i].y, points[i].z);
+        glVertex3d(endPoint.x, endPoint.y, endPoint.z);
     }
     endPoint = points.back()+0.5*segmentNormals.back();
-    glVertex3f(points.back().x, points.back().y, points.back().z);
-    glVertex3f(endPoint.x, endPoint.y, endPoint.z);
+    glVertex3d(points.back().x, points.back().y, points.back().z);
+    glVertex3d(endPoint.x, endPoint.y, endPoint.z);
     glEnd();
 
     // The points
     glColor3f(0.,1.,0.);
     glPointSize(10.);
     glBegin(GL_POINTS);
-    for(unsigned int i=0; i<points.size(); i++) glVertex3f(points[i].x, points[i].y, points[i].z);
+    for(unsigned int i=0; i<points.size(); i++) glVertex3d(points[i].x, points[i].y, points[i].z);
     glEnd();
 
     // The cutting lines
@@ -57,8 +59,8 @@ void Polyline::draw(){
     glBegin(GL_LINES);
     for(unsigned int i=0; i<cuttingLines.size(); i++){
         endPoint = points[i+1]+0.5*cuttingLines[i];
-        glVertex3f(points[i+1].x, points[i+1].y, points[i+1].z);
-        glVertex3f(endPoint.x, endPoint.y, endPoint.z);
+        glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
+        glVertex3d(endPoint.x, endPoint.y, endPoint.z);
     }
     glEnd();
 }
@@ -67,12 +69,6 @@ void Polyline::update(const std::vector<Vec> &newPoints){
     points.clear();
     for(unsigned int i=0; i<newPoints.size(); i++) points.push_back(newPoints[i]);
 }
-
-/*void Polyline::bendOnNormal(unsigned int index, double newZ){
-    if(points.size()>index) return;
-
-    points[index] = Vec(0,0, newZ);
-}*/
 
 double Polyline::getBendAngle(Vec &a, Vec &b){
     Vec yPlane(0,1,0);
@@ -98,21 +94,31 @@ Vec Polyline::projection(Vec &a, Vec &planeNormal){
     return a - planeNormal * alpha;
 }
 
-void Polyline::bend(unsigned int index, Vec &newPosition){
+void Polyline::bend(unsigned int index, Vec &newPosition, std::vector<Vec>& relativeNorms){
     if(index >= points.size()-1) return;
 
-
-    //Vec pointToBend = points[index] - origin;
-
-    /*double bendAngle = getBendAngle(pointToBend, pos);
-
-    rotateSegment(index, bendAngle, binormal);*/
     const Vec &origin = points[index+1];
     points[index] = newPosition;
     if(index!=0) recalculateNormal(index-1, newPosition, points[index-1]);
     recalculateNormal(index, origin, newPosition);
 
-    getCuttingAngles();
+    getCuttingAngles(relativeNorms);
+
+    for(unsigned int i=0; i<segmentNormals.size(); i++){
+        displayNormals.push_back(segmentNormals[i]);
+        displayNormals.push_back(segmentNormals[i]);        // one for each end of the box
+    }
+}
+
+void Polyline::bendNormals(unsigned int index, Vec &newPosition){
+    /*if(index >= points.size()-1) return;
+
+    const Vec &origin = points[index+1];
+    if(index!=0) recalculateNormal(index-1, newPosition, points[index-1]);
+    recalculateNormal(index, origin, newPosition);
+
+    std::vector<Vec> relativeNorms;
+    getCuttingAngles(relativeNorms);*/
 }
 
 void Polyline::recalculateNormal(unsigned int index, const Vec &origin, const Vec &newPosition){
@@ -124,16 +130,20 @@ void Polyline::recalculateNormal(unsigned int index, const Vec &origin, const Ve
 void Polyline::rotateSegment(unsigned int index, double theta, const Vec &axis){
     Quaternion r(cos(theta/2.0)*axis.x, cos(theta/2.0)*axis.y, cos(theta/2.0)*axis.z, sin(theta/2.0));      // rotation
 
-    Quaternion q = Quaternion();            // the base
-    q.setFromRotatedBasis(Vec(1,0,0),Vec(0,1,0),Vec(0,0,1));
     Frame f = Frame();
-    f.setOrientation(q);
+    initialiseFrame(f);
     f.rotate(r);
 
     segmentNormals[index] = f.localInverseTransformOf(normal);
 }
 
-void Polyline::getCuttingAngles(){
+void Polyline::initialiseFrame(Frame &f){
+    Quaternion q = Quaternion();            // the base
+    q.setFromRotatedBasis(Vec(1,0,0),Vec(0,1,0),Vec(0,0,1));
+    f.setOrientation(q);
+}
+
+void Polyline::getCuttingAngles(std::vector<Vec>& relativeNorms){
     cuttingLines.clear();
 
     for(unsigned int i=0; i<segmentNormals.size()-1; i++){
@@ -142,4 +152,28 @@ void Polyline::getCuttingAngles(){
         v.normalize();
         cuttingLines.push_back(v);
     }
+
+    // get the relative normals
+    relativeNorms.clear();
+
+    for(unsigned int i=0; i<cuttingLines.size(); i++){
+        Frame f = Frame();
+        initialiseFrame(f);
+
+        Quaternion q = Quaternion(cuttingLines[i], normal);
+        f.rotate(q);
+        relativeNorms.push_back(f.localInverseTransformOf(segmentNormals[i]));      // save for the fibula
+        relativeNorms.push_back(f.localInverseTransformOf(segmentNormals[i+1]));
+    }
+
+}
+
+void Polyline::updateNormals(const std::vector<Vec> &relativeNorms){
+    displayNormals.clear();
+
+    displayNormals.push_back(segmentNormals[0]);
+    for(unsigned int i=0; i<relativeNorms.size(); i++){
+        displayNormals.push_back(relativeNorms[i]);
+    }
+    displayNormals.push_back(segmentNormals.back());
 }

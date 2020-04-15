@@ -12,8 +12,11 @@ public:
     void init(const Frame *const refFrame);
     void update(const std::vector<Vec> &newPoints);
     int getNbPoints(){ return points.size(); }
-    void bend(unsigned int index, Vec &newPosition);
-    void getCuttingAngles();
+    Vec getPoint(unsigned int i){return frame.inverseCoordinatesOf(points[i]);}
+    void bend(unsigned int index, Vec &newPosition, std::vector<Vec>& relativeNorms);
+    void bendNormals(unsigned int index, Vec &newPosition);
+    void getCuttingAngles(std::vector<Vec>& relativeNorms);
+    void updateNormals(const std::vector<Vec>& relativeNorms);
 
 private:
     Vec projection(Vec &a, Vec &planeNormal);
@@ -21,6 +24,7 @@ private:
     double getBendAngle(Vec &a, Vec &b);
     void rotateSegment(unsigned int index, double angle, const Vec &axis);
     void recalculateNormal(unsigned int index, const Vec &origin, const Vec &newPoint);
+    void initialiseFrame(Frame &f);
 
     ManipulatedFrame frame;
     const Vec tangent = Vec(1,0,0);
@@ -29,6 +33,7 @@ private:
     std::vector<Vec> points;
     std::vector<Vec> segmentNormals;
     std::vector<Vec> cuttingLines;
+    std::vector<Vec> displayNormals;
 };
 
 #endif // POLYLINE_H

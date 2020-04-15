@@ -12,6 +12,8 @@ public:
 
 public Q_SLOTS:
     void updateFibPolyline(const std::vector<Vec>&);
+    void bendPolylineNormals(const std::vector<Vec>&);
+    void bendPolyline(Vec& v);
 };
 
 #endif // VIEWERFIBULA_H
