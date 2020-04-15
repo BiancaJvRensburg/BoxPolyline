@@ -14,6 +14,11 @@ void Viewer::draw() {
     glMultMatrixd(viewerFrame->matrix());
 
     poly.draw();
+
+    for(unsigned int i=0; i<ghostPlanes.size(); i++){
+        glColor4f(0., 1., 1., ghostPlanes[i]->getAlpha());
+        ghostPlanes[i]->draw();
+    }
     glPopMatrix();
 }
 
@@ -101,6 +106,22 @@ void Viewer::extendPolyline(int position){
 
 void Viewer::bendPolyline(Vec &v){
     std::vector<Vec> relativeNorms;
-    poly.bend(1, v, relativeNorms);
+    std::vector<Vec> planeAxes;     // the x,y,z vectors of each frame
+    poly.bend(1, v, relativeNorms, planeAxes);
     Q_EMIT polylineBent(relativeNorms);
+
+    // reinitialise the planes
+    deleteGhostPlanes();
+    for(unsigned int i=0; i<relativeNorms.size()/2; i++){
+        Vec pos(0,0,0);
+        Plane *p = new Plane(1., Movable::DYNAMIC, pos, .5f);
+        p->setFrameFromBasis(planeAxes[3*i], planeAxes[3*i+1], planeAxes[3*i+2]);
+        p->setPosition(poly.getPoint(i+1));
+        ghostPlanes.push_back(p);
+    }
+}
+
+void Viewer::deleteGhostPlanes(){
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) delete ghostPlanes[i];
+    ghostPlanes.clear();
 }

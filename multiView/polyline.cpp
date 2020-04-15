@@ -28,7 +28,7 @@ void Polyline::draw(){
     glEnd();
 
     // The normals
-    glColor3f(1., 0., 0.);
+    /*glColor3f(1., 0., 0.);
     glBegin(GL_LINES);
     Vec endPoint = points[0]+0.5*displayNormals[0];
     glVertex3d(points[0].x, points[0].y, points[0].z);
@@ -44,7 +44,7 @@ void Polyline::draw(){
     endPoint = points.back()+0.5*segmentNormals.back();
     glVertex3d(points.back().x, points.back().y, points.back().z);
     glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-    glEnd();
+    glEnd();*/
 
     // The points
     glColor3f(0.,1.,0.);
@@ -54,7 +54,7 @@ void Polyline::draw(){
     glEnd();
 
     // The cutting lines
-    glPopMatrix();
+    /*glPopMatrix();
     glColor3f(0.,1.,1.);
     glBegin(GL_LINES);
     for(unsigned int i=0; i<cuttingLines.size(); i++){
@@ -62,7 +62,7 @@ void Polyline::draw(){
         glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
         glVertex3d(endPoint.x, endPoint.y, endPoint.z);
     }
-    glEnd();
+    glEnd();*/
 }
 
 void Polyline::update(const std::vector<Vec> &newPoints){
@@ -94,7 +94,7 @@ Vec Polyline::projection(Vec &a, Vec &planeNormal){
     return a - planeNormal * alpha;
 }
 
-void Polyline::bend(unsigned int index, Vec &newPosition, std::vector<Vec>& relativeNorms){
+void Polyline::bend(unsigned int index, Vec &newPosition, std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals){
     if(index >= points.size()-1) return;
 
     const Vec &origin = points[index+1];
@@ -102,7 +102,7 @@ void Polyline::bend(unsigned int index, Vec &newPosition, std::vector<Vec>& rela
     if(index!=0) recalculateNormal(index-1, newPosition, points[index-1]);
     recalculateNormal(index, origin, newPosition);
 
-    getCuttingAngles(relativeNorms);
+    getCuttingAngles(relativeNorms, planeNormals);
 
     for(unsigned int i=0; i<segmentNormals.size(); i++){
         displayNormals.push_back(segmentNormals[i]);
@@ -143,7 +143,7 @@ void Polyline::initialiseFrame(Frame &f){
     f.setOrientation(q);
 }
 
-void Polyline::getCuttingAngles(std::vector<Vec>& relativeNorms){
+void Polyline::getCuttingAngles(std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals){
     cuttingLines.clear();
 
     for(unsigned int i=0; i<segmentNormals.size()-1; i++){
@@ -159,11 +159,17 @@ void Polyline::getCuttingAngles(std::vector<Vec>& relativeNorms){
     for(unsigned int i=0; i<cuttingLines.size(); i++){
         Frame f = Frame();
         initialiseFrame(f);
-
         Quaternion q = Quaternion(cuttingLines[i], normal);
         f.rotate(q);
+
         relativeNorms.push_back(f.localInverseTransformOf(segmentNormals[i]));      // save for the fibula
         relativeNorms.push_back(f.localInverseTransformOf(segmentNormals[i+1]));
+
+        planeNormals.push_back(cuttingLines[i]);            // save for the mandible
+        planeNormals.push_back(binormal);
+        Vec c = cross(cuttingLines[i], binormal);
+        c.normalize();
+        planeNormals.push_back(c);
     }
 
 }

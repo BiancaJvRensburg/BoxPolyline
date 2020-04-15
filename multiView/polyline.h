@@ -12,10 +12,12 @@ public:
     void init(const Frame *const refFrame);
     void update(const std::vector<Vec> &newPoints);
     int getNbPoints(){ return points.size(); }
-    Vec getPoint(unsigned int i){return frame.inverseCoordinatesOf(points[i]);}
-    void bend(unsigned int index, Vec &newPosition, std::vector<Vec>& relativeNorms);
+    Vec& getPoint(unsigned int i){return points[i];}
+    Vec getWorldCoordinates(const Vec& v){ return frame.inverseCoordinatesOf(v);}
+    Vec getWorldTransform(const Vec& v){ return frame.inverseTransformOf(v);}
+    void bend(unsigned int index, Vec &newPosition, std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals);
     void bendNormals(unsigned int index, Vec &newPosition);
-    void getCuttingAngles(std::vector<Vec>& relativeNorms);
+    void getCuttingAngles(std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals);
     void updateNormals(const std::vector<Vec>& relativeNorms);
 
 private:

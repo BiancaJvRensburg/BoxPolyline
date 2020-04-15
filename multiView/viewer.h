@@ -30,12 +30,14 @@ protected:
     void init();
     void updateCamera(const Vec& center, float radius);
     void updatePolyline(const std::vector<Vec> &newPoints);
+    void deleteGhostPlanes();
 
     double angle(Vec a, Vec b);
     double segmentLength(const Vec a, const Vec b);
 
     ManipulatedFrame* viewerFrame;
     class Polyline poly;
+    std::vector<Plane*> ghostPlanes;
 
 
 private:
