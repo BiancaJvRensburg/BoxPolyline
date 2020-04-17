@@ -125,15 +125,16 @@ void Viewer::extendPolyline(int position){
 
 void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
     std::vector<Vec> relativeNorms;
-    std::vector<Vec> planeAxes;     // the x,y,z vectors of each frame
-    poly.bend(pointIndex, v, relativeNorms, planeAxes);
+    std::vector<Vec> planeNormals;     // the x,y,z vectors of each frame
+    std::vector<Vec> planeBinormals;
+    poly.bend(pointIndex, v, relativeNorms, planeNormals, planeBinormals);
     Q_EMIT polylineBent(relativeNorms);
 
     // set the planes' orientations
     for(unsigned int i=0; i<ghostPlanes.size(); i++){
-        Vec binormal(0,1,0);
+        //Vec binormal(0,1,0);
         ghostPlanes[i]->setPosition(poly.getPoint(i+1));
-        ghostPlanes[i]->setFrameFromBasis(planeAxes[i], binormal, cross(planeAxes[i],binormal));
+        ghostPlanes[i]->setFrameFromBasis(planeNormals[i], planeBinormals[i], cross(planeNormals[i],planeBinormals[i]));
     }
 
 }
