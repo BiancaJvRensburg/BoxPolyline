@@ -35,7 +35,7 @@ void ViewerFibula::bendPolylineNormals(const std::vector<Vec>& normals, const st
         ghostPlanes[i/3]->setPosition(poly.getPoint(((i/3)+2)/2));
 
         // rotate 90 degrees around the normal to line up z with the tangent (which stays fixed)
-        //ghostPlanes[i/3]->rotate(Quaternion(ghostPlanes[i/3]->getLocalVector(Vec(0,1,0)), M_PI/2.));
+        ghostPlanes[i/3]->rotate(Quaternion(ghostPlanes[i/3]->getLocalVector(Vec(0,1,0)), M_PI/2.));
     }
 
     for(unsigned int i=0; i<tempNorms.size(); i+=3){
@@ -43,6 +43,8 @@ void ViewerFibula::bendPolylineNormals(const std::vector<Vec>& normals, const st
         Vec a = poly.getWorldTransform(tempNorms[i+1]);
         tempFibPlanes[i/3]->setFrameFromBasis(v, a, cross(v, a));
         tempFibPlanes[i/3]->setPosition(poly.getPoint(((i/3)+1)));
+
+        tempFibPlanes[i/3]->rotate(Quaternion(tempFibPlanes[i/3]->getLocalVector(Vec(0,1,0)), M_PI/2.));
     }
 
     update();
