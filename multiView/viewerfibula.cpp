@@ -5,21 +5,44 @@ ViewerFibula::ViewerFibula(QWidget *parent, StandardCamera *camera, int sliderMa
 
 }
 
-void ViewerFibula::updateFibPolyline(const std::vector<Vec>& newPoints){
+void ViewerFibula::updateFibPolyline(const std::vector<double>& distances){
+    std::vector<Vec> newPoints;
+    newPoints.push_back(Vec(0,0,0));
+    for(unsigned int i=0; i<distances.size(); i++) newPoints.push_back(newPoints[i] + Vec(distances[i], 0, 0));
     updatePolyline(newPoints);
 }
 
-void ViewerFibula::bendPolylineNormals(const std::vector<Vec>& normals){
-    poly.updateNormals(normals);
+void ViewerFibula::bendPolylineNormals(const std::vector<Vec>& normals, const std::vector<double>& distances, const std::vector<Vec>&tempNorms){
+    /*poly.updateNormals(normals);
 
     // reinitialise the planes (create new ones each time)
 
     for(unsigned int i=0; i<normals.size(); i++){
         Vec binormal(0,1,0);
         Vec z = cross(normals[i], binormal);
-        if(i%2==0) ghostPlanes[i]->setFrameFromBasis(normals[i], binormal, z);
-        else ghostPlanes[i]->setFrameFromBasis(normals[i], -binormal, -z);
+        ghostPlanes[i]->setFrameFromBasis(normals[i], binormal, z);
         ghostPlanes[i]->setPosition(poly.getPoint((i+2)/2));
+    }
+
+    update();*/
+
+    updateFibPolyline(distances);
+
+    for(unsigned int i=0; i<normals.size(); i+=3){
+        Vec v = poly.getWorldTransform(normals[i]);
+        Vec a = poly.getWorldTransform(normals[i+1]);
+        ghostPlanes[i/3]->setFrameFromBasis(v, a, cross(v, a));
+        ghostPlanes[i/3]->setPosition(poly.getPoint(((i/3)+2)/2));
+
+        // rotate 90 degrees around the normal to line up z with the tangent (which stays fixed)
+        //ghostPlanes[i/3]->rotate(Quaternion(ghostPlanes[i/3]->getLocalVector(Vec(0,1,0)), M_PI/2.));
+    }
+
+    for(unsigned int i=0; i<tempNorms.size(); i+=3){
+        Vec v = poly.getWorldTransform(tempNorms[i]);
+        Vec a = poly.getWorldTransform(tempNorms[i+1]);
+        tempFibPlanes[i/3]->setFrameFromBasis(v, a, cross(v, a));
+        tempFibPlanes[i/3]->setPosition(poly.getPoint(((i/3)+1)));
     }
 
     update();
@@ -36,7 +59,17 @@ void ViewerFibula::initGhostPlanes(){
         Plane *p1 = new Plane(1., Movable::STATIC, pos, .5f, i+1);
         ghostPlanes.push_back(p1);
         ghostPlanes[i]->setPosition(poly.getPoint((i+2)/2));
-        if(i%2==0) ghostPlanes[i]->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
-        else ghostPlanes[i]->setFrameFromBasis(Vec(0,0,1), Vec(0,1,0), Vec(-1,0,0));
+        ghostPlanes[i]->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
+    }
+
+    for(unsigned int i=0; i<tempFibPlanes.size(); i++) delete tempFibPlanes[i];
+    tempFibPlanes.clear();
+
+    for(unsigned int i=1; i<poly.getNbPoints()-1; i++){
+        Vec pos(0,0,0);
+        Plane *p1 = new Plane(1., Movable::DYNAMIC, pos, .5f, i);
+        p1->setPosition(poly.getPoint(i));
+        p1->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
+        tempFibPlanes.push_back(p1);
     }
 }

@@ -7,6 +7,7 @@ Polyline::Polyline()
     for(unsigned int i=0; i<4; i++) points.push_back(Vec(i, 0, 0));
     for(unsigned int i=0; i<points.size()-1; i++) segmentNormals.push_back(normal);
     for(unsigned int i=0; i<points.size()-1; i++) segmentBinormals.push_back(binormal);
+    for(unsigned int i=0; i<points.size()-1; i++) segmentTangents.push_back(tangent);
     for(unsigned int i=1; i<points.size()-1; i++) cuttingLines.push_back(normal);
     for(unsigned int i=1; i<points.size()-1; i++) cuttingBinormals.push_back(binormal);
     for(unsigned int i=0; i<points.size()-1; i++){
@@ -87,6 +88,22 @@ void Polyline::draw(){
         glVertex3f(endPoint.x, endPoint.y, endPoint.z);
         glEnd();
 
+        /*glColor3f(1., 1., 1.);
+            glBegin(GL_LINES);
+            endPoint = points[0]+0.5*segmentTangents[0];
+            glVertex3f(points[0].x, points[0].y, points[0].z);
+            glVertex3f(endPoint.x, endPoint.y, endPoint.z);
+            for(unsigned int i=1; i<points.size()-1; i++){
+                    endPoint = points[i]+0.5*segmentTangents[i];
+                    glVertex3f(points[i].x, points[i].y, points[i].z);
+                    glVertex3f(endPoint.x, endPoint.y, endPoint.z);
+            }
+            endPoint = points.back()+0.5*segmentTangents.back();
+            glVertex3f(points.back().x, points.back().y, points.back().z);
+            glVertex3f(endPoint.x, endPoint.y, endPoint.z);
+            glEnd();*/
+
+
     // The points
     glColor3f(0.,1.,0.);
     glPointSize(10.);
@@ -106,30 +123,30 @@ void Polyline::draw(){
     glEnd();*/
 
     // The cutting lines
-    glPopMatrix();
+    /*glPopMatrix();
     glColor3f(0.,1.,1.);
     glBegin(GL_LINES);
     for(unsigned int i=0; i<cuttingLines.size(); i++){
-        endPoint = points[i+1]+0.5*cuttingLines[i];
+        Vec endPoint = points[i+1]+0.5*cuttingLines[i];
         glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
         glVertex3d(endPoint.x, endPoint.y, endPoint.z);
     }
     glEnd();
 
     glPopMatrix();
-        glColor3f(0.,1.,1.);
+        glColor3f(1.,0.,1.);
         glBegin(GL_LINES);
         for(unsigned int i=0; i<cuttingLines.size(); i++){
             Vec endPoint = points[i+1]+0.5*cuttingBinormals[i];
             glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
             glVertex3d(endPoint.x, endPoint.y, endPoint.z);
         }
-        glEnd();
+        glEnd();*/
 }
 
 void Polyline::update(const std::vector<Vec> &newPoints){
-    points.clear();
-    for(unsigned int i=0; i<newPoints.size(); i++) points.push_back(newPoints[i]);
+    //points.clear();
+    for(unsigned int i=0; i<newPoints.size(); i++) points[i]=newPoints[i];
 }
 
 double Polyline::getBendAngle(Vec &a, Vec &b){
@@ -210,6 +227,7 @@ void Polyline::bendNormals(unsigned int index, Vec &newPosition){
 
 void Polyline::recalculateNormal(unsigned int index, const Vec &origin, const Vec &newPosition){
     Vec pos = newPosition - origin;
+    pos.normalize();
     //pos.y = 0;
     segmentNormals[index] = -cross(pos, segmentBinormals[index]);
     segmentNormals[index].normalize();
@@ -223,6 +241,7 @@ void Polyline::recalculateBinormal(unsigned int index, const Vec &origin, const 
    // Calculate an orthogonal vector on the plane
     Vec pos = newPosition - origin;
     pos.normalize();
+    segmentTangents[index] = pos;
     pos.z = 0;        // The new polyline projected in the z plane
     //std::cout << "Pos " << index << " : " << pos.x << "," << pos.y << "," << pos.z << std::endl;
 
@@ -234,7 +253,7 @@ void Polyline::recalculateBinormal(unsigned int index, const Vec &origin, const 
     double x = binormal.x * cos(theta) - binormal.y * sin(theta);
     double y = binormal.x * sin(theta) + binormal.y * cos(theta);
     segmentBinormals[index] = Vec(x,y,0);
-    //segmentBinormals[index].normalize();
+    segmentBinormals[index].normalize();
     //std::cout << "Binormal " << index << " : " << segmentBinormals[index].x << "," << segmentBinormals[index].y << "," << segmentBinormals[index].z << std::endl;
 
 
@@ -282,6 +301,9 @@ Quaternion Polyline::getRotationQuaternion(const Vec &axis, const double &theta)
 void Polyline::getCuttingAngles(std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals){
     cuttingLines.clear();
     cuttingBinormals.clear();
+    relativeNorms.clear();
+    planeNormals.clear();
+    planeBinormals.clear();
 
     for(unsigned int i=0; i<segmentNormals.size()-1; i++){
         Vec v = segmentNormals[i] + segmentNormals[i+1];
@@ -292,21 +314,54 @@ void Polyline::getCuttingAngles(std::vector<Vec>& relativeNorms, std::vector<Vec
         b /= 2.0;
         b.normalize();
         cuttingBinormals.push_back(b);
-        double theta = angle(cuttingLines.back(), cuttingBinormals.back());
+
+       // for(unsigned int j=0; j<2;j++) std::cout << "Norm : " << i << "," << j << " : " << segmentNormals[i+j].x << " " << segmentNormals[i+j].y << " " << segmentNormals[i+j].z << std::endl;
+        //for(unsigned int j=0; j<2;j++) std::cout << "Binorm : " << i << "," << j << " : " << segmentBinormals[i+j].x << " " << segmentBinormals[i+j].y << " " << segmentBinormals[i+j].z << std::endl;
+
+
+        relativeNorms.push_back(segmentNormals[i]);
+        relativeNorms.push_back(segmentBinormals[i]);
+        relativeNorms.push_back(segmentTangents[i]);
+
+
+       relativeNorms.push_back(segmentNormals[i+1]);
+       relativeNorms.push_back(segmentBinormals[i+1]);
+       relativeNorms.push_back(segmentTangents[i+1]);
+        /*double theta = angle(cuttingLines.back(), cuttingBinormals.back());
         double alpha = M_PI / 2.0 - theta + M_PI;
         Vec axis = cross(cuttingLines.back(), cuttingBinormals.back());
-        cuttingLines.back() = vectorQuaternionRotation(alpha, axis, cuttingLines.back());
+        cuttingLines.back() = vectorQuaternionRotation(alpha, axis, cuttingLines.back());*/
         //std::cout << "Dot product " << i << " : " << cuttingBinormals[i]*cuttingLines[i] << std::endl;
     }
 
     // get the relative normals
-    relativeNorms.clear();
+
 
     for(unsigned int i=0; i<cuttingLines.size(); i++){
-        Frame f = Frame();
+        double theta = angle(cuttingLines[i], cuttingBinormals[i]);
+        double alpha = M_PI / 2.0 - theta + M_PI;
+        Vec axis = cross(cuttingLines[i], cuttingBinormals[i]);
+        cuttingLines[i] = vectorQuaternionRotation(alpha, axis, cuttingLines[i]);
+
+        planeNormals.push_back(cuttingLines[i]);            // save for the mandible
+        planeBinormals.push_back(cuttingBinormals[i]);
+    }
+
+
+    for(unsigned int i=0; i<cuttingLines.size(); i++){      // not for the two end planes
+        /*Frame f = Frame();
         initialiseFrame(f);
         Quaternion q = Quaternion(cuttingLines[i], normal);
         f.rotate(q);
+
+        relativeNorms.push_back(f.localInverseTransformOf(segmentNormals[i]));      // save for the fibula
+        relativeNorms.push_back(binormal);
+        relativeNorms.push_back(cross(relativeNorms[relativeNorms.size()-2], binormal));
+        relativeNorms.push_back(f.localInverseTransformOf(segmentNormals[i+1]));
+        relativeNorms.push_back(binormal);
+        relativeNorms.push_back(cross(relativeNorms[relativeNorms.size()-2], binormal));*/
+
+
 
         /*Vec rotationAxis = f.localTransformOf(normal);
         double alpha = angle(getCuttingBinormal(i+1), binormal);
@@ -322,12 +377,39 @@ void Polyline::getCuttingAngles(std::vector<Vec>& relativeNorms, std::vector<Vec
 
         //cuttingBinormals.push_back(getCuttingBinormal(i+1));
 
-        relativeNorms.push_back(f.localInverseTransformOf(segmentNormals[i]));      // save for the fibula
-        relativeNorms.push_back(f.localInverseTransformOf(segmentNormals[i+1]));
+       /* relativeNorms.push_back(f.localInverseTransformOf(segmentNormals[i]));      // save for the fibula
+        relativeNorms.push_back(f.localInverseTransformOf(segmentNormals[i+1]));*/
 
-        planeNormals.push_back(cuttingLines[i]);            // save for the mandible
-        planeBinormals.push_back(cuttingBinormals[i]);
+              // x
+
+         /*relativeNorms.push_back(segmentNormals[i]);
+         relativeNorms.push_back(segmentBinormals[i]);
+              // y
+         relativeNorms.push_back(segmentTangents[i]);
+               // z
+
+
+        relativeNorms.push_back(segmentNormals[i+1]);
+        relativeNorms.push_back(segmentBinormals[i+1]);
+
+        relativeNorms.push_back(segmentTangents[i+1]);*/
+
+        /*for(unsigned int j=0; j<2; j++){
+            Frame f = Frame();
+            initialiseFrame(f);
+            Quaternion q;
+            q.setFromRotatedBasis(segmentNormals[i+j], segmentBinormals[i+j], segmentTangents[i+j]);
+            f.setOrientation(q);
+
+            relativeNorms.push_back(f.localTransformOf(cuttingLines[i+j]));
+            relativeNorms.push_back(f.localTransformOf(cuttingBinormals[i+j]));
+            relativeNorms.push_back(f.localTransformOf(cross(cuttingLines[i+j], cuttingBinormals[i+j])));
+        }*/
+
+
+
     }
+
 
 }
 
@@ -353,4 +435,16 @@ void Polyline::updateNormals(const std::vector<Vec> &relativeNorms){
         displayNormals.push_back(relativeNorms[i]);
     }
     displayNormals.push_back(segmentNormals.back());
+}
+
+void Polyline::getDistances(std::vector<double> &distances){
+    distances.clear();
+
+    for(unsigned int i=0; i<points.size()-1; i++){
+        distances.push_back(euclideanDistance(points[i], points[i+1]));
+    }
+}
+
+double Polyline::euclideanDistance(const Vec &a, const Vec &b){
+    return sqrt(pow(a.x-b.x, 2.) + pow(a.y-b.y, 2.) + pow(a.z-b.z, 2.));
 }

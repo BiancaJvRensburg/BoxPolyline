@@ -24,7 +24,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
-    void polylineBent(const std::vector<Vec>&);
+    void polylineBent(const std::vector<Vec>&, const std::vector<double>&, const std::vector<Vec>&);
 
 protected:
     void draw();
@@ -40,6 +40,8 @@ protected:
     ManipulatedFrame* viewerFrame;
     class Polyline poly;
     std::vector<Plane*> ghostPlanes;
+    std::vector<Plane*> tempPlanes;
+    std::vector<Plane*> tempFibPlanes;
 
 
 private:

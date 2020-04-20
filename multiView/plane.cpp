@@ -16,10 +16,10 @@ Plane::Plane(double s, Movable status, Vec& pos, float alpha, unsigned int id) :
 }
 
 void Plane::initBasePlane(){
-        points[0] = Vec(cp.getPoint().x, cp.getPoint().y - size, cp.getPoint().z);
+        points[0] = Vec(cp.getPoint().x, cp.getPoint().y, cp.getPoint().z);
         points[1] = Vec(cp.getPoint().x, cp.getPoint().y + size, cp.getPoint().z);
-        points[2] = Vec(cp.getPoint().x + size*2., cp.getPoint().y + size, cp.getPoint().z);
-        points[3] = Vec(cp.getPoint().x + size*2., cp.getPoint().y - size, cp.getPoint().z);
+        points[2] = Vec(cp.getPoint().x + size, cp.getPoint().y + size, cp.getPoint().z);
+        points[3] = Vec(cp.getPoint().x + size, cp.getPoint().y, cp.getPoint().z);
 }
 
 void Plane::getCorners(Vec &v0, Vec &v1, Vec &v2, Vec &v3){
@@ -49,7 +49,7 @@ void Plane::draw(){
     }
 
     glColor3f(1,1,1);
-    QGLViewer::drawAxis(size/2.0);
+    QGLViewer::drawAxis(size/2.);
 
     if(status==Movable::DYNAMIC){
         cp.toggleSwitchFrames();

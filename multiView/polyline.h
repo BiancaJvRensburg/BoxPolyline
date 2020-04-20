@@ -15,9 +15,12 @@ public:
     Vec& getPoint(unsigned int i){return points[i];}
     Vec getWorldCoordinates(const Vec& v){ return frame.inverseCoordinatesOf(v);}
     Vec getWorldTransform(const Vec& v){ return frame.inverseTransformOf(v);}
+    Vec getLocalTransform(const Vec& v){ return frame.localTransformOf(v); }
     void bend(unsigned int index, Vec &newPosition, std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
     void bendNormals(unsigned int index, Vec &newPosition);
     void updateNormals(const std::vector<Vec>& relativeNorms);
+    void getDistances(std::vector<double>& distances);
+    double euclideanDistance(const Vec &a, const Vec &b);
 
 private:
     Vec projection(Vec &a, Vec &planeNormal);
@@ -39,6 +42,7 @@ private:
     std::vector<Vec> points;
     std::vector<Vec> segmentNormals;
     std::vector<Vec> segmentBinormals;
+    std::vector<Vec> segmentTangents;
     std::vector<Vec> cuttingLines;
     std::vector<Vec> cuttingBinormals;
     std::vector<Vec> displayNormals;
