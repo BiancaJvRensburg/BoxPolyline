@@ -6,7 +6,9 @@ Polyline::Polyline()
 
     for(unsigned int i=0; i<4; i++) points.push_back(Vec(i, 0, 0));
     for(unsigned int i=0; i<points.size()-1; i++) segmentNormals.push_back(normal);
+    for(unsigned int i=0; i<points.size()-1; i++) segmentBinormals.push_back(binormal);
     for(unsigned int i=1; i<points.size()-1; i++) cuttingLines.push_back(normal);
+    for(unsigned int i=1; i<points.size()-1; i++) cuttingBinormals.push_back(binormal);
 }
 
 void Polyline::init(const Frame *const refFrame){
@@ -28,23 +30,40 @@ void Polyline::draw(){
     glEnd();
 
     // The normals
-    /*glColor3f(1., 0., 0.);
-    glBegin(GL_LINES);
-    Vec endPoint = points[0]+0.5*displayNormals[0];
-    glVertex3d(points[0].x, points[0].y, points[0].z);
-    glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-    for(unsigned int i=1; i<points.size()-1; i++){
-        endPoint = points[i]+0.5*displayNormals[2*i-1];
-        glVertex3d(points[i].x, points[i].y, points[i].z);
-        glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-        endPoint = points[i]+0.5*displayNormals[2*i];
-        glVertex3d(points[i].x, points[i].y, points[i].z);
-        glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-    }
-    endPoint = points.back()+0.5*segmentNormals.back();
-    glVertex3d(points.back().x, points.back().y, points.back().z);
-    glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-    glEnd();*/
+   /* glColor3f(1., 0., 0.);
+       glBegin(GL_LINES);
+       Vec endPoint = points[0]+0.5*segmentNormals[0];
+       glVertex3f(points[0].x, points[0].y, points[0].z);
+       glVertex3f(endPoint.x, endPoint.y, endPoint.z);
+       for(unsigned int i=1; i<points.size()-1; i++){
+           for(unsigned int j=0; j<2; j++){
+               endPoint = points[i]+0.5*segmentNormals[i-j];
+               glVertex3f(points[i].x, points[i].y, points[i].z);
+               glVertex3f(endPoint.x, endPoint.y, endPoint.z);
+           }
+       }
+       endPoint = points.back()+0.5*segmentNormals.back();
+       glVertex3f(points.back().x, points.back().y, points.back().z);
+       glVertex3f(endPoint.x, endPoint.y, endPoint.z);
+       glEnd();
+
+    glColor3f(1., 1., 0.);
+        glBegin(GL_LINES);
+        endPoint = points[0]+0.5*segmentBinormals[0];
+        glVertex3f(points[0].x, points[0].y, points[0].z);
+        glVertex3f(endPoint.x, endPoint.y, endPoint.z);
+        for(unsigned int i=1; i<points.size()-1; i++){
+            for(unsigned int j=0; j<2; j++){
+                endPoint = points[i]+0.5*segmentBinormals[i-j];
+                glVertex3f(points[i].x, points[i].y, points[i].z);
+                glVertex3f(endPoint.x, endPoint.y, endPoint.z);
+            }
+        }
+        endPoint = points.back()+0.5*segmentBinormals.back();
+        glVertex3f(points.back().x, points.back().y, points.back().z);
+        glVertex3f(endPoint.x, endPoint.y, endPoint.z);
+        glEnd();*/
+
 
     // The points
     glColor3f(0.,1.,0.);
@@ -53,21 +72,42 @@ void Polyline::draw(){
     for(unsigned int i=0; i<points.size(); i++) glVertex3d(points[i].x, points[i].y, points[i].z);
     glEnd();
 
+    // Binormal
+    /*glColor3f(0.,1.,0.);
+    glPointSize(10.);
+    glBegin(GL_LINES);
+    for(unsigned int i=0; i<points.size(); i++){
+        endPoint = points[i]+0.5*segmentNormals[i];
+        glVertex3d(points[i].x, points[i].y, points[i].z);
+        glVertex3f(endPoint.x, endPoint.y, endPoint.z);
+    }
+    glEnd();*/
+
     // The cutting lines
     /*glPopMatrix();
     glColor3f(0.,1.,1.);
     glBegin(GL_LINES);
     for(unsigned int i=0; i<cuttingLines.size(); i++){
-        endPoint = points[i+1]+0.5*cuttingLines[i];
+        Vec endPoint = points[i+1]+0.5*cuttingLines[i];
         glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
         glVertex3d(endPoint.x, endPoint.y, endPoint.z);
     }
-    glEnd();*/
+    glEnd();
+
+    glPopMatrix();
+        glColor3f(1.,0.,1.);
+        glBegin(GL_LINES);
+        for(unsigned int i=0; i<cuttingLines.size(); i++){
+            Vec endPoint = points[i+1]+0.5*cuttingBinormals[i];
+            glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
+            glVertex3d(endPoint.x, endPoint.y, endPoint.z);
+        }
+        glEnd();*/
 }
 
 void Polyline::update(const std::vector<Vec> &newPoints){
-    points.clear();
-    for(unsigned int i=0; i<newPoints.size(); i++) points.push_back(newPoints[i]);
+    //points.clear();
+    for(unsigned int i=0; i<newPoints.size(); i++) points[i]=newPoints[i];
 }
 
 double Polyline::getBendAngle(Vec &a, Vec &b){
@@ -78,7 +118,7 @@ double Polyline::getBendAngle(Vec &a, Vec &b){
     return angle(projA, projB);
 }
 
-double Polyline::angle(Vec &a, Vec &b){
+double Polyline::angle(const Vec &a, const Vec &b){
     double na = a.norm();
     double nb = b.norm();
     double ab = a*b;
@@ -94,47 +134,55 @@ Vec Polyline::projection(Vec &a, Vec &planeNormal){
     return a - planeNormal * alpha;
 }
 
-void Polyline::bend(unsigned int index, Vec &newPosition, std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals){
+void Polyline::bend(unsigned int index, Vec &newPosition, std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals){
     if(index >= points.size()-1) return;
 
     const Vec &origin = points[index+1];
+
     points[index] = newPosition;
-    if(index!=0) recalculateNormal(index-1, newPosition, points[index-1]);
-    recalculateNormal(index, origin, newPosition);
 
-    getCuttingAngles(relativeNorms, planeNormals);
+    if(index!=0) recalculateBinormal(index-1, points[index-1], points[index]);
+    recalculateBinormal(index, points[index], points[index+1]);
 
-    for(unsigned int i=0; i<segmentNormals.size(); i++){
-        displayNormals.push_back(segmentNormals[i]);
-        displayNormals.push_back(segmentNormals[i]);        // one for each end of the box
-    }
-}
+    /*if(index!=0) recalculateNormal(index-1, points[index], points[index-1]);
+    recalculateNormal(index, origin, points[index]);*/
 
-void Polyline::bendNormals(unsigned int index, Vec &newPosition){
-    /*if(index >= points.size()-1) return;
-
-    const Vec &origin = points[index+1];
-    if(index!=0) recalculateNormal(index-1, newPosition, points[index-1]);
-    recalculateNormal(index, origin, newPosition);
-
-    std::vector<Vec> relativeNorms;
-    getCuttingAngles(relativeNorms);*/
+    getCuttingAngles(relativeNorms, planeNormals, planeBinormals);
 }
 
 void Polyline::recalculateNormal(unsigned int index, const Vec &origin, const Vec &newPosition){
     Vec pos = newPosition - origin;
-    segmentNormals[index] = -cross(pos, binormal);
+    pos.normalize();
+
+    segmentNormals[index] = -cross(pos, segmentBinormals[index]);
     segmentNormals[index].normalize();
 }
 
-void Polyline::rotateSegment(unsigned int index, double theta, const Vec &axis){
+void Polyline::recalculateBinormal(unsigned int index, const Vec &origin, const Vec &newPosition){
+   // Calculate an orthogonal vector on the plane
+    Vec pos = newPosition - origin;
+    pos.normalize();
+    pos.z = 0;        // The new polyline projected in the z plane
+
+    double theta = angle(pos, tangent);        // get the angle which the tangent rotated
+    if(pos.y <0) theta = -theta;        // rotate the opposite way
+
+    double x = binormal.x * cos(theta) - binormal.y * sin(theta);
+    double y = binormal.x * sin(theta) + binormal.y * cos(theta);
+    segmentBinormals[index] = Vec(x,y,0);
+    segmentBinormals[index].normalize();
+
+    recalculateNormal(index, newPosition, origin);
+ }
+
+Vec Polyline::vectorQuaternionRotation(double theta, const Vec &axis, const Vec &vectorToRotate){
     Quaternion r(cos(theta/2.0)*axis.x, cos(theta/2.0)*axis.y, cos(theta/2.0)*axis.z, sin(theta/2.0));      // rotation
 
     Frame f = Frame();
     initialiseFrame(f);
     f.rotate(r);
 
-    segmentNormals[index] = f.localInverseTransformOf(normal);
+    return f.localInverseTransformOf(vectorToRotate);
 }
 
 void Polyline::initialiseFrame(Frame &f){
@@ -143,39 +191,50 @@ void Polyline::initialiseFrame(Frame &f){
     f.setOrientation(q);
 }
 
-void Polyline::getCuttingAngles(std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals){
+void Polyline::getCuttingAngles(std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals){
     cuttingLines.clear();
+    cuttingBinormals.clear();
+    relativeNorms.clear();
+    planeNormals.clear();
+    planeBinormals.clear();
 
     for(unsigned int i=0; i<segmentNormals.size()-1; i++){
         Vec v = segmentNormals[i] + segmentNormals[i+1];
         v /= 2.0;
         v.normalize();
         cuttingLines.push_back(v);
-    }
+        Vec b = segmentBinormals[i] + segmentBinormals[i+1];
+        b /= 2.0;
+        b.normalize();
+        cuttingBinormals.push_back(b);
 
-    // get the relative normals
-    relativeNorms.clear();
+        relativeNorms.push_back(segmentNormals[i]);
+        relativeNorms.push_back(segmentBinormals[i]);
+
+
+       relativeNorms.push_back(segmentNormals[i+1]);
+       relativeNorms.push_back(segmentBinormals[i+1]);
+    }
 
     for(unsigned int i=0; i<cuttingLines.size(); i++){
-        Frame f = Frame();
-        initialiseFrame(f);
-        Quaternion q = Quaternion(cuttingLines[i], normal);
-        f.rotate(q);
-
-        relativeNorms.push_back(f.localInverseTransformOf(segmentNormals[i]));      // save for the fibula
-        relativeNorms.push_back(f.localInverseTransformOf(segmentNormals[i+1]));
+        double theta = angle(cuttingLines[i], cuttingBinormals[i]);
+        double alpha = M_PI / 2.0 - theta + M_PI;
+        Vec axis = cross(cuttingLines[i], cuttingBinormals[i]);
+        cuttingLines[i] = vectorQuaternionRotation(alpha, axis, cuttingLines[i]);
 
         planeNormals.push_back(cuttingLines[i]);            // save for the mandible
+        planeBinormals.push_back(cuttingBinormals[i]);
     }
-
 }
 
-void Polyline::updateNormals(const std::vector<Vec> &relativeNorms){
-    displayNormals.clear();
+void Polyline::getDistances(std::vector<double> &distances){
+    distances.clear();
 
-    displayNormals.push_back(segmentNormals[0]);
-    for(unsigned int i=0; i<relativeNorms.size(); i++){
-        displayNormals.push_back(relativeNorms[i]);
+    for(unsigned int i=0; i<points.size()-1; i++){
+        distances.push_back(euclideanDistance(points[i], points[i+1]));
     }
-    displayNormals.push_back(segmentNormals.back());
+}
+
+double Polyline::euclideanDistance(const Vec &a, const Vec &b){
+    return sqrt(pow(a.x-b.x, 2.) + pow(a.y-b.y, 2.) + pow(a.z-b.z, 2.));
 }

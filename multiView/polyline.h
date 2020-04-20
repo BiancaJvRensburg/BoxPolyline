@@ -15,18 +15,20 @@ public:
     Vec& getPoint(unsigned int i){return points[i];}
     Vec getWorldCoordinates(const Vec& v){ return frame.inverseCoordinatesOf(v);}
     Vec getWorldTransform(const Vec& v){ return frame.inverseTransformOf(v);}
-    void bend(unsigned int index, Vec &newPosition, std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals);
-    void bendNormals(unsigned int index, Vec &newPosition);
-    void getCuttingAngles(std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals);
-    void updateNormals(const std::vector<Vec>& relativeNorms);
+    Vec getLocalTransform(const Vec& v){ return frame.localTransformOf(v); }
+    void bend(unsigned int index, Vec &newPosition, std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
+    void getDistances(std::vector<double>& distances);
+    double euclideanDistance(const Vec &a, const Vec &b);
 
 private:
     Vec projection(Vec &a, Vec &planeNormal);
-    double angle(Vec &a, Vec &b);
+    double angle(const Vec &a, const Vec &b);
     double getBendAngle(Vec &a, Vec &b);
-    void rotateSegment(unsigned int index, double angle, const Vec &axis);
+    Vec vectorQuaternionRotation(double angle, const Vec &axis, const Vec &vectorToRotate);
     void recalculateNormal(unsigned int index, const Vec &origin, const Vec &newPoint);
+    void recalculateBinormal(unsigned int index, const Vec &origin, const Vec &newPoint);
     void initialiseFrame(Frame &f);
+    void getCuttingAngles(std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
 
     ManipulatedFrame frame;
     const Vec tangent = Vec(1,0,0);
@@ -34,8 +36,10 @@ private:
     const Vec binormal = Vec(0,1,0);
     std::vector<Vec> points;
     std::vector<Vec> segmentNormals;
+    std::vector<Vec> segmentBinormals;
+    std::vector<Vec> segmentTangents;
     std::vector<Vec> cuttingLines;
-    std::vector<Vec> displayNormals;
+    std::vector<Vec> cuttingBinormals;
 };
 
 #endif // POLYLINE_H

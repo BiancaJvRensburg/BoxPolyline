@@ -18,13 +18,12 @@ public :
 
 public Q_SLOTS:
     void toUpdate();
-    void extendPolyline(int);
     virtual void bendPolyline(unsigned int pointIndex, Vec v);
     void tempBend();
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
-    void polylineBent(const std::vector<Vec>&);
+    void polylineBent(const std::vector<Vec>&, const std::vector<double>&, const std::vector<Vec>&);
 
 protected:
     void draw();
@@ -40,12 +39,8 @@ protected:
     ManipulatedFrame* viewerFrame;
     class Polyline poly;
     std::vector<Plane*> ghostPlanes;
-
-
-private:
-    int partition(int sorted[], int start, int end);
-    void quicksort(int sorted[], int start, int end);
-
+    std::vector<Plane*> tempPlanes;
+    std::vector<Plane*> tempFibPlanes;
 };
 
 #endif // VIEWER_H
