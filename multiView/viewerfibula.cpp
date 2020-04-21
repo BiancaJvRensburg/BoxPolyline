@@ -52,11 +52,10 @@ void ViewerFibula::bendPolyline(unsigned int id, Vec v){
 
 }
 
-void ViewerFibula::initGhostPlanes(){
+void ViewerFibula::initGhostPlanes(Movable s){
     deleteGhostPlanes();
     for(unsigned int i=0; i<(poly.getNbPoints()-2)*2; i++){     // -2 for total nb of planes, another -2 for nb of ghost planes
-        Vec pos(0,0,0);
-        Plane *p1 = new Plane(1., Movable::STATIC, pos, .5f, i+1);
+        Plane *p1 = new Plane(1., s, .5f, i+1);
         ghostPlanes.push_back(p1);
         ghostPlanes[i]->setPosition(poly.getPoint((i+2)/2));
         ghostPlanes[i]->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
@@ -92,4 +91,15 @@ void ViewerFibula::constructCurve(){
     //connect(curve, &Curve::curveReinitialised, this, &Viewer::updatePlanes);
     isCurve = true;
     initCurvePlanes(Movable::STATIC);
+}
+
+void ViewerFibula::constructPolyline(const std::vector<double>& distances, const std::vector<Vec>& newPoints){
+    std::cout << "Dist : " << distances.size() << std::endl;
+    updateFibPolyline(distances);
+
+    std::cout << "Ghost planes before : " << ghostPlanes.size() << std::endl;
+     std::cout << "Poly : " << poly.getNbPoints() << std::endl;
+    initPolyPlanes(Movable::STATIC);
+    std::cout << "Ghost planes after : " << ghostPlanes.size() << std::endl;
+    Q_EMIT okToPlacePlanes(newPoints);
 }

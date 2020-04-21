@@ -1,6 +1,6 @@
 #include "curvepoint.h"
 
-CurvePoint::CurvePoint(Vec& p, const unsigned int &id) : ControlPoint (p)
+CurvePoint::CurvePoint(const unsigned int &id) : ControlPoint ()
 {
     this->mf = ManipulatedFrame();
     this->id = id;

@@ -34,7 +34,7 @@ private Q_SLOTS:
     void openFibJSON();
 
 private:
-    int sliderMax;
+    int sliderMax = 100;
     int fibulaOffsetMax;
 };
 

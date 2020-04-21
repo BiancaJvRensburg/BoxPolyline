@@ -117,8 +117,8 @@ void Polyline::draw(){
 }
 
 void Polyline::update(const std::vector<Vec> &newPoints){
-    //points.clear();
-    for(unsigned int i=0; i<newPoints.size(); i++) points[i]=newPoints[i];
+    points.clear();
+    for(unsigned int i=0; i<newPoints.size(); i++) points.push_back(newPoints[i]);
 }
 
 double Polyline::getBendAngle(Vec &a, Vec &b){

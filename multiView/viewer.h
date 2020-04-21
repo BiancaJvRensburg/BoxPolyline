@@ -23,10 +23,15 @@ public Q_SLOTS:
     void toUpdate();
     virtual void bendPolyline(unsigned int pointIndex, Vec v);
     void tempBend();
+    void cutMesh();
+    void placePlanes(const std::vector<Vec>&);
+    void moveLeftPlane(int);
+    void moveRightPlane(int);
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
     void polylineBent(const std::vector<Vec>&, const std::vector<double>&);
+    void constructPoly(const std::vector<double>&, const std::vector<Vec>&);
 
 protected:
     void draw();
@@ -61,9 +66,12 @@ protected:
     unsigned int curveIndexR;
     unsigned int nbU;
     bool isCurve;
+    const double constraint = 25.;
+    int sliderMax;
 
 private:
     void constructPolyline(const std::vector<Vec>& polyPoints);
+    void movePlane(Plane *p, bool isLeft, unsigned int curveIndex);
 };
 
 #endif // VIEWER_H

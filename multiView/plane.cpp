@@ -1,6 +1,6 @@
 #include "plane.h"
 
-Plane::Plane(double s, Movable status, Vec& pos, float alpha, unsigned int id) : cp(pos, id)
+Plane::Plane(double s, Movable status, float alpha, unsigned int id) : cp(id)
 {
     size = s;
     rotationPercentage = 0;
@@ -11,15 +11,29 @@ Plane::Plane(double s, Movable status, Vec& pos, float alpha, unsigned int id) :
     this->status = status;
     this->isVisible = true;
     this->alpha = alpha;
+    this->isPoly = false;
 
     initBasePlane();
 }
 
+void Plane::toggleIsPoly(){
+    isPoly = !isPoly;
+    initBasePlane();
+}
+
 void Plane::initBasePlane(){
+    if(isPoly){
         points[0] = Vec(cp.getPoint().x, cp.getPoint().y, cp.getPoint().z);
-        points[1] = Vec(cp.getPoint().x, cp.getPoint().y + size, cp.getPoint().z);
+        points[1] = Vec(cp.getPoint().x, cp.getPoint().y + 2.*size, cp.getPoint().z);
+        points[2] = Vec(cp.getPoint().x + 2.*size, cp.getPoint().y + 2.*size, cp.getPoint().z);
+        points[3] = Vec(cp.getPoint().x + 2.*size, cp.getPoint().y, cp.getPoint().z);
+    }
+    else{
+        points[0] = Vec(cp.getPoint().x - size, cp.getPoint().y - size, cp.getPoint().z);
+        points[1] = Vec(cp.getPoint().x - size, cp.getPoint().y + size, cp.getPoint().z);
         points[2] = Vec(cp.getPoint().x + size, cp.getPoint().y + size, cp.getPoint().z);
-        points[3] = Vec(cp.getPoint().x + size, cp.getPoint().y, cp.getPoint().z);
+        points[3] = Vec(cp.getPoint().x + size, cp.getPoint().y - size, cp.getPoint().z);
+    }
 }
 
 void Plane::getCorners(Vec &v0, Vec &v1, Vec &v2, Vec &v3){

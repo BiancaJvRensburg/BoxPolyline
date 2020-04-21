@@ -78,6 +78,17 @@ void MainWindow::initDisplayDockWidgets(){
     contentsMand->setLayout(contentLayoutMand);
     contentsFibula->setLayout(contentLayoutFibula);
 
+    QSlider *leftPlaneSlider = new QSlider(Qt::Horizontal);
+    leftPlaneSlider->setMaximum(sliderMax);
+    contentLayoutMand->addRow("Left slider", leftPlaneSlider);
+
+    QSlider *rightPlaneSlider = new QSlider(Qt::Horizontal);
+    rightPlaneSlider->setMaximum(sliderMax);
+    contentLayoutMand->addRow("Right slider", rightPlaneSlider);
+
+    connect(leftPlaneSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::moveLeftPlane);
+    connect(rightPlaneSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::moveRightPlane);
+
     // Connect the two views
     connect(skullViewer, &Viewer::polylineBent, fibulaViewer, &ViewerFibula::bendPolylineNormals);
 
@@ -104,9 +115,16 @@ void MainWindow::initFileActions(){
     QAction *openJsonFibFileAction = new QAction("Open fibula JSON", this);
     connect(openJsonFibFileAction, &QAction::triggered, this, &MainWindow::openFibJSON);
 
+    QAction *cutMeshAction = new QAction("Cut", this);
+    connect(cutMeshAction, &QAction::triggered, skullViewer, &Viewer::cutMesh);
+
     fileActionGroup->addAction(openJsonFileAction);
     fileActionGroup->addAction(openJsonFibFileAction);
+    fileActionGroup->addAction(cutMeshAction);
     fileActionGroup->addAction(tempBendAction);
+
+    connect(skullViewer, &Viewer::constructPoly, fibulaViewer, &ViewerFibula::constructPolyline);
+    connect(fibulaViewer, &ViewerFibula::okToPlacePlanes, skullViewer, &Viewer::placePlanes);
 }
 
 void MainWindow::initFileMenu(){
