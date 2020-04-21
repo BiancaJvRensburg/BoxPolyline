@@ -11,9 +11,11 @@ public:
     ViewerFibula(QWidget *parent, StandardCamera *camera, int sliderMax, int fibulaOffsetMax);
     void initGhostPlanes();
     void updateFibPolyline(const std::vector<double>& distances);
+    void initCurve();
+    void constructCurve();
 
 public Q_SLOTS:
-    void bendPolylineNormals(const std::vector<Vec>&, const std::vector<double>&, const std::vector<Vec>&);
+    void bendPolylineNormals(const std::vector<Vec>&, const std::vector<double>&);
     void bendPolyline(unsigned int pointIndex, Vec v);
 };
 

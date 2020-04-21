@@ -78,12 +78,6 @@ void MainWindow::initDisplayDockWidgets(){
     contentsMand->setLayout(contentLayoutMand);
     contentsFibula->setLayout(contentLayoutFibula);
 
-    QSlider *extendPolylineSlider = new QSlider(Qt::Horizontal);
-    extendPolylineSlider->setMaximum(100);
-    contentLayoutMand->addRow("Extend polyline", extendPolylineSlider);
-    connect(extendPolylineSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::extendPolyline);
-    connect(extendPolylineSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::extendPolyline);
-
     // Connect the two views
     connect(skullViewer, &Viewer::polylineBent, fibulaViewer, &ViewerFibula::bendPolylineNormals);
 
@@ -104,6 +98,14 @@ void MainWindow::initFileActions(){
     QAction *tempBendAction = new QAction("Temp bend", this);
     connect(tempBendAction, &QAction::triggered, skullViewer, &Viewer::tempBend);
 
+    QAction *openJsonFileAction = new QAction("Open mandible JSON", this);
+    connect(openJsonFileAction, &QAction::triggered, this, &MainWindow::openMandJSON);
+
+    QAction *openJsonFibFileAction = new QAction("Open fibula JSON", this);
+    connect(openJsonFibFileAction, &QAction::triggered, this, &MainWindow::openFibJSON);
+
+    fileActionGroup->addAction(openJsonFileAction);
+    fileActionGroup->addAction(openJsonFibFileAction);
     fileActionGroup->addAction(tempBendAction);
 }
 
@@ -119,3 +121,43 @@ void MainWindow::initToolBars () {
     fileToolBar->addActions(fileActionGroup->actions());
     addToolBar(fileToolBar);
 }
+
+void MainWindow::readJSON(const QJsonObject &json, Viewer *v){
+    if(json.contains("mesh file") && json["mesh file"].isString()){
+        QString fileName = json["mesh file"].toString();
+        v->openOFF(fileName);
+    }
+    if(json.contains("control points") && json["control points"].isArray()){
+        QJsonArray controlPoints = json["control points"].toArray();
+        v->readJSON(controlPoints);
+    }
+}
+
+void MainWindow::openJSON(Viewer *v){
+    QString openFileNameLabel, selectedFilter;
+
+    QString fileFilter = "JSON (*.json)";
+    QString filename = QFileDialog::getOpenFileName(this, tr("Select a mesh"), openFileNameLabel, fileFilter, &selectedFilter);
+
+
+    QFile loadFile(filename);
+
+    if (!loadFile.open(QIODevice::ReadOnly)) {
+        qWarning("Couldn't open save file.");
+        return;
+    }
+
+    QByteArray saveData = loadFile.readAll();
+    QJsonDocument loadDoc(QJsonDocument::fromJson(saveData));
+
+    readJSON(loadDoc.object(), v);
+}
+
+void MainWindow::openMandJSON(){
+    openJSON(skullViewer);
+}
+
+void MainWindow::openFibJSON(){
+    openJSON(fibulaViewer);
+}
+

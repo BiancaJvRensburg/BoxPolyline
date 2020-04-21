@@ -11,7 +11,8 @@ class Curve : public QObject
     Q_OBJECT
 
 public:
-    Curve(unsigned int nbCP, std::vector<Vec>& cntrlPoints);
+    Curve();
+    void init(unsigned int nbCP, std::vector<Vec>& cntrlPoints);
 
     void generateBSpline(unsigned int& nbU, unsigned int degree);
     void generateCatmull(unsigned int& nbU);

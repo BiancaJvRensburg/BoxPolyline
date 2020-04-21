@@ -6,6 +6,7 @@
 #include "plane.h"
 #include "curve.h"
 #include "polyline.h"
+#include "mesh.h"
 
 using namespace qglviewer;
 
@@ -15,24 +16,31 @@ class Viewer : public QGLViewer
 
 public :
     Viewer(QWidget *parent, StandardCamera *camera, int sliderMax);
+    void openOFF(QString f);
+    void readJSON(const QJsonArray &json);
 
 public Q_SLOTS:
     void toUpdate();
-    void extendPolyline(int);
     virtual void bendPolyline(unsigned int pointIndex, Vec v);
     void tempBend();
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
-    void polylineBent(const std::vector<Vec>&, const std::vector<double>&, const std::vector<Vec>&);
+    void polylineBent(const std::vector<Vec>&, const std::vector<double>&);
 
 protected:
     void draw();
     void init();
-    virtual void initGhostPlanes();
+    virtual void initCurve();
+    virtual void constructCurve();
+    virtual void initGhostPlanes(Movable s);
+    void initPolyPlanes(Movable s);
+    void initCurvePlanes(Movable s);
     void updateCamera(const Vec& center, float radius);
     void updatePolyline(const std::vector<Vec> &newPoints);
     void deleteGhostPlanes();
+    void repositionPlane(Plane* p, unsigned int index);
+    void matchPlaneToFrenet(Plane *p, unsigned int index);
 
     double angle(Vec a, Vec b);
     double segmentLength(const Vec a, const Vec b);
@@ -40,14 +48,22 @@ protected:
     ManipulatedFrame* viewerFrame;
     class Polyline poly;
     std::vector<Plane*> ghostPlanes;
-    std::vector<Plane*> tempPlanes;
-    std::vector<Plane*> tempFibPlanes;
+    Plane* leftPlane;
+    Plane* rightPlane;
+    //std::vector<Plane*> tempPlanes;
+    //std::vector<Plane*> tempFibPlanes;
 
+    std::vector<Vec> control;
+    Curve curve;
+    Mesh mesh;
+
+    unsigned int curveIndexL;
+    unsigned int curveIndexR;
+    unsigned int nbU;
+    bool isCurve;
 
 private:
-    int partition(int sorted[], int start, int end);
-    void quicksort(int sorted[], int start, int end);
-
+    void constructPolyline(const std::vector<Vec>& polyPoints);
 };
 
 #endif // VIEWER_H

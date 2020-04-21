@@ -2,8 +2,11 @@
 #include "math.h"
 #include <GL/gl.h>
 
-Curve::Curve(unsigned int nbCP, std::vector<Vec>& cntrlPoints){
+Curve::Curve(){
     this->nbU = 0;
+}
+
+void Curve::init(unsigned int nbCP, std::vector<Vec>& cntrlPoints){
     nbControlPoint = nbCP;
 
     for(unsigned int i=0; i<nbCP; i++){

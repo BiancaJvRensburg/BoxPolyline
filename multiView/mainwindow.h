@@ -26,6 +26,13 @@ private:
     void initToolBars();
     void initFileActions();
 
+    void readJSON(const QJsonObject &json, Viewer *v);
+    void openJSON(Viewer* v);
+
+private Q_SLOTS:
+    void openMandJSON();
+    void openFibJSON();
+
 private:
     int sliderMax;
     int fibulaOffsetMax;
