@@ -4,15 +4,26 @@ Polyline::Polyline()
 {
     frame = ManipulatedFrame();
 
-    for(unsigned int i=0; i<4; i++) points.push_back(Vec(i, 0, 0));
+
+}
+
+void Polyline::init(const Frame *const refFrame, unsigned int nbPoints){
+    frame.setReferenceFrame(refFrame);
+    reinit(nbPoints);
+}
+
+void Polyline::reinit(unsigned int nbPoints){
+    points.clear();
+    segmentNormals.clear();
+    segmentBinormals.clear();
+    cuttingLines.clear();
+    cuttingBinormals.clear();
+
+    for(unsigned int i=0; i<nbPoints; i++) points.push_back(Vec(i, 0, 0));
     for(unsigned int i=0; i<points.size()-1; i++) segmentNormals.push_back(normal);
     for(unsigned int i=0; i<points.size()-1; i++) segmentBinormals.push_back(binormal);
     for(unsigned int i=1; i<points.size()-1; i++) cuttingLines.push_back(normal);
     for(unsigned int i=1; i<points.size()-1; i++) cuttingBinormals.push_back(binormal);
-}
-
-void Polyline::init(const Frame *const refFrame){
-    frame.setReferenceFrame(refFrame);
 }
 
 void Polyline::draw(){
@@ -135,14 +146,12 @@ Vec Polyline::projection(Vec &a, Vec &planeNormal){
 }
 
 void Polyline::bend(unsigned int index, Vec &newPosition, std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals){
-    if(index >= points.size()-1) return;
-
-    const Vec &origin = points[index+1];
+    if(index >= points.size()) return;
 
     points[index] = newPosition;
 
     if(index!=0) recalculateBinormal(index-1, points[index-1], points[index]);
-    recalculateBinormal(index, points[index], points[index+1]);
+    if(index!=points.size()-1) recalculateBinormal(index, points[index], points[index+1]);
 
     /*if(index!=0) recalculateNormal(index-1, points[index], points[index-1]);
     recalculateNormal(index, origin, points[index]);*/
@@ -210,10 +219,8 @@ void Polyline::getCuttingAngles(std::vector<Vec>& relativeNorms, std::vector<Vec
 
         relativeNorms.push_back(segmentNormals[i]);
         relativeNorms.push_back(segmentBinormals[i]);
-
-
-       relativeNorms.push_back(segmentNormals[i+1]);
-       relativeNorms.push_back(segmentBinormals[i+1]);
+        relativeNorms.push_back(segmentNormals[i+1]);
+        relativeNorms.push_back(segmentBinormals[i+1]);
     }
 
     for(unsigned int i=0; i<cuttingLines.size(); i++){
@@ -237,4 +244,14 @@ void Polyline::getDistances(std::vector<double> &distances){
 
 double Polyline::euclideanDistance(const Vec &a, const Vec &b){
     return sqrt(pow(a.x-b.x, 2.) + pow(a.y-b.y, 2.) + pow(a.z-b.z, 2.));
+}
+
+Vec Polyline::averageVector(const std::vector<Vec> &v){
+    Vec r(0,0,0);
+    double totalNb = v.size();
+
+    for(unsigned int i=0; i<v.size(); i++) r += v[i];
+    r /= totalNb;
+
+    return r;
 }

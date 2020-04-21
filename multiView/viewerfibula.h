@@ -13,7 +13,7 @@ public:
     void updateFibPolyline(const std::vector<double>& distances);
 
 public Q_SLOTS:
-    void bendPolylineNormals(const std::vector<Vec>&, const std::vector<double>&, const std::vector<Vec>&);
+    void bendPolylineNormals(const std::vector<Vec>&, const std::vector<double>&);
     void bendPolyline(unsigned int pointIndex, Vec v);
 };
 

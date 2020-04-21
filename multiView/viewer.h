@@ -23,12 +23,13 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
-    void polylineBent(const std::vector<Vec>&, const std::vector<double>&, const std::vector<Vec>&);
+    void polylineBent(const std::vector<Vec>&, const std::vector<double>&);
 
 protected:
     void draw();
     void init();
     virtual void initGhostPlanes();
+    void initPlanes();
     void updateCamera(const Vec& center, float radius);
     void updatePolyline(const std::vector<Vec> &newPoints);
     void deleteGhostPlanes();
@@ -39,8 +40,13 @@ protected:
     ManipulatedFrame* viewerFrame;
     class Polyline poly;
     std::vector<Plane*> ghostPlanes;
-    std::vector<Plane*> tempPlanes;
-    std::vector<Plane*> tempFibPlanes;
+    Plane* leftPlane;
+    Plane* rightPlane;
+    //std::vector<Plane*> tempPlanes;
+    //std::vector<Plane*> tempFibPlanes;
+
+private:
+    void constructPolyline(const std::vector<Vec>& polyPoints);
 };
 
 #endif // VIEWER_H

@@ -9,9 +9,10 @@ public:
     Polyline();
 
     void draw();
-    void init(const Frame *const refFrame);
+    void init(const Frame *const refFrame, unsigned int nbPoints);
+    void reinit(unsigned int nbPoints);
     void update(const std::vector<Vec> &newPoints);
-    int getNbPoints(){ return points.size(); }
+    unsigned int getNbPoints(){ return points.size(); }
     Vec& getPoint(unsigned int i){return points[i];}
     Vec getWorldCoordinates(const Vec& v){ return frame.inverseCoordinatesOf(v);}
     Vec getWorldTransform(const Vec& v){ return frame.inverseTransformOf(v);}
@@ -28,6 +29,7 @@ private:
     void recalculateNormal(unsigned int index, const Vec &origin, const Vec &newPoint);
     void recalculateBinormal(unsigned int index, const Vec &origin, const Vec &newPoint);
     void initialiseFrame(Frame &f);
+    Vec averageVector(const std::vector<Vec>& v);
     void getCuttingAngles(std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
 
     ManipulatedFrame frame;
