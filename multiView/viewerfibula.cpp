@@ -103,10 +103,8 @@ void ViewerFibula::constructCurve(){
 void ViewerFibula::toggleIsPolyline(){
     double size = 20.;
 
-    Vec n(0,0,1);
-    Vec b(0,-1,0);
-    n = poly.getWorldTransform(n);
-    b = poly.getWorldTransform(b);
+    Vec n = poly.getWorldTransform(poly.getNormal());
+    Vec b = poly.getWorldTransform(-poly.getBinormal());
 
     for(unsigned int i=0; i<poly.getNbPoints(); i++) poly.lowerPoint(i, (n+b)*size);
 
@@ -124,6 +122,8 @@ void ViewerFibula::repositionPlanesOnPolyline(){
 }
 
 void ViewerFibula::constructPolyline(const std::vector<double>& distances, const std::vector<Vec>& newPoints){
+    isCut = true;
+
     updateFibPolyline(curve.getPoint(curveIndexL), distances);
 
     initPolyPlanes(Movable::STATIC);

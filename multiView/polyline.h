@@ -22,6 +22,8 @@ public:
     void getDistances(std::vector<double>& distances);
     void lowerPoint(unsigned int index, const Vec &toLower);
     const std::vector<Vec>& getPoints(){ return points; }
+    const Vec& getNormal(){ return normal; }
+    const Vec& getBinormal(){ return binormal; }
 
 private:
     Vec projection(Vec &a, Vec &planeNormal);

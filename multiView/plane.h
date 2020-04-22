@@ -21,6 +21,7 @@ public:
     void setID(unsigned int id){ this->id = id; cp.setID(id); }
     const unsigned int& getID(){ return this->id; }
     void setSize(double s){ size = s; }
+    bool getIsPoly(){ return isPoly; }
 
     void setPosition(Vec pos);
     void setOrientation(Quaternion q){ cp.getFrame().setOrientation(q); }

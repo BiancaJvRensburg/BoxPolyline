@@ -8,6 +8,7 @@ Viewer::Viewer(QWidget *parent, StandardCamera *cam, int sliderMax) : QGLViewer(
     delete c;
     isCurve = false;
     this->sliderMax = sliderMax;
+    this->isCut = false;
 }
 
 void Viewer::draw() {
@@ -16,7 +17,7 @@ void Viewer::draw() {
     glPushMatrix();
     glMultMatrixd(viewerFrame->matrix());
 
-    poly.draw();
+    if(isCut) poly.draw();
 
     if(isCurve){
         glColor4f(0., 1., 0., leftPlane->getAlpha());
@@ -111,21 +112,37 @@ void Viewer::initPolyPlanes(Movable s){
 }
 
 void Viewer::toggleIsPolyline(){
-    /*double size = 20.;
+    double size = 20.;
+    Vec direction = Vec(1,1,0);
 
-    poly.lowerPoint(0, -(endRotations[0]+endRotations[1])*size);
-    poly.lowerPoint(poly.getNbPoints()-1,-(endRotations[2]+endRotations[3])*size);
+    if(!leftPlane->getIsPoly()){
+        poly.lowerPoint(0, -(endRotations[0]+endRotations[1])*size);
+        poly.lowerPoint(poly.getNbPoints()-1,-(endRotations[2]+endRotations[3])*size);
 
-    leftPlane->toggleIsPoly();
-    poly.lowerPoint(1, leftPlane->getMeshVectorFromLocal(-Vec(1,1,0))*size);
-    rightPlane->toggleIsPoly();
-    poly.lowerPoint(poly.getNbPoints()-2, rightPlane->getMeshVectorFromLocal(-Vec(1,1,0))*size);
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) {
-        ghostPlanes[i]->toggleIsPoly();
-        poly.lowerPoint(i+2, ghostPlanes[i]->getMeshVectorFromLocal(-Vec(1,1,0))*size);
+        leftPlane->toggleIsPoly();
+        poly.lowerPoint(leftPlane->getID(), leftPlane->getMeshVectorFromLocal(-direction)*size);
+        rightPlane->toggleIsPoly();
+        poly.lowerPoint(rightPlane->getID(), rightPlane->getMeshVectorFromLocal(-direction)*size);
+        for(unsigned int i=0; i<ghostPlanes.size(); i++) {
+            ghostPlanes[i]->toggleIsPoly();
+            poly.lowerPoint(i+2, ghostPlanes[i]->getMeshVectorFromLocal(-direction)*size);
+        }
+    }
+    else{
+        poly.lowerPoint(0, (endRotations[0]+endRotations[1])*size);
+        poly.lowerPoint(poly.getNbPoints()-1, (endRotations[2]+endRotations[3])*size);
+
+        leftPlane->toggleIsPoly();
+        poly.lowerPoint(leftPlane->getID(), leftPlane->getMeshVectorFromLocal(direction)*size);
+        rightPlane->toggleIsPoly();
+        poly.lowerPoint(rightPlane->getID(), rightPlane->getMeshVectorFromLocal(direction)*size);
+        for(unsigned int i=0; i<ghostPlanes.size(); i++) {
+            ghostPlanes[i]->toggleIsPoly();
+            poly.lowerPoint(i+2, ghostPlanes[i]->getMeshVectorFromLocal(direction)*size);
+        }
     }
 
-    repositionPlanesOnPolyline();*/
+    repositionPlanesOnPolyline();
 }
 
 void Viewer::repositionPlanesOnPolyline(){
@@ -183,6 +200,7 @@ void Viewer::placePlanes(const std::vector<Vec> &polyPoints){
     initPolyPlanes(Movable::DYNAMIC);
     for(unsigned int i=0; i<poly.getNbPoints(); i++) bendPolyline(i, polyPoints[i]);
     toggleIsPolyline();
+    //toggleIsPolyline();
 }
 
 double Viewer::segmentLength(const Vec a, const Vec b){
@@ -332,6 +350,8 @@ void Viewer::cutMesh(){
     if(isNumberRecieved) nbGhostPlanes = nbPieces-1;
     else return;
 
+    isCut = true;
+
     // Construct the polyline : First and last planes are immovable and are at the ends of the meshes
     std::vector<Vec> polylinePoints;
     polylinePoints.push_back(curve.getPoint(0));        // the start of the curve
@@ -343,9 +363,6 @@ void Viewer::cutMesh(){
     polylinePoints.push_back(curve.getPoint(nbU-1));        // the end of the curve
 
     constructPolyline(polylinePoints);
-
-    // Create the ghost planes
-    //initGhostPlanes(nbGhostPlanes, Movable::DYNAMIC);
 
     update();
 }
@@ -364,6 +381,12 @@ void Viewer::moveLeftPlane(int position){
     else curveIndexL = curve.indexForLength(curveIndexR, -constraint);     // get the new position
 
     movePlane(leftPlane, true, curveIndexL);
+
+    if(isCut){
+        toggleIsPolyline();
+        bendPolyline(leftPlane->getID(), curve.getPoint(curveIndexL));
+        toggleIsPolyline();
+    }
 }
 
 void Viewer::moveRightPlane(int position){
@@ -378,6 +401,12 @@ void Viewer::moveRightPlane(int position){
     else curveIndexR = curve.indexForLength(curveIndexL, constraint);
 
     movePlane(rightPlane, false, curveIndexR);
+
+    if(isCut){
+        toggleIsPolyline();
+        bendPolyline(rightPlane->getID(), curve.getPoint(curveIndexR));
+        toggleIsPolyline();
+    }
 }
 
 void Viewer::movePlane(Plane *p, bool isLeft, unsigned int curveIndex){

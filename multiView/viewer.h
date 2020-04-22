@@ -70,6 +70,7 @@ protected:
     bool isCurve;
     const double constraint = 25.;
     int sliderMax;
+    bool isCut;
 
 private:
     void constructPolyline(const std::vector<Vec>& polyPoints);
