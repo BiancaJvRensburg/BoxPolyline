@@ -111,21 +111,53 @@ void Viewer::matchPlaneToFrenet(Plane *p, unsigned int index){
 }
 
 void Viewer::initPolyPlanes(Movable s){
-    Vec p = poly.getPoint(1);
-    leftPlane->setPosition(p);
+    leftPlane->setID(1);
+    rightPlane->setID(poly.getNbPoints()-2);
+
+    leftPlane->setPosition(poly.getPoint(leftPlane->getID()));
     leftPlane->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
 
-    rightPlane->setPosition(poly.getPoint(static_cast<unsigned int>(poly.getNbPoints())-2));
+    rightPlane->setPosition(poly.getPoint(rightPlane->getID()));
     rightPlane->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
 
     initGhostPlanes(s);
+
+    connect(&(leftPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolyline);
+    connect(&(rightPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolyline);
+
+}
+
+void Viewer::toggleIsPolyline(){
+    double size = 20.;
+
+    poly.lowerPoint(0, -(endRotations[0]+endRotations[1])*size);
+    poly.lowerPoint(poly.getNbPoints()-1,-(endRotations[2]+endRotations[3])*size);
+
+    leftPlane->toggleIsPoly();
+    poly.lowerPoint(1, leftPlane->getMeshVectorFromLocal(-Vec(1,1,0))*size);
+    rightPlane->toggleIsPoly();
+    poly.lowerPoint(poly.getNbPoints()-2, rightPlane->getMeshVectorFromLocal(-Vec(1,1,0))*size);
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) {
+        ghostPlanes[i]->toggleIsPoly();
+        poly.lowerPoint(i+2, ghostPlanes[i]->getMeshVectorFromLocal(-Vec(1,1,0))*size);
+    }
+
+    repositionPlanesOnPolyline();
+}
+
+void Viewer::repositionPlanesOnPolyline(){
+    leftPlane->setPosition(poly.getPoint(leftPlane->getID()));
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setPosition(poly.getPoint(ghostPlanes[i]->getID()));
+    rightPlane->setPosition(poly.getPoint(rightPlane->getID()));
 }
 
 void Viewer::initGhostPlanes(Movable s){
-    std::cout << "Initialsiing ghost planes" << std::endl;
     deleteGhostPlanes();
-    for(unsigned int i=1; i<static_cast<unsigned int>(poly.getNbPoints()-1); i++){
-        Plane *p = new Plane(1., s, .5f, i);
+
+    float size = 20.0;
+
+    for(unsigned int i=2; i<static_cast<unsigned int>(poly.getNbPoints()-2); i++){
+        Plane *p = new Plane(size, s, .5f, i);
         p->setPosition(poly.getPoint(i));
         p->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
         ghostPlanes.push_back(p);
@@ -167,6 +199,7 @@ void Viewer::constructPolyline(const std::vector<Vec> &polyPoints){
 void Viewer::placePlanes(const std::vector<Vec> &polyPoints){
     initPolyPlanes(Movable::DYNAMIC);
     for(unsigned int i=0; i<poly.getNbPoints(); i++) bendPolyline(i, polyPoints[i]);
+    toggleIsPolyline();
 }
 
 double Viewer::segmentLength(const Vec a, const Vec b){
@@ -190,22 +223,38 @@ void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
 
     // set the planes' orientations
     for(unsigned int i=0; i<ghostPlanes.size(); i++){
-        ghostPlanes[i]->setPosition(poly.getPoint(i+1));
-        ghostPlanes[i]->setFrameFromBasis(planeNormals[i], planeBinormals[i], cross(planeNormals[i],planeBinormals[i]));
+        ghostPlanes[i]->setPosition(poly.getPoint(ghostPlanes[i]->getID()));
+        ghostPlanes[i]->setFrameFromBasis(planeNormals[i+1], planeBinormals[i+1], cross(planeNormals[i+1],planeBinormals[i+1]));
     }
 
-    leftPlane->setPosition(poly.getPoint(0));
-    leftPlane->setFrameFromBasis(relativeNorms[0], relativeNorms[1], cross(relativeNorms[0], relativeNorms[1]));
+    leftPlane->setPosition(poly.getPoint(leftPlane->getID()));
+    leftPlane->setFrameFromBasis(planeNormals[0], planeBinormals[0], cross(planeNormals[0], planeBinormals[0]));
 
-    unsigned long long lastIndex = relativeNorms.size()-1;
-    rightPlane->setPosition(poly.getPoint(static_cast<unsigned int>(poly.getNbPoints()-1)));
-    rightPlane->setFrameFromBasis(relativeNorms[lastIndex-1], relativeNorms[lastIndex], cross(relativeNorms[lastIndex-1], relativeNorms[lastIndex]));
+    rightPlane->setPosition(poly.getPoint(static_cast<unsigned int>(poly.getNbPoints()-2)));
+    rightPlane->setFrameFromBasis(planeNormals.back(), planeBinormals.back(), cross(planeNormals.back(), planeBinormals.back()));
 
+    unsigned long long lastIndex = relativeNorms.size()-2;
+    endRotations.clear();
+    endRotations.push_back(relativeNorms[0]);
+    endRotations.push_back(relativeNorms[1]);
+    endRotations.push_back(relativeNorms[lastIndex]);
+    endRotations.push_back(relativeNorms[lastIndex+1]);
+
+    Plane tempPlane(1., Movable::STATIC, 0, 0);
+    tempPlane.setFrameFromBasis(relativeNorms[2], relativeNorms[3], cross(relativeNorms[2], relativeNorms[3]));
+
+    Vec n(1,0,0);
+    Vec b(0,1,0);
+    n = leftPlane->getMeshVectorFromLocal(n);
+    b = leftPlane->getMeshVectorFromLocal(b);
+
+    relativeNorms[0] = tempPlane.getLocalVector(n);
+    relativeNorms[1] = tempPlane.getLocalVector(b);
 
     for(unsigned int i=0; i<ghostPlanes.size()*2; i++){
         Plane tempPlane(1., Movable::STATIC, 0, 0);
         //tempPlanes[i]->setPosition(poly.getPoint((i/2)+1));
-        tempPlane.setFrameFromBasis(relativeNorms[i*2], relativeNorms[i*2+1], cross(relativeNorms[i*2], relativeNorms[i*2+1]));
+        tempPlane.setFrameFromBasis(relativeNorms[(i+2)*2], relativeNorms[(i+2)*2+1], cross(relativeNorms[(i+2)*2], relativeNorms[(i+2)*2+1]));
 
         // convert the normal and binormal into these coordinates
         Vec n(1,0,0);
@@ -216,9 +265,19 @@ void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
         // convert in relation to tempPlanes
         /*relativeNorms[i*2] = tempPlanes[i]->getLocalVector(n);
         relativeNorms[i*2+1] = tempPlanes[i]->getLocalVector(b);*/
-        relativeNorms[i*2] = tempPlane.getLocalVector(n);
-        relativeNorms[i*2+1] = tempPlane.getLocalVector(b);
+        relativeNorms[(i+2)*2] = tempPlane.getLocalVector(n);
+        relativeNorms[(i+2)*2+1] = tempPlane.getLocalVector(b);
     }
+
+    tempPlane.setFrameFromBasis(relativeNorms[lastIndex], relativeNorms[lastIndex+1], cross(relativeNorms[lastIndex], relativeNorms[lastIndex+1]));
+
+    n = Vec(1,0,0);
+    b = Vec(0,1,0);
+    n = rightPlane->getMeshVectorFromLocal(n);
+    b = rightPlane->getMeshVectorFromLocal(b);
+
+    relativeNorms[lastIndex] = tempPlane.getLocalVector(n);
+    relativeNorms[lastIndex+1] = tempPlane.getLocalVector(b);
 
     Q_EMIT polylineBent(relativeNorms, distances);
 

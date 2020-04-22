@@ -18,6 +18,8 @@ public:
     void toggleIsVisible(){ isVisible = !isVisible; }
     void setAlpha(float alpha){ this->alpha = alpha; }
     float getAlpha(){ return alpha; }
+    void setID(unsigned int id){ this->id = id; cp.setID(id); }
+    const unsigned int& getID(){ return this->id; }
 
     void setSize(double s){ size = s; }
     void setPosition(Vec pos);

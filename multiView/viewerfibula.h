@@ -10,9 +10,11 @@ class ViewerFibula : public Viewer
 public:
     ViewerFibula(QWidget *parent, StandardCamera *camera, int sliderMax, int fibulaOffsetMax);
     void initGhostPlanes(Movable s);
-    void updateFibPolyline(const std::vector<double>& distances);
+    void updateFibPolyline(const Vec& firstPoint, const std::vector<double>& distances);
     void initCurve();
     void constructCurve();
+    void toggleIsPolyline();
+    void repositionPlanesOnPolyline();
 
 public Q_SLOTS:
     void bendPolylineNormals(const std::vector<Vec>&, const std::vector<double>&);
@@ -21,6 +23,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void okToPlacePlanes(const std::vector<Vec>&);
+
 };
 
 #endif // VIEWERFIBULA_H

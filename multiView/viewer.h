@@ -45,7 +45,9 @@ protected:
     void updatePolyline(const std::vector<Vec> &newPoints);
     void deleteGhostPlanes();
     void repositionPlane(Plane* p, unsigned int index);
+    virtual void repositionPlanesOnPolyline();
     void matchPlaneToFrenet(Plane *p, unsigned int index);
+    virtual void toggleIsPolyline();
 
     double angle(Vec a, Vec b);
     double segmentLength(const Vec a, const Vec b);
@@ -53,6 +55,7 @@ protected:
     ManipulatedFrame* viewerFrame;
     class Polyline poly;
     std::vector<Plane*> ghostPlanes;
+    std::vector<Vec> endRotations;      // leftend normal,binormal, rightend normal, binormal
     Plane* leftPlane;
     Plane* rightPlane;
     //std::vector<Plane*> tempPlanes;

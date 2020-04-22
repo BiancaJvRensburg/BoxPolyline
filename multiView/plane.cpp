@@ -12,6 +12,7 @@ Plane::Plane(double s, Movable status, float alpha, unsigned int id) : cp(id)
     this->isVisible = true;
     this->alpha = alpha;
     this->isPoly = false;
+    this->id = id;
 
     initBasePlane();
 }

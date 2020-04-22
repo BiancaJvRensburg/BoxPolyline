@@ -255,3 +255,7 @@ Vec Polyline::averageVector(const std::vector<Vec> &v){
 
     return r;
 }
+
+void Polyline::lowerPoint(unsigned int index, const Vec &toLower){
+    points[index] += toLower;
+}
