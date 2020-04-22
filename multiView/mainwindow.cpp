@@ -106,9 +106,6 @@ void MainWindow::initDisplayDockWidgets(){
 void MainWindow::initFileActions(){
     fileActionGroup = new QActionGroup(this);
 
-    QAction *tempBendAction = new QAction("Temp bend", this);
-    connect(tempBendAction, &QAction::triggered, skullViewer, &Viewer::tempBend);
-
     QAction *openJsonFileAction = new QAction("Open mandible JSON", this);
     connect(openJsonFileAction, &QAction::triggered, this, &MainWindow::openMandJSON);
 
@@ -121,7 +118,6 @@ void MainWindow::initFileActions(){
     fileActionGroup->addAction(openJsonFileAction);
     fileActionGroup->addAction(openJsonFibFileAction);
     fileActionGroup->addAction(cutMeshAction);
-    fileActionGroup->addAction(tempBendAction);
 
     connect(skullViewer, &Viewer::constructPoly, fibulaViewer, &ViewerFibula::constructPolyline);
     connect(fibulaViewer, &ViewerFibula::okToPlacePlanes, skullViewer, &Viewer::placePlanes);

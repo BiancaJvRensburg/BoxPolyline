@@ -20,22 +20,18 @@ public:
     Vec getLocalTransform(const Vec& v){ return frame.localTransformOf(v); }
     void bend(unsigned int index, Vec &newPosition, std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
     void getDistances(std::vector<double>& distances);
-    double euclideanDistance(const Vec &a, const Vec &b);
     void lowerPoint(unsigned int index, const Vec &toLower);
     const std::vector<Vec>& getPoints(){ return points; }
-    Vec getMeshNormal(){ return getWorldTransform(normal); }
-    Vec getMeshBinormal(){ return getWorldTransform(binormal); }
 
 private:
     Vec projection(Vec &a, Vec &planeNormal);
     double angle(const Vec &a, const Vec &b);
-    double getBendAngle(Vec &a, Vec &b);
     Vec vectorQuaternionRotation(double angle, const Vec &axis, const Vec &vectorToRotate);
     void recalculateNormal(unsigned int index, const Vec &origin, const Vec &newPoint);
     void recalculateBinormal(unsigned int index, const Vec &origin, const Vec &newPoint);
     void initialiseFrame(Frame &f);
-    Vec averageVector(const std::vector<Vec>& v);
     void getCuttingAngles(std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
+    double euclideanDistance(const Vec &a, const Vec &b);
 
     ManipulatedFrame frame;
     const Vec tangent = Vec(1,0,0);
@@ -44,7 +40,6 @@ private:
     std::vector<Vec> points;
     std::vector<Vec> segmentNormals;
     std::vector<Vec> segmentBinormals;
-    std::vector<Vec> segmentTangents;
     std::vector<Vec> cuttingLines;
     std::vector<Vec> cuttingBinormals;
 };

@@ -22,7 +22,6 @@ public :
 public Q_SLOTS:
     void toUpdate();
     virtual void bendPolyline(unsigned int pointIndex, Vec v);
-    void tempBend();
     void cutMesh();
     void placePlanes(const std::vector<Vec>&);
     void moveLeftPlane(int);

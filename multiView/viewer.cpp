@@ -68,23 +68,6 @@ void Viewer::init() {
   glLineWidth (1.0f);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_BLEND);
-
-  //initCurve();
-  //initPlanes();
-}
-
-void Viewer::tempBend(){
-    //Vec newPos(.3,0,.5);
-    std::vector<Vec> newPoints;
-    newPoints.push_back(Vec(-10,-10,-10));
-    newPoints.push_back(Vec(-2,0,0));
-    newPoints.push_back(Vec(4,10,10));
-    newPoints.push_back(Vec(6,10,10));
-    newPoints.push_back(Vec(8,0,0));
-    newPoints.push_back(Vec(10,-10,-10));
-    //bendPolyline(1, newPos);
-    constructPolyline(newPoints);
-    update();
 }
 
 void Viewer::initCurvePlanes(Movable s){
@@ -114,10 +97,10 @@ void Viewer::initPolyPlanes(Movable s){
     leftPlane->setID(1);
     rightPlane->setID(poly.getNbPoints()-2);
 
-    leftPlane->setPosition(poly.getPoint(leftPlane->getID()));
+    leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
     leftPlane->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
 
-    rightPlane->setPosition(poly.getPoint(rightPlane->getID()));
+    rightPlane->setPosition(poly.getMeshPoint(rightPlane->getID()));
     rightPlane->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
 
     initGhostPlanes(s);
@@ -128,7 +111,7 @@ void Viewer::initPolyPlanes(Movable s){
 }
 
 void Viewer::toggleIsPolyline(){
-    double size = 20.;
+    /*double size = 20.;
 
     poly.lowerPoint(0, -(endRotations[0]+endRotations[1])*size);
     poly.lowerPoint(poly.getNbPoints()-1,-(endRotations[2]+endRotations[3])*size);
@@ -142,13 +125,13 @@ void Viewer::toggleIsPolyline(){
         poly.lowerPoint(i+2, ghostPlanes[i]->getMeshVectorFromLocal(-Vec(1,1,0))*size);
     }
 
-    repositionPlanesOnPolyline();
+    repositionPlanesOnPolyline();*/
 }
 
 void Viewer::repositionPlanesOnPolyline(){
-    leftPlane->setPosition(poly.getPoint(leftPlane->getID()));
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setPosition(poly.getPoint(ghostPlanes[i]->getID()));
-    rightPlane->setPosition(poly.getPoint(rightPlane->getID()));
+    leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setPosition(poly.getMeshPoint(ghostPlanes[i]->getID()));
+    rightPlane->setPosition(poly.getMeshPoint(rightPlane->getID()));
 }
 
 void Viewer::initGhostPlanes(Movable s){

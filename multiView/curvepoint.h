@@ -13,7 +13,6 @@ public:
     void setPosition(Vec& p){ mf.setPosition(p.x, p.y, p.z); } //this->p = p;  }
     void setID(unsigned int id){ this->id = id; }
 
-    void matchCurvepoint(CurvePoint &c);
     Quaternion getOrientation(){ return mf.orientation(); }
 
     void draw();

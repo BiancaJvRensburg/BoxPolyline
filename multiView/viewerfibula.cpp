@@ -13,13 +13,13 @@ void ViewerFibula::updateFibPolyline(const Vec& firstPoint, const std::vector<do
 }
 
 void ViewerFibula::bendPolylineNormals(const std::vector<Vec>& normals, const std::vector<double>& distances){
-    updateFibPolyline(poly.getPoint(0), distances);
+    updateFibPolyline(poly.getMeshPoint(0), distances);
 
     for(unsigned int i=4; i<normals.size()-4; i+=2){
         Vec v = poly.getWorldTransform(normals[i]);
         Vec a = poly.getWorldTransform(normals[i+1]);
         ghostPlanes[i/2-2]->setFrameFromBasis(v, a, cross(v, a));
-        ghostPlanes[i/2-2]->setPosition(poly.getPoint(((i/2)+2)/2));
+        ghostPlanes[i/2-2]->setPosition(poly.getMeshPoint((ghostPlanes[i/2-2]->getID()+3)/2));
 
         // rotate 90 degrees around the normal to line up z with the tangent (which stays fixed)
         ghostPlanes[i/2-2]->rotate(Quaternion(ghostPlanes[i/2-2]->getLocalVector(Vec(0,1,0)), M_PI/2.));
@@ -29,14 +29,14 @@ void ViewerFibula::bendPolylineNormals(const std::vector<Vec>& normals, const st
     Vec b = poly.getWorldTransform(normals[1]);
 
     leftPlane->setFrameFromBasis(n,b,cross(n,b));
-    leftPlane->setPosition(poly.getPoint(1));
+    leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
 
     unsigned long long lastIndex = normals.size()-2;
     n = poly.getWorldTransform(normals[lastIndex]);
     b = poly.getWorldTransform(normals[lastIndex+1]);
 
     rightPlane->setFrameFromBasis(n,b,cross(n,b));
-    rightPlane->setPosition(poly.getPoint(poly.getNbPoints()-2));
+    rightPlane->setPosition(poly.getMeshPoint(rightPlane->getID()));
 
     leftPlane->rotate(Quaternion(leftPlane->getLocalVector(Vec(0,1,0)), M_PI/2.));
     rightPlane->rotate(Quaternion(rightPlane->getLocalVector(Vec(0,1,0)), M_PI/2.));
@@ -118,9 +118,9 @@ void ViewerFibula::toggleIsPolyline(){
 }
 
 void ViewerFibula::repositionPlanesOnPolyline(){
-    leftPlane->setPosition(poly.getPoint(leftPlane->getID()));
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setPosition(poly.getPoint(ghostPlanes[i]->getID()));
-    rightPlane->setPosition(poly.getPoint(rightPlane->getID()));
+    leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setPosition(poly.getMeshPoint(ghostPlanes[i]->getID()));
+    rightPlane->setPosition(poly.getMeshPoint(rightPlane->getID()));
 }
 
 void ViewerFibula::constructPolyline(const std::vector<double>& distances, const std::vector<Vec>& newPoints){

@@ -83,16 +83,6 @@ void Plane::setPlaneRotation(Vec axis, double theta){
     setRotation(Quaternion(cos(theta/2.0)*axis.x, cos(theta/2.0)*axis.y, cos(theta/2.0)*axis.z, sin(theta/2.0)));
 }
 
-void Plane::rotatePlaneXY(double percentage){
-    double r = (percentage - rotationPercentage);       // Get the percentage to rotate it by
-    rotationPercentage = percentage;
-
-    double theta = (M_PI*2.0)*r + M_PI;     // Get the theta from the percentage
-    Vec axis = Vec(0,0,1);
-
-    rotatePlane(axis, theta);
-}
-
 void Plane::setPosition(Vec pos){
     cp.setPosition(pos);
 }
@@ -165,21 +155,6 @@ Vec Plane::getLocalProjection(Vec localP){
     return localP - normal * (localP * normal);             // don't convert between coordinate systems
 }
 
-Frame Plane::getFrameCopy(){
-    return Frame(cp.getFrame());
-}
-
-void Plane::setOrientationFromOtherReference(std::vector<Vec> &frame, unsigned int startIndex, Plane *reference){
-    Vec x = reference->getMeshVectorFromLocal(frame[startIndex]);
-    x.normalize();
-    Vec y = reference->getMeshVectorFromLocal(frame[startIndex+1]);
-    y.normalize();
-    Vec z = reference->getMeshVectorFromLocal(frame[startIndex+2]);
-    z.normalize();
-
-    setFrameFromBasis(x,y,z);
-}
-
 bool Plane::isIntersectionPlane(Vec &v0, Vec &v1, Vec &v2, Vec &v3){
 
     // Put it all into local coordinates
@@ -213,8 +188,4 @@ bool Plane::isIntersectionPlane(Vec &v0, Vec &v1, Vec &v2, Vec &v3){
     }
 
     return false;   // if we haven't found a line that meets the criteria
-}
-
-void Plane::matchPlane(Plane *p){
-    cp.matchCurvepoint(p->cp);
 }
