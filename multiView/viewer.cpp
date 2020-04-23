@@ -57,7 +57,7 @@ void Viewer::init() {
   viewerFrame = new ManipulatedFrame();
   setManipulatedFrame(viewerFrame);
   setAxisIsDrawn(false);
-  poly.init(viewerFrame, 2);
+  poly.init(viewerFrame, 1);
 
   // Camera without mesh
   Vec centre(0,0,0);
@@ -152,7 +152,7 @@ void Viewer::repositionPlanesOnPolyline(){
 }
 
 void Viewer::initGhostPlanes(Movable s){
-    deleteGhostPlanes();
+    // deleteGhostPlanes();     // should already be deleted
 
     float size = 20.0;
 
@@ -194,6 +194,14 @@ void Viewer::constructPolyline(const std::vector<Vec> &polyPoints){
     std::vector<double> dists;
     poly.getDistances(dists);
     Q_EMIT constructPoly(dists, polyPoints);
+}
+
+void Viewer::deconstructPolyline(){
+    poly.reinit(1);
+    deleteGhostPlanes();
+    toggleIsPolyline();
+    repositionPlane(leftPlane, curveIndexL);
+    repositionPlane(rightPlane, curveIndexR);
 }
 
 void Viewer::placePlanes(const std::vector<Vec> &polyPoints){
@@ -345,9 +353,9 @@ void Viewer::openOFF(QString filename) {
 
 void Viewer::cutMesh(){
     bool isNumberRecieved;
-    int nbGhostPlanes;
+    unsigned int nbGhostPlanes;
     int nbPieces = QInputDialog::getInt(this, "Cut mesh", "Number of pieces", 0, 1, 10, 1, &isNumberRecieved, Qt::WindowFlags());
-    if(isNumberRecieved) nbGhostPlanes = nbPieces-1;
+    if(isNumberRecieved) nbGhostPlanes = static_cast<unsigned int>(nbPieces)-1;
     else return;
 
     isCut = true;
@@ -356,14 +364,22 @@ void Viewer::cutMesh(){
     std::vector<Vec> polylinePoints;
     polylinePoints.push_back(curve.getPoint(0));        // the start of the curve
     polylinePoints.push_back(curve.getPoint(curveIndexL));  // the left plane
-    for(unsigned int i=0; i<nbGhostPlanes; i++){        // temporary
-        polylinePoints.push_back(curve.getPoint(curveIndexL+(i+1)*5));
-    }
+
+    std::vector<unsigned int> ghostLocations;
+    findGhostLocations(nbGhostPlanes, ghostLocations);
+    for(unsigned int i=0; i<ghostLocations.size(); i++) polylinePoints.push_back(curve.getPoint(ghostLocations[i]));
+
     polylinePoints.push_back(curve.getPoint(curveIndexR));      // the right plane
     polylinePoints.push_back(curve.getPoint(nbU-1));        // the end of the curve
 
     constructPolyline(polylinePoints);
 
+    update();
+}
+
+void Viewer::uncutMesh(){
+    isCut = false;
+    deconstructPolyline();
     update();
 }
 
@@ -412,4 +428,97 @@ void Viewer::moveRightPlane(int position){
 void Viewer::movePlane(Plane *p, bool isLeft, unsigned int curveIndex){
     repositionPlane(p, curveIndex);
     update();
+}
+
+void swap(unsigned int& a, unsigned int& b){
+    unsigned int temp = a;
+    a = b;
+    b = temp;
+}
+
+unsigned int Viewer::partition(std::vector<unsigned int>& sorted, unsigned int start, unsigned int end){
+    unsigned int p = sorted[end];
+    unsigned int index = start - 1;
+
+    for(unsigned int i=start; i<end; i++){
+        double tangentAngleA = angle(curve.tangent(sorted[i]-1), curve.tangent(sorted[i]));
+        double tangentAngleP = angle(curve.tangent(p-1), curve.tangent(p));
+
+        if(tangentAngleA >= tangentAngleP){
+            index++;
+            swap(sorted[index], sorted[i]);
+        }
+    }
+    swap(sorted[index+1], sorted[end]);
+    return index+1;
+}
+
+void Viewer::quicksort(std::vector<unsigned int>& sorted, int start, int end){
+    if(start < end){
+        unsigned int p = partition(sorted, start, end);
+        quicksort(sorted, start, static_cast<int>(p)-1);
+        quicksort(sorted, static_cast<int>(p)+1, end);
+    }
+}
+
+void Viewer::findGhostLocations(unsigned int nbGhostPlanes, std::vector<unsigned int>& ghostLocation){
+    unsigned int finalNb = nbGhostPlanes;        // the number we can actually fit in
+    std::vector<unsigned int> maxIndicies(nbGhostPlanes);
+
+    const unsigned int startI = curve.indexForLength(curveIndexL, constraint);
+    const unsigned int endI = curve.indexForLength(curveIndexR, -constraint);
+
+    if(endI > startI){         // if there's enough space for a plane
+        const unsigned int searchArea = endI - startI;       // the space that's left between the left and right planes after the constraint is taken into account
+        std::vector<unsigned int> sorted(static_cast<unsigned long long>(searchArea));
+        for(unsigned int i=0; i<searchArea; i++) sorted[i] = startI+i;       // the possible indexes for the plane
+
+        quicksort(sorted, 0, searchArea-1);      // Sort the indicies according to their tangent angles
+
+        maxIndicies[0] = sorted[0];
+        unsigned int sortedIndex = 1;
+
+        for(unsigned int i=1; i<nbGhostPlanes; i++){
+            // the constraint (don't take it if it's too close to another existing plane)
+            bool tooClose;
+            do{
+                tooClose = false;
+                for(int j=static_cast<int>(i)-1; j>=0; j--){
+                    if(sortedIndex < static_cast<unsigned int>(searchArea) && curve.discreteLength(static_cast<unsigned int>(maxIndicies[static_cast<unsigned int>(j)]),static_cast<unsigned int>(sorted[static_cast<unsigned int>(sortedIndex)]))<constraint){
+                        tooClose = true;
+                        break;
+                    }
+                }
+                if(tooClose) sortedIndex++;
+            }while(tooClose);
+
+            if(sortedIndex >= static_cast<unsigned int>(searchArea)){      // if we leave the search area, stop
+                finalNb = i;
+                break;
+            }
+            maxIndicies[i] = sorted[sortedIndex];
+            sortedIndex++;  // move with i
+        }
+
+        // sort the planes
+        for(unsigned int i=0; i<finalNb; i++){
+            for(unsigned int j=i+1; j<finalNb; j++){
+                if(maxIndicies[i] > maxIndicies[j]) swap(maxIndicies[i], maxIndicies[j]);
+            }
+        }
+
+        ghostLocation.clear();
+        for(unsigned int i=0; i<finalNb; i++) ghostLocation.push_back(maxIndicies[i]);       // get the location for each ghost plane
+    }
+}
+
+double Viewer::angle(Vec a, Vec b){
+    double na = a.norm();
+    double nb = b.norm();
+    double ab = a*b;
+
+    double val = ab / (na*nb);
+    if(val >= static_cast<double>(1)) val = 1;          // protection from floating point errors (comparing it to an epsilon didn't work)
+    else if(val < static_cast<double>(-1)) val = -1;
+    return acos(val);
 }

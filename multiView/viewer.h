@@ -23,6 +23,7 @@ public Q_SLOTS:
     void toUpdate();
     virtual void bendPolyline(unsigned int pointIndex, Vec v);
     void cutMesh();
+    void uncutMesh();
     void placePlanes(const std::vector<Vec>&);
     void moveLeftPlane(int);
     void moveRightPlane(int);
@@ -47,6 +48,10 @@ protected:
     virtual void repositionPlanesOnPolyline();
     void matchPlaneToFrenet(Plane *p, unsigned int index);
     virtual void toggleIsPolyline();
+    unsigned int partition(std::vector<unsigned int>& sorted, unsigned int start, unsigned int end);
+    void quicksort(std::vector<unsigned int>& sorted, int start, int end);
+    void findGhostLocations(unsigned int nbGhostPlanes, std::vector<unsigned int>& ghostLocations);
+    void deconstructPolyline();
 
     double angle(Vec a, Vec b);
     double segmentLength(const Vec a, const Vec b);
