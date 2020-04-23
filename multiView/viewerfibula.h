@@ -21,6 +21,7 @@ public Q_SLOTS:
     void bendPolyline(unsigned int pointIndex, Vec v);
     void constructPolyline(const std::vector<double>&, const std::vector<Vec>&);
     void updateDistances(const std::vector<double>&);
+    void movePlanes(double);
 
 Q_SIGNALS:
     void okToPlacePlanes(const std::vector<Vec>&);

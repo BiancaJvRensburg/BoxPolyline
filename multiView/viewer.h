@@ -33,6 +33,7 @@ Q_SIGNALS:
     void polylineBent(const std::vector<Vec>&, const std::vector<double>&);
     void constructPoly(const std::vector<double>&, const std::vector<Vec>&);
     void toUpdateDistances(std::vector<double>&);
+    void planeMoved(double);
 
 protected:
     void draw();
@@ -80,7 +81,7 @@ protected:
 
 private:
     void constructPolyline(const std::vector<Vec>& polyPoints);
-    void movePlane(Plane *p, bool isLeft, unsigned int curveIndex);
+    void movePlane(Plane *p, unsigned int curveIndex);
 };
 
 #endif // VIEWER_H

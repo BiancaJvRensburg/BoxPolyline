@@ -398,13 +398,7 @@ void Viewer::moveLeftPlane(int position){
     }
     else curveIndexL = curve.indexForLength(curveIndexR, -constraint);     // get the new position
 
-    movePlane(leftPlane, true, curveIndexL);
-
-    if(isCut){
-        toggleIsPolyline();
-        bendPolyline(leftPlane->getID(), curve.getPoint(curveIndexL));
-        toggleIsPolyline();
-    }
+    movePlane(leftPlane, curveIndexL);
 }
 
 void Viewer::moveRightPlane(int position){
@@ -418,17 +412,22 @@ void Viewer::moveRightPlane(int position){
     else if(curveIndexR == curve.indexForLength(curveIndexL, constraint)) return;
     else curveIndexR = curve.indexForLength(curveIndexL, constraint);
 
-    movePlane(rightPlane, false, curveIndexR);
+    movePlane(rightPlane, curveIndexR);
+}
+
+void Viewer::movePlane(Plane *p, unsigned int curveIndex){
+    repositionPlane(p, curveIndex);
 
     if(isCut){
         toggleIsPolyline();
-        bendPolyline(rightPlane->getID(), curve.getPoint(curveIndexR));
+        bendPolyline(p->getID(), curve.getPoint(curveIndex));
         toggleIsPolyline();
     }
-}
+    else{
+        double distance = curve.discreteChordLength(curveIndexL, curveIndexR);
+        Q_EMIT planeMoved(distance);
+    }
 
-void Viewer::movePlane(Plane *p, bool isLeft, unsigned int curveIndex){
-    repositionPlane(p, curveIndex);
     update();
 }
 
