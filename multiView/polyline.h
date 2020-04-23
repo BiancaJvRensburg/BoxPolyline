@@ -11,7 +11,7 @@ public:
     void draw();
     void init(const Frame *const refFrame, unsigned int nbPoints);
     void reinit(unsigned int nbPoints);
-    void update(const std::vector<Vec> &newPoints);
+    void updatePoints(const std::vector<Vec> &newPoints);
     unsigned int getNbPoints(){ return points.size(); }
     Vec& getPoint(unsigned int i){return points[i];}
     Vec getMeshPoint(unsigned int i){ return getWorldCoordinates(points[i]); }

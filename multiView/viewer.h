@@ -32,6 +32,7 @@ Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
     void polylineBent(const std::vector<Vec>&, const std::vector<double>&);
     void constructPoly(const std::vector<double>&, const std::vector<Vec>&);
+    void toUpdateDistances(std::vector<double>&);
 
 protected:
     void draw();

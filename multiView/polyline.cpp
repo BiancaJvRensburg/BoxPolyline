@@ -46,7 +46,7 @@ void Polyline::draw(){
     glEnd();
 }
 
-void Polyline::update(const std::vector<Vec> &newPoints){
+void Polyline::updatePoints(const std::vector<Vec> &newPoints){
     points.clear();
     for(unsigned int i=0; i<newPoints.size(); i++) points.push_back(newPoints[i]);
 }

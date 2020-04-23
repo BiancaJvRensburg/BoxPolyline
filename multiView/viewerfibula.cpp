@@ -117,7 +117,7 @@ void ViewerFibula::toggleIsPolyline(){
 
 void ViewerFibula::repositionPlanesOnPolyline(){
     leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setPosition(poly.getMeshPoint(ghostPlanes[i]->getID()));
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setPosition(poly.getMeshPoint((ghostPlanes[i]->getID()-1)/2+2));
     rightPlane->setPosition(poly.getMeshPoint(rightPlane->getID()));
 }
 
@@ -131,4 +131,12 @@ void ViewerFibula::constructPolyline(const std::vector<double>& distances, const
     toggleIsPolyline();
 
     Q_EMIT okToPlacePlanes(newPoints);
+}
+
+void ViewerFibula::updateDistances(const std::vector<double>& distances){
+    std::vector<Vec> newPoints;
+    newPoints.push_back(poly.getMeshPoint(0));
+    for(unsigned int i=0; i<distances.size(); i++) newPoints.push_back(newPoints[i] + Vec(distances[i], 0, 0));
+    poly.updatePoints(newPoints);
+    repositionPlanesOnPolyline();
 }

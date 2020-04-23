@@ -206,9 +206,11 @@ void Viewer::deconstructPolyline(){
 
 void Viewer::placePlanes(const std::vector<Vec> &polyPoints){
     initPolyPlanes(Movable::DYNAMIC);
-    for(unsigned int i=0; i<poly.getNbPoints(); i++) bendPolyline(i, polyPoints[i]);
+    for(unsigned int i=0; i<poly.getNbPoints(); i++) bendPolyline(i, polyPoints[i]);   
     toggleIsPolyline();
-    //toggleIsPolyline();
+    std::vector<double> distances;
+    poly.getDistances(distances);
+    Q_EMIT toUpdateDistances(distances);        // the distances are no longer the same because the polyline has been lowered
 }
 
 double Viewer::segmentLength(const Vec a, const Vec b){
@@ -216,7 +218,7 @@ double Viewer::segmentLength(const Vec a, const Vec b){
 }
 
 void Viewer::updatePolyline(const std::vector<Vec> &newPoints){
-    poly.update(newPoints);
+    poly.updatePoints(newPoints);
     //update();
 }
 
