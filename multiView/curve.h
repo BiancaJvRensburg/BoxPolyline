@@ -11,9 +11,9 @@ class Curve : public QObject
     Q_OBJECT
 
 public:
-    Curve(unsigned int nbCP, std::vector<Vec>& cntrlPoints);
+    Curve();
+    void init(unsigned int nbCP, std::vector<Vec>& cntrlPoints);
 
-    void generateBSpline(unsigned int& nbU, unsigned int degree);
     void generateCatmull(unsigned int& nbU);
 
     std::vector<Vec>& getCurve(){ return curve; }
@@ -48,12 +48,6 @@ private:
     unsigned int degree;
     std::vector<double> knotVector;
     unsigned int knotIndex;
-
-    // BSpline
-    void generateUniformKnotVector(unsigned int k, std::vector<double>& kv);
-    Vec deBoor(double u, unsigned int i, unsigned int r);
-    void splineDerivative(unsigned int k, std::vector<Vec> &c);
-    Vec deBoorDerivative(double u, unsigned int i, unsigned int r, unsigned int k);
 
     // Catmull rom
     void catmullrom();  // calculate the spline and the first derivative

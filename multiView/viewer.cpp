@@ -1,10 +1,14 @@
 #include "viewer.h"
+#include "meshreader.h"
 #include <QGLViewer/manipulatedFrame.h>
 
 Viewer::Viewer(QWidget *parent, StandardCamera *cam, int sliderMax) : QGLViewer(parent) {
     Camera *c = camera();       // switch the cameras
     setCamera(cam);
     delete c;
+    isCurve = false;
+    this->sliderMax = sliderMax;
+    this->isCut = false;
 }
 
 void Viewer::draw() {
@@ -13,17 +17,21 @@ void Viewer::draw() {
     glPushMatrix();
     glMultMatrixd(viewerFrame->matrix());
 
-    poly.draw();
+    if(isCut) poly.draw();
 
-    glColor4f(0., 1., 0., leftPlane->getAlpha());
-    leftPlane->draw();
-    glColor4f(1., 0, 0., leftPlane->getAlpha());
-    rightPlane->draw();
+    if(isCurve){
+        glColor4f(0., 1., 0., leftPlane->getAlpha());
+        leftPlane->draw();
+        glColor4f(1., 0, 0., leftPlane->getAlpha());
+        rightPlane->draw();
 
-    for(unsigned int i=0; i<ghostPlanes.size(); i++){
-        glColor4f(0., 1., 1., ghostPlanes[i]->getAlpha());
-        ghostPlanes[i]->draw();
+        for(unsigned int i=0; i<ghostPlanes.size(); i++){
+            glColor4f(0., 1., 1., ghostPlanes[i]->getAlpha());
+            ghostPlanes[i]->draw();
+        }
     }
+
+    curve.draw();
 
     /*for(unsigned int i=0; i<tempPlanes.size(); i++){
         glColor4f(1., 0., 1., tempPlanes[i]->getAlpha());
@@ -49,7 +57,7 @@ void Viewer::init() {
   viewerFrame = new ManipulatedFrame();
   setManipulatedFrame(viewerFrame);
   setAxisIsDrawn(false);
-  poly.init(viewerFrame, 6);
+  poly.init(viewerFrame, 2);
 
   // Camera without mesh
   Vec centre(0,0,0);
@@ -61,42 +69,95 @@ void Viewer::init() {
   glLineWidth (1.0f);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_BLEND);
-
-  initPlanes();
 }
 
-void Viewer::tempBend(){
-    //Vec newPos(.3,0,.5);
-    std::vector<Vec> newPoints;
-    newPoints.push_back(Vec(-10,-10,-10));
-    newPoints.push_back(Vec(-2,0,0));
-    newPoints.push_back(Vec(4,10,10));
-    newPoints.push_back(Vec(6,10,10));
-    newPoints.push_back(Vec(8,0,0));
-    newPoints.push_back(Vec(10,-10,-10));
-    //bendPolyline(1, newPos);
-    constructPolyline(newPoints);
-    update();
+void Viewer::initCurvePlanes(Movable s){
+    curveIndexR = nbU - 1;
+    curveIndexL = 0;
+    float size = 20.0;
+
+    leftPlane = new Plane(static_cast<double>(size), s, 0.5, 0);
+    rightPlane = new Plane(static_cast<double>(size), s, 0.5, 1);
+
+    repositionPlane(leftPlane, curveIndexL);
+    repositionPlane(rightPlane, curveIndexR);
 }
 
-void Viewer::initPlanes(){
-    Vec pos(0,0,0);
-    leftPlane =  new Plane(1., Movable::STATIC, pos, .5f, 0);
-    leftPlane->setPosition(poly.getPoint(0));
+void Viewer::repositionPlane(Plane *p, unsigned int index){
+    p->setPosition(curve.getPoint(index));
+    matchPlaneToFrenet(p, index);
+}
+
+void Viewer::matchPlaneToFrenet(Plane *p, unsigned int index){
+    Vec x, y, z;
+    curve.getFrame(index,z,x,y);
+    p->setFrameFromBasis(x,y,z);
+}
+
+void Viewer::initPolyPlanes(Movable s){
+    leftPlane->setID(1);
+    rightPlane->setID(poly.getNbPoints()-2);
+
+    leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
     leftPlane->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
 
-    rightPlane =  new Plane(1., Movable::STATIC, pos, .5f, static_cast<unsigned int>(poly.getNbPoints()));
-    rightPlane->setPosition(poly.getPoint(static_cast<unsigned int>(poly.getNbPoints())-1));
+    rightPlane->setPosition(poly.getMeshPoint(rightPlane->getID()));
     rightPlane->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
 
-    initGhostPlanes();
+    initGhostPlanes(s);
+
+    connect(&(leftPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolyline);
+    connect(&(rightPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolyline);
+
 }
 
-void Viewer::initGhostPlanes(){
+void Viewer::toggleIsPolyline(){
+    double size = 20.;
+    Vec direction = Vec(1,1,0);
+
+    if(!leftPlane->getIsPoly()){
+        poly.lowerPoint(0, -(endRotations[0]+endRotations[1])*size);
+        poly.lowerPoint(poly.getNbPoints()-1,-(endRotations[2]+endRotations[3])*size);
+
+        leftPlane->toggleIsPoly();
+        poly.lowerPoint(leftPlane->getID(), leftPlane->getMeshVectorFromLocal(-direction)*size);
+        rightPlane->toggleIsPoly();
+        poly.lowerPoint(rightPlane->getID(), rightPlane->getMeshVectorFromLocal(-direction)*size);
+        for(unsigned int i=0; i<ghostPlanes.size(); i++) {
+            ghostPlanes[i]->toggleIsPoly();
+            poly.lowerPoint(i+2, ghostPlanes[i]->getMeshVectorFromLocal(-direction)*size);
+        }
+    }
+    else{
+        poly.lowerPoint(0, (endRotations[0]+endRotations[1])*size);
+        poly.lowerPoint(poly.getNbPoints()-1, (endRotations[2]+endRotations[3])*size);
+
+        leftPlane->toggleIsPoly();
+        poly.lowerPoint(leftPlane->getID(), leftPlane->getMeshVectorFromLocal(direction)*size);
+        rightPlane->toggleIsPoly();
+        poly.lowerPoint(rightPlane->getID(), rightPlane->getMeshVectorFromLocal(direction)*size);
+        for(unsigned int i=0; i<ghostPlanes.size(); i++) {
+            ghostPlanes[i]->toggleIsPoly();
+            poly.lowerPoint(i+2, ghostPlanes[i]->getMeshVectorFromLocal(direction)*size);
+        }
+    }
+
+    repositionPlanesOnPolyline();
+}
+
+void Viewer::repositionPlanesOnPolyline(){
+    leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setPosition(poly.getMeshPoint(ghostPlanes[i]->getID()));
+    rightPlane->setPosition(poly.getMeshPoint(rightPlane->getID()));
+}
+
+void Viewer::initGhostPlanes(Movable s){
     deleteGhostPlanes();
-    for(unsigned int i=1; i<static_cast<unsigned int>(poly.getNbPoints()-1); i++){
-        Vec pos(0,0,0);
-        Plane *p = new Plane(1., Movable::DYNAMIC, pos, .5f, i);
+
+    float size = 20.0;
+
+    for(unsigned int i=2; i<static_cast<unsigned int>(poly.getNbPoints()-2); i++){
+        Plane *p = new Plane(size, s, .5f, i);
         p->setPosition(poly.getPoint(i));
         p->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
         ghostPlanes.push_back(p);
@@ -123,14 +184,23 @@ void Viewer::initGhostPlanes(){
 
 void Viewer::updateCamera(const Vec& center, float radius){
     camera()->setSceneCenter(center);
-    camera()->setSceneRadius(static_cast<double>(radius/2.f*1.005f));
+    camera()->setSceneRadius(static_cast<double>(radius*1.05f));
     camera()->setZClippingCoefficient(static_cast<double>(radius));
     camera()->showEntireScene();
 }
 
 void Viewer::constructPolyline(const std::vector<Vec> &polyPoints){
     poly.reinit(polyPoints.size());
-    for(unsigned int i=0; i<polyPoints.size(); i++) bendPolyline(i, polyPoints[i]);
+    std::vector<double> dists;
+    poly.getDistances(dists);
+    Q_EMIT constructPoly(dists, polyPoints);
+}
+
+void Viewer::placePlanes(const std::vector<Vec> &polyPoints){
+    initPolyPlanes(Movable::DYNAMIC);
+    for(unsigned int i=0; i<poly.getNbPoints(); i++) bendPolyline(i, polyPoints[i]);
+    toggleIsPolyline();
+    //toggleIsPolyline();
 }
 
 double Viewer::segmentLength(const Vec a, const Vec b){
@@ -139,7 +209,7 @@ double Viewer::segmentLength(const Vec a, const Vec b){
 
 void Viewer::updatePolyline(const std::vector<Vec> &newPoints){
     poly.update(newPoints);
-    update();
+    //update();
 }
 
 void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
@@ -154,23 +224,38 @@ void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
 
     // set the planes' orientations
     for(unsigned int i=0; i<ghostPlanes.size(); i++){
-        ghostPlanes[i]->setPosition(poly.getPoint(i+1));
-        ghostPlanes[i]->setFrameFromBasis(planeNormals[i], planeBinormals[i], cross(planeNormals[i],planeBinormals[i]));
+        ghostPlanes[i]->setPosition(poly.getPoint(ghostPlanes[i]->getID()));
+        ghostPlanes[i]->setFrameFromBasis(planeNormals[i+1], planeBinormals[i+1], cross(planeNormals[i+1],planeBinormals[i+1]));
     }
 
-    leftPlane->setPosition(poly.getPoint(0));
-    leftPlane->setFrameFromBasis(relativeNorms[0], relativeNorms[1], cross(relativeNorms[0], relativeNorms[1]));
+    leftPlane->setPosition(poly.getPoint(leftPlane->getID()));
+    leftPlane->setFrameFromBasis(planeNormals[0], planeBinormals[0], cross(planeNormals[0], planeBinormals[0]));
 
-    unsigned long long lastIndex = relativeNorms.size()-1;
-    rightPlane->setPosition(poly.getPoint(static_cast<unsigned int>(poly.getNbPoints()-1)));
-    rightPlane->setFrameFromBasis(relativeNorms[lastIndex-1], relativeNorms[lastIndex], cross(relativeNorms[lastIndex-1], relativeNorms[lastIndex]));
+    rightPlane->setPosition(poly.getPoint(static_cast<unsigned int>(poly.getNbPoints()-2)));
+    rightPlane->setFrameFromBasis(planeNormals.back(), planeBinormals.back(), cross(planeNormals.back(), planeBinormals.back()));
 
+    unsigned long long lastIndex = relativeNorms.size()-2;
+    endRotations.clear();
+    endRotations.push_back(relativeNorms[0]);
+    endRotations.push_back(relativeNorms[1]);
+    endRotations.push_back(relativeNorms[lastIndex]);
+    endRotations.push_back(relativeNorms[lastIndex+1]);
+
+    Plane tempPlane(1., Movable::STATIC, 0, 0);
+    tempPlane.setFrameFromBasis(relativeNorms[2], relativeNorms[3], cross(relativeNorms[2], relativeNorms[3]));
+
+    Vec n(1,0,0);
+    Vec b(0,1,0);
+    n = leftPlane->getMeshVectorFromLocal(n);
+    b = leftPlane->getMeshVectorFromLocal(b);
+
+    relativeNorms[0] = tempPlane.getLocalVector(n);
+    relativeNorms[1] = tempPlane.getLocalVector(b);
 
     for(unsigned int i=0; i<ghostPlanes.size()*2; i++){
-        Vec pos(0,0,0);
-        Plane tempPlane(1., Movable::STATIC, pos, 0, 0);
+        Plane tempPlane(1., Movable::STATIC, 0, 0);
         //tempPlanes[i]->setPosition(poly.getPoint((i/2)+1));
-        tempPlane.setFrameFromBasis(relativeNorms[i*2], relativeNorms[i*2+1], cross(relativeNorms[i*2], relativeNorms[i*2+1]));
+        tempPlane.setFrameFromBasis(relativeNorms[(i+2)*2], relativeNorms[(i+2)*2+1], cross(relativeNorms[(i+2)*2], relativeNorms[(i+2)*2+1]));
 
         // convert the normal and binormal into these coordinates
         Vec n(1,0,0);
@@ -181,15 +266,245 @@ void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
         // convert in relation to tempPlanes
         /*relativeNorms[i*2] = tempPlanes[i]->getLocalVector(n);
         relativeNorms[i*2+1] = tempPlanes[i]->getLocalVector(b);*/
-        relativeNorms[i*2] = tempPlane.getLocalVector(n);
-        relativeNorms[i*2+1] = tempPlane.getLocalVector(b);
+        relativeNorms[(i+2)*2] = tempPlane.getLocalVector(n);
+        relativeNorms[(i+2)*2+1] = tempPlane.getLocalVector(b);
     }
+
+    tempPlane.setFrameFromBasis(relativeNorms[lastIndex], relativeNorms[lastIndex+1], cross(relativeNorms[lastIndex], relativeNorms[lastIndex+1]));
+
+    n = Vec(1,0,0);
+    b = Vec(0,1,0);
+    n = rightPlane->getMeshVectorFromLocal(n);
+    b = rightPlane->getMeshVectorFromLocal(b);
+
+    relativeNorms[lastIndex] = tempPlane.getLocalVector(n);
+    relativeNorms[lastIndex+1] = tempPlane.getLocalVector(b);
 
     Q_EMIT polylineBent(relativeNorms, distances);
 
 }
 
+void Viewer::initCurve(){
+    control.push_back(Vec(-56.9335, -13.9973, 8.25454));
+
+    control.push_back(Vec(-50.8191, -20.195, -19.53));
+    control.push_back(Vec(-40.155, -34.5957, -50.7005));
+    control.push_back(Vec(-27.6007, -69.2743, -67.6769));
+
+    control.push_back(Vec(0, -85.966, -68.3154));
+
+    control.push_back(Vec(26.7572, -69.0705, -65.6261));
+    control.push_back(Vec(40.3576, -34.3609, -50.7634));
+    control.push_back(Vec(46.2189, -21.3245, -17.9009));
+
+    control.push_back(Vec(52.3669, -15.4613, 8.70223));
+
+    constructCurve();
+}
+
+void Viewer::constructCurve(){
+    curve.init(control.size(), control);
+    nbU = 100;
+    curve.generateCatmull(nbU);
+    isCurve = true;
+    initCurvePlanes(Movable::DYNAMIC);
+}
+
 void Viewer::deleteGhostPlanes(){
     for(unsigned int i=0; i<ghostPlanes.size(); i++) delete ghostPlanes[i];
     ghostPlanes.clear();
+}
+
+void Viewer::readJSON(const QJsonArray &controlArray){
+    control.clear();
+
+    for(int i=0; i<controlArray.size(); i++){
+        QJsonArray singleControl = controlArray[i].toArray();
+        control.push_back(Vec(singleControl[0].toDouble(), singleControl[1].toDouble(), singleControl[2].toDouble()));
+    }
+
+    constructCurve();
+}
+
+void Viewer::openOFF(QString filename) {
+    std::vector<Vec3Df> &vertices = mesh.getVertices();
+    std::vector<Triangle> &triangles = mesh.getTriangles();
+
+    FileIO::openOFF(filename.toStdString(), vertices, triangles);
+
+    mesh.init();
+
+    // Set the camera
+    Vec3Df center;
+    double radius;
+    MeshTools::computeAveragePosAndRadius(vertices, center, radius);
+    updateCamera(Vec(center), static_cast<float>(radius));
+
+    update();
+}
+
+void Viewer::cutMesh(){
+    bool isNumberRecieved;
+    unsigned int nbGhostPlanes;
+    int nbPieces = QInputDialog::getInt(this, "Cut mesh", "Number of pieces", 0, 1, 10, 1, &isNumberRecieved, Qt::WindowFlags());
+    if(isNumberRecieved) nbGhostPlanes = static_cast<unsigned int>(nbPieces)-1;
+    else return;
+
+    isCut = true;
+
+    // Construct the polyline : First and last planes are immovable and are at the ends of the meshes
+    std::vector<Vec> polylinePoints;
+    polylinePoints.push_back(curve.getPoint(0));        // the start of the curve
+    polylinePoints.push_back(curve.getPoint(curveIndexL));  // the left plane
+
+    std::vector<unsigned int> ghostLocations;
+    findGhostLocations(nbGhostPlanes, ghostLocations);
+    for(unsigned int i=0; i<ghostLocations.size(); i++) polylinePoints.push_back(curve.getPoint(ghostLocations[i]));
+
+    polylinePoints.push_back(curve.getPoint(curveIndexR));      // the right plane
+    polylinePoints.push_back(curve.getPoint(nbU-1));        // the end of the curve
+
+    constructPolyline(polylinePoints);
+
+    update();
+}
+
+void Viewer::moveLeftPlane(int position){
+    double percentage = static_cast<double>(position) / static_cast<double>(sliderMax);
+    unsigned int index = static_cast<unsigned int>(percentage * static_cast<double>(nbU) );
+
+    if(curve.indexForLength(curveIndexR, -constraint) > index){  // Only move if we're going backwards or we haven't met the other plane
+        curveIndexL = index;
+        if(curveIndexL >= nbU) curveIndexL = nbU-1;     // shouldn't ever happen
+    }
+    else if( curveIndexL == curve.indexForLength(curveIndexR, -constraint) ){
+        return;       // already in the correct position
+    }
+    else curveIndexL = curve.indexForLength(curveIndexR, -constraint);     // get the new position
+
+    movePlane(leftPlane, true, curveIndexL);
+
+    if(isCut){
+        toggleIsPolyline();
+        bendPolyline(leftPlane->getID(), curve.getPoint(curveIndexL));
+        toggleIsPolyline();
+    }
+}
+
+void Viewer::moveRightPlane(int position){
+    double percentage = static_cast<double>(position) / static_cast<double>(sliderMax);
+    unsigned int index = nbU - 1 - static_cast<unsigned int>(percentage * static_cast<double>(nbU) );
+
+    if( index > curve.indexForLength(curveIndexL, constraint)){        // its within the correct boundaries
+        curveIndexR = index;
+        if(curveIndexR >= nbU) curveIndexR = nbU-1; // shouldn't ever happen
+    }
+    else if(curveIndexR == curve.indexForLength(curveIndexL, constraint)) return;
+    else curveIndexR = curve.indexForLength(curveIndexL, constraint);
+
+    movePlane(rightPlane, false, curveIndexR);
+
+    if(isCut){
+        toggleIsPolyline();
+        bendPolyline(rightPlane->getID(), curve.getPoint(curveIndexR));
+        toggleIsPolyline();
+    }
+}
+
+void Viewer::movePlane(Plane *p, bool isLeft, unsigned int curveIndex){
+    repositionPlane(p, curveIndex);
+    update();
+}
+
+void swap(unsigned int& a, unsigned int& b){
+    unsigned int temp = a;
+    a = b;
+    b = temp;
+}
+
+unsigned int Viewer::partition(std::vector<unsigned int>& sorted, unsigned int start, unsigned int end){
+    unsigned int p = sorted[end];
+    unsigned int index = start - 1;
+
+    for(unsigned int i=start; i<end; i++){
+        double tangentAngleA = angle(curve.tangent(sorted[i]-1), curve.tangent(sorted[i]));
+        double tangentAngleP = angle(curve.tangent(p-1), curve.tangent(p));
+
+        if(tangentAngleA >= tangentAngleP){
+            index++;
+            swap(sorted[index], sorted[i]);
+        }
+    }
+    swap(sorted[index+1], sorted[end]);
+    return index+1;
+}
+
+void Viewer::quicksort(std::vector<unsigned int>& sorted, int start, int end){
+    if(start < end){
+        unsigned int p = partition(sorted, start, end);
+        quicksort(sorted, start, static_cast<int>(p)-1);
+        quicksort(sorted, static_cast<int>(p)+1, end);
+    }
+}
+
+void Viewer::findGhostLocations(unsigned int nbGhostPlanes, std::vector<unsigned int>& ghostLocation){
+    unsigned int finalNb = nbGhostPlanes;        // the number we can actually fit in
+    std::vector<unsigned int> maxIndicies(nbGhostPlanes);
+
+    const unsigned int startI = curve.indexForLength(curveIndexL, constraint);
+    const unsigned int endI = curve.indexForLength(curveIndexR, -constraint);
+
+    if(endI > startI){         // if there's enough space for a plane
+        const unsigned int searchArea = endI - startI;       // the space that's left between the left and right planes after the constraint is taken into account
+        std::vector<unsigned int> sorted(static_cast<unsigned long long>(searchArea));
+        for(unsigned int i=0; i<searchArea; i++) sorted[i] = startI+i;       // the possible indexes for the plane
+
+        quicksort(sorted, 0, searchArea-1);      // Sort the indicies according to their tangent angles
+
+        maxIndicies[0] = sorted[0];
+        unsigned int sortedIndex = 1;
+
+        for(unsigned int i=1; i<nbGhostPlanes; i++){
+            // the constraint (don't take it if it's too close to another existing plane)
+            bool tooClose;
+            do{
+                tooClose = false;
+                for(int j=static_cast<int>(i)-1; j>=0; j--){
+                    if(sortedIndex < static_cast<unsigned int>(searchArea) && curve.discreteLength(static_cast<unsigned int>(maxIndicies[static_cast<unsigned int>(j)]),static_cast<unsigned int>(sorted[static_cast<unsigned int>(sortedIndex)]))<constraint){
+                        tooClose = true;
+                        break;
+                    }
+                }
+                if(tooClose) sortedIndex++;
+            }while(tooClose);
+
+            if(sortedIndex >= static_cast<unsigned int>(searchArea)){      // if we leave the search area, stop
+                finalNb = i;
+                break;
+            }
+            maxIndicies[i] = sorted[sortedIndex];
+            sortedIndex++;  // move with i
+        }
+
+        // sort the planes
+        for(unsigned int i=0; i<finalNb; i++){
+            for(unsigned int j=i+1; j<finalNb; j++){
+                if(maxIndicies[i] > maxIndicies[j]) swap(maxIndicies[i], maxIndicies[j]);
+            }
+        }
+
+        ghostLocation.clear();
+        for(unsigned int i=0; i<finalNb; i++) ghostLocation.push_back(maxIndicies[i]);       // get the location for each ghost plane
+    }
+}
+
+double Viewer::angle(Vec a, Vec b){
+    double na = a.norm();
+    double nb = b.norm();
+    double ab = a*b;
+
+    double val = ab / (na*nb);
+    if(val >= static_cast<double>(1)) val = 1;          // protection from floating point errors (comparing it to an epsilon didn't work)
+    else if(val < static_cast<double>(-1)) val = -1;
+    return acos(val);
 }

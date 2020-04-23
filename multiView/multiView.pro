@@ -14,9 +14,13 @@ HEADERS  = \
     curvepoint.h \
     curve.h \
     mainwindow.h \
+    mesh.h \
+    meshreader.h \
     plane.h \
     polyline.h \
     standardcamera.h \
+    triangle.h \
+    vec3D.h \
     viewer.h \
     viewerfibula.h
 SOURCES  = main.cpp \
@@ -24,6 +28,7 @@ SOURCES  = main.cpp \
     curvepoint.cpp \
     curve.cpp \
     mainwindow.cpp \
+    mesh.cpp \
     plane.cpp \
     polyline.cpp \
     standardcamera.cpp \

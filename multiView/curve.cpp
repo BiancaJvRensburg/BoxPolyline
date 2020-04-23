@@ -2,8 +2,11 @@
 #include "math.h"
 #include <GL/gl.h>
 
-Curve::Curve(unsigned int nbCP, std::vector<Vec>& cntrlPoints){
+Curve::Curve(){
     this->nbU = 0;
+}
+
+void Curve::init(unsigned int nbCP, std::vector<Vec>& cntrlPoints){
     nbControlPoint = nbCP;
 
     for(unsigned int i=0; i<nbCP; i++){
@@ -19,17 +22,6 @@ void Curve::initConnections(){
     }
 }
 
-void Curve::generateBSpline(unsigned int& nbU, unsigned int degree){
-    this->nbU = nbU;
-    this->degree = degree;
-    this->knotIndex = 0;
-
-    generateUniformKnotVector(0, this->knotVector);
-    splineDerivative(0, curve);
-    splineDerivative(1, dt);
-    splineDerivative(2, d2t);
-}
-
 void Curve::generateCatmull(unsigned int& n){
     unsigned int nbSeg = nbControlPoint-3;
 
@@ -40,64 +32,6 @@ void Curve::generateCatmull(unsigned int& n){
 
     generateCatmullKnotVector(0.3, this->knotVector);
     catmullrom();
-}
-
-
-Vec Curve::deBoor(double u, unsigned int j, unsigned int r){
-
-    if(r==0) return Vec(TabControlPoint[j]->getX(), TabControlPoint[j]->getY(),TabControlPoint[j]->getZ());
-
-    double alpha = (u - knotVector[j]) / (knotVector[j+degree-(r-1)] - knotVector[j]);
-
-    return (1.0 - alpha) * deBoor(u, j-1, r-1) + alpha * deBoor(u, j, r-1);
-}
-
-
-// Returns the kth derivative of the curve ( 0 <= k <= 2 )
-void Curve::splineDerivative(unsigned int k, std::vector<Vec> &c){
-    c.clear();
-    c.resize(nbU);
-    this->knotIndex = 0;
-
-    for(unsigned int i=0; i<nbU; i++){
-        double u = (1.0 / static_cast<double>(nbU-1)) * static_cast<double>(i);
-        c[i] = Vec();
-
-        while(u >= knotVector[knotIndex+1] && knotVector[knotIndex+1] != 1.0) knotIndex++;
-
-        c[i] += Vec(deBoorDerivative(u, knotIndex, degree, k));
-    }
-}
-
-Vec Curve::deBoorDerivative(double u, unsigned int j, unsigned int r, unsigned int k){
-
-    if(r > degree - k){
-        double denom = static_cast<double>(degree + nbControlPoint + 1) - 2.0* static_cast<double>(degree) - 1.0;
-        double rnorm = static_cast<double>(r) / denom;
-        if(k==2){
-                double beta = rnorm / (knotVector[j+degree-(r-1)] - knotVector[j]);
-                return - beta * deBoorDerivative(u, j-1, r-1, k) + beta * deBoorDerivative(u, j, r-1, k);
-            }
-        else if(k==1){
-            double beta = rnorm / knotVector[j+1] - knotVector[j];
-            return beta * (deBoor(u, j, r-1) - deBoor(u, j-1, r-1));
-        }
-    }
-    return deBoor(u, j, r);
-}
-
-void Curve::generateUniformKnotVector(unsigned int a, std::vector<double>& kv){
-    unsigned int k = degree - a;
-    unsigned int n = nbControlPoint - a;
-    unsigned int m = n + k + 1;
-
-    kv.resize(static_cast<unsigned long long>(m));
-
-    double denom = static_cast<double>(m) - 2.0* static_cast<double>(k) - 1.0;
-
-    for(unsigned int i=0; i<=k; i++) kv[i] = 0;
-    for(unsigned int i=k+1; i<m-k-1; i++) kv[i] = static_cast<double>(i-k) / denom;
-    for(unsigned int i=m-k-1; i<m; i++) kv[i] = 1.0;
 }
 
 void Curve::reintialiseCurve(){

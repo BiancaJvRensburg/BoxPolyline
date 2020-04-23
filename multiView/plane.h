@@ -13,21 +13,21 @@ using namespace qglviewer;
 class Plane
 {
 public:
-    Plane(double s, Movable status, Vec& pos, float alpha, unsigned int id);
+    Plane(double s, Movable status, float alpha, unsigned int id);
 
     void toggleIsVisible(){ isVisible = !isVisible; }
     void setAlpha(float alpha){ this->alpha = alpha; }
     float getAlpha(){ return alpha; }
-
+    void setID(unsigned int id){ this->id = id; cp.setID(id); }
+    const unsigned int& getID(){ return this->id; }
     void setSize(double s){ size = s; }
+    bool getIsPoly(){ return isPoly; }
+
     void setPosition(Vec pos);
     void setOrientation(Quaternion q){ cp.getFrame().setOrientation(q); }
     Quaternion fromRotatedBasis(Vec x, Vec y, Vec z);
     void setFrameFromBasis(Vec x, Vec y, Vec z);
 
-    Vec getPolylineVector(Vec v){ return cp.getFrame().localCoordinatesOf(v); }  // Return the vector v in the coordinates of this plane (could be done w/ another function)
-
-    void rotatePlaneXY(double percentage);   // rotate around the z axis    // NOTE could be useless in the near future
     void rotatePlane(Vec axis, double angle);
     void setPlaneRotation(Vec axis, double angle);
     void constrainZRotation(){ cp.getFrame().setConstraint(&constraint); }
@@ -40,7 +40,6 @@ public:
     double getSign(Vec v);
 
     Vec getNormal(){ return normal; }
-    //const Frame& getFrame(){ return *cp->getFrame(); }
     Vec getProjection(Vec p);
     Vec getLocalProjection(Vec p);      // for vectors already in local coordinates
     Vec& getPosition(){ return cp.getPoint(); }
@@ -51,16 +50,13 @@ public:
     Vec getLocalVector(Vec v) { return cp.getFrame().localTransformOf(v); }    // same as get polyline
     Vec getMeshVectorFromLocal(Vec v){ return cp.getFrame().localInverseTransformOf(v); }
 
-    Frame getFrameCopy();
-
-    void setOrientationFromOtherReference(std::vector<Vec> &frame, unsigned int startIndex, Plane* reference);
     void setRotation(Quaternion q) { cp.getFrame().setRotation(q); }
     void rotate(Quaternion q) { cp.getFrame().rotate(q); }
 
     bool isIntersectionPlane(Vec &v0, Vec &v1, Vec &v2, Vec &v3);
     void getCorners(Vec &v0, Vec &v1, Vec &v2, Vec &v3);
 
-    void matchPlane(Plane *p);
+    void toggleIsPoly();
 
     Movable status;
 
@@ -76,6 +72,7 @@ private:
     bool isVisible;
     float alpha;
     unsigned int id;
+    bool isPoly;
 };
 
 #endif // PLANE_H
