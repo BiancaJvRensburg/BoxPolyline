@@ -27,6 +27,7 @@ public Q_SLOTS:
     void placePlanes(const std::vector<Vec>&);
     void moveLeftPlane(int);
     void moveRightPlane(int);
+    virtual void rotatePolylineOnAxis(int);
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
@@ -78,6 +79,8 @@ protected:
     const double constraint = 25.;
     int sliderMax;
     bool isCut;
+
+    int polyRotation;
 
 private:
     void constructPolyline(const std::vector<Vec>& polyPoints);

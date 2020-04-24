@@ -112,33 +112,32 @@ void Viewer::initPolyPlanes(Movable s){
 }
 
 void Viewer::toggleIsPolyline(){
-    double size = 20.;
     Vec direction = Vec(1,1,0);
 
     if(!leftPlane->getIsPoly()){
-        poly.lowerPoint(0, -(endRotations[0]+endRotations[1])*size);
-        poly.lowerPoint(poly.getNbPoints()-1,-(endRotations[2]+endRotations[3])*size);
+        poly.lowerPoint(0, -(endRotations[0]+endRotations[1])*leftPlane->getSize());
+        poly.lowerPoint(poly.getNbPoints()-1,-(endRotations[2]+endRotations[3])*leftPlane->getSize());
 
         leftPlane->toggleIsPoly();
-        poly.lowerPoint(leftPlane->getID(), leftPlane->getMeshVectorFromLocal(-direction)*size);
+        poly.lowerPoint(leftPlane->getID(), leftPlane->getMeshVectorFromLocal(-direction)*leftPlane->getSize());
         rightPlane->toggleIsPoly();
-        poly.lowerPoint(rightPlane->getID(), rightPlane->getMeshVectorFromLocal(-direction)*size);
+        poly.lowerPoint(rightPlane->getID(), rightPlane->getMeshVectorFromLocal(-direction)*leftPlane->getSize());
         for(unsigned int i=0; i<ghostPlanes.size(); i++) {
             ghostPlanes[i]->toggleIsPoly();
-            poly.lowerPoint(i+2, ghostPlanes[i]->getMeshVectorFromLocal(-direction)*size);
+            poly.lowerPoint(i+2, ghostPlanes[i]->getMeshVectorFromLocal(-direction)*leftPlane->getSize());
         }
     }
     else{
-        poly.lowerPoint(0, (endRotations[0]+endRotations[1])*size);
-        poly.lowerPoint(poly.getNbPoints()-1, (endRotations[2]+endRotations[3])*size);
+        poly.lowerPoint(0, (endRotations[0]+endRotations[1])*leftPlane->getSize());
+        poly.lowerPoint(poly.getNbPoints()-1, (endRotations[2]+endRotations[3])*leftPlane->getSize());
 
         leftPlane->toggleIsPoly();
-        poly.lowerPoint(leftPlane->getID(), leftPlane->getMeshVectorFromLocal(direction)*size);
+        poly.lowerPoint(leftPlane->getID(), leftPlane->getMeshVectorFromLocal(direction)*leftPlane->getSize());
         rightPlane->toggleIsPoly();
-        poly.lowerPoint(rightPlane->getID(), rightPlane->getMeshVectorFromLocal(direction)*size);
+        poly.lowerPoint(rightPlane->getID(), rightPlane->getMeshVectorFromLocal(direction)*leftPlane->getSize());
         for(unsigned int i=0; i<ghostPlanes.size(); i++) {
             ghostPlanes[i]->toggleIsPoly();
-            poly.lowerPoint(i+2, ghostPlanes[i]->getMeshVectorFromLocal(direction)*size);
+            poly.lowerPoint(i+2, ghostPlanes[i]->getMeshVectorFromLocal(direction)*leftPlane->getSize());
         }
     }
 
@@ -523,4 +522,8 @@ double Viewer::angle(Vec a, Vec b){
     if(val >= static_cast<double>(1)) val = 1;          // protection from floating point errors (comparing it to an epsilon didn't work)
     else if(val < static_cast<double>(-1)) val = -1;
     return acos(val);
+}
+
+void Viewer::rotatePolylineOnAxis(int position){
+
 }

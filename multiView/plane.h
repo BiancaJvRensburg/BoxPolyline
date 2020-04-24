@@ -56,6 +56,8 @@ public:
     bool isIntersectionPlane(Vec &v0, Vec &v1, Vec &v2, Vec &v3);
     void getCorners(Vec &v0, Vec &v1, Vec &v2, Vec &v3);
 
+    const double& getSize(){ return size; }
+
     void toggleIsPoly();
 
     Movable status;

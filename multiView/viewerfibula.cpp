@@ -102,13 +102,10 @@ void ViewerFibula::constructCurve(){
 }
 
 void ViewerFibula::toggleIsPolyline(){
-    double size = 20.;
+    Vec n = poly.getWorldTransform(poly.getNormal()-poly.getBinormal());
 
-    Vec n = poly.getWorldTransform(poly.getNormal());
-    Vec b = poly.getWorldTransform(-poly.getBinormal());
-
-    if(!leftPlane->getIsPoly()) for(unsigned int i=0; i<poly.getNbPoints(); i++) poly.lowerPoint(i, (n+b)*size);
-    else for(unsigned int i=0; i<poly.getNbPoints(); i++) poly.lowerPoint(i, -(n+b)*size);
+    if(!leftPlane->getIsPoly()) for(unsigned int i=0; i<poly.getNbPoints(); i++) poly.lowerPoint(i, n*leftPlane->getSize());
+    else for(unsigned int i=0; i<poly.getNbPoints(); i++) poly.lowerPoint(i, -n*leftPlane->getSize());
 
     leftPlane->toggleIsPoly();
     rightPlane->toggleIsPoly();

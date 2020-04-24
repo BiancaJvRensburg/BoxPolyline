@@ -29,9 +29,6 @@ Q_SIGNALS:
 
 private:
     void rotatePolyline();
-
-    int polyRotation;
-
 };
 
 #endif // VIEWERFIBULA_H
