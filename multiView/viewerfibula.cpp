@@ -15,6 +15,7 @@ void ViewerFibula::updateFibPolyline(const Vec& firstPoint, const std::vector<do
 
 void ViewerFibula::bendPolylineNormals(const std::vector<Vec>& normals, const std::vector<double>& distances){
     updateFibPolyline(poly.getMeshPoint(0), distances);
+    const Vec binorm = poly.getWorldTransform(poly.getBinormal());
 
     for(unsigned int i=4; i<normals.size()-4; i+=2){
         Vec v = poly.getWorldTransform(normals[i]);
@@ -22,8 +23,7 @@ void ViewerFibula::bendPolylineNormals(const std::vector<Vec>& normals, const st
         ghostPlanes[i/2-2]->setFrameFromBasis(v, a, cross(v, a));
         ghostPlanes[i/2-2]->setPosition(poly.getMeshPoint((ghostPlanes[i/2-2]->getID()+3)/2));
 
-        // rotate 90 degrees around the normal to line up z with the tangent (which stays fixed)
-        ghostPlanes[i/2-2]->rotate(Quaternion(ghostPlanes[i/2-2]->getLocalVector(Vec(0,1,0)), M_PI/2.));
+        ghostPlanes[i/2-2]->rotate(Quaternion(ghostPlanes[i/2-2]->getLocalVector(binorm), M_PI/2.));
     }
 
     Vec n = poly.getWorldTransform(normals[0]);
@@ -39,8 +39,8 @@ void ViewerFibula::bendPolylineNormals(const std::vector<Vec>& normals, const st
     rightPlane->setFrameFromBasis(n,b,cross(n,b));
     rightPlane->setPosition(poly.getMeshPoint(rightPlane->getID()));
 
-    leftPlane->rotate(Quaternion(leftPlane->getLocalVector(Vec(0,1,0)), M_PI/2.));
-    rightPlane->rotate(Quaternion(rightPlane->getLocalVector(Vec(0,1,0)), M_PI/2.));
+    leftPlane->rotate(Quaternion(leftPlane->getLocalVector(binorm), M_PI/2.));
+    rightPlane->rotate(Quaternion(rightPlane->getLocalVector(binorm), M_PI/2.));
 
     /*for(unsigned int i=0; i<tempNorms.size(); i+=2){
         Vec v = poly.getWorldTransform(tempNorms[i]);
@@ -107,7 +107,8 @@ void ViewerFibula::toggleIsPolyline(){
     Vec n = poly.getWorldTransform(poly.getNormal());
     Vec b = poly.getWorldTransform(-poly.getBinormal());
 
-    for(unsigned int i=0; i<poly.getNbPoints(); i++) poly.lowerPoint(i, (n+b)*size);
+    if(!leftPlane->getIsPoly()) for(unsigned int i=0; i<poly.getNbPoints(); i++) poly.lowerPoint(i, (n+b)*size);
+    else for(unsigned int i=0; i<poly.getNbPoints(); i++) poly.lowerPoint(i, -(n+b)*size);
 
     leftPlane->toggleIsPoly();
     rightPlane->toggleIsPoly();
@@ -160,10 +161,11 @@ void ViewerFibula::rotatePolylineOnAxis(int position){
     int pos = position - polyRotation;
     polyRotation = position;
     double alpha = static_cast<double>(pos) / 180. * M_PI;
+
+    const Vec tangent = poly.getWorldTransform(Vec(1,0,0));
     poly.rotateOnAxis(alpha);
-    Quaternion q(Vec(0,0,1), alpha);
-    leftPlane->rotate(q);
-    rightPlane->rotate(q);
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->rotate(q);
+    leftPlane->rotate(Quaternion(leftPlane->getLocalVector(tangent), alpha));
+    rightPlane->rotate(Quaternion(rightPlane->getLocalVector(tangent), alpha));
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->rotate( Quaternion(ghostPlanes[i]->getLocalVector(tangent), alpha));
     update();
 }

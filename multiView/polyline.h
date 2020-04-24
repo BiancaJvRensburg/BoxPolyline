@@ -15,7 +15,7 @@ public:
     unsigned int getNbPoints(){ return points.size(); }
     Vec& getPoint(unsigned int i){return points[i];}
     Vec getMeshPoint(unsigned int i){ return getWorldCoordinates(points[i]); }
-    Vec getWorldCoordinates(const Vec& v){ return frame.inverseCoordinatesOf(v);}
+    Vec getWorldCoordinates(const Vec& v){ return frame.localInverseCoordinatesOf(v);}
     Vec getWorldTransform(const Vec& v){ return frame.localInverseTransformOf(v);}
     Vec getLocalTransform(const Vec& v){ return frame.localTransformOf(v); }
     void bend(unsigned int index, Vec &newPosition, std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
