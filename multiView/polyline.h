@@ -16,7 +16,7 @@ public:
     Vec& getPoint(unsigned int i){return points[i];}
     Vec getMeshPoint(unsigned int i){ return getWorldCoordinates(points[i]); }
     Vec getWorldCoordinates(const Vec& v){ return frame.inverseCoordinatesOf(v);}
-    Vec getWorldTransform(const Vec& v){ return frame.inverseTransformOf(v);}
+    Vec getWorldTransform(const Vec& v){ return frame.localInverseTransformOf(v);}
     Vec getLocalTransform(const Vec& v){ return frame.localTransformOf(v); }
     void bend(unsigned int index, Vec &newPosition, std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
     void getDistances(std::vector<double>& distances);
@@ -24,6 +24,9 @@ public:
     const std::vector<Vec>& getPoints(){ return points; }
     const Vec& getNormal(){ return normal; }
     const Vec& getBinormal(){ return binormal; }
+    const Vec& getTangent(){ return tangent; }
+    void setFirstPoint(const Vec& firstPoint){ frame.setPosition(firstPoint); }
+    void rotate(Quaternion q){ frame.rotate(q); }
 
 private:
     Vec projection(Vec &a, Vec &planeNormal);

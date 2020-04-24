@@ -28,6 +28,8 @@ void Polyline::draw(){
     glPushMatrix();
     glMultMatrixd(frame.matrix());
 
+    QGLViewer::drawAxis(20.);
+
     // The polyline
     glLineWidth(5.);
     glColor3f(0.,0.,1.);
@@ -44,6 +46,8 @@ void Polyline::draw(){
     glBegin(GL_POINTS);
     for(unsigned int i=0; i<points.size(); i++) glVertex3d(points[i].x, points[i].y, points[i].z);
     glEnd();
+
+    glPopMatrix();
 }
 
 void Polyline::updatePoints(const std::vector<Vec> &newPoints){
@@ -115,7 +119,7 @@ Vec Polyline::vectorQuaternionRotation(double theta, const Vec &axis, const Vec 
 
 void Polyline::initialiseFrame(Frame &f){
     Quaternion q = Quaternion();            // the base
-    q.setFromRotatedBasis(Vec(1,0,0),Vec(0,1,0),Vec(0,0,1));
+    q.setFromRotatedBasis(getWorldTransform(Vec(1,0,0)), getWorldTransform(Vec(0,1,0)),getWorldTransform(Vec(0,0,1)));
     f.setOrientation(q);
 }
 

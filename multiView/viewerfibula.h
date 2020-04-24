@@ -26,6 +26,9 @@ public Q_SLOTS:
 Q_SIGNALS:
     void okToPlacePlanes(const std::vector<Vec>&);
 
+private:
+    void rotatePolyline();
+
 };
 
 #endif // VIEWERFIBULA_H

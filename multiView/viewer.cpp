@@ -346,9 +346,10 @@ void Viewer::openOFF(QString filename) {
 
     // Set the camera
     Vec3Df center;
-    double radius;
-    MeshTools::computeAveragePosAndRadius(vertices, center, radius);
-    updateCamera(Vec(center), static_cast<float>(radius));
+    float radius;
+    mesh.computeBB(center, radius);
+    //MeshTools::computeAveragePosAndRadius(vertices, center, radius);
+    updateCamera(Vec(center),radius);
 
     update();
 }

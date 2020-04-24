@@ -121,6 +121,8 @@ protected:
 
     int normalDirection;
     float alphaTransparency = 1.f;
+    Vec3Df BBMin;
+    Vec3Df BBMax;
 };
 
 #endif // MESH_H

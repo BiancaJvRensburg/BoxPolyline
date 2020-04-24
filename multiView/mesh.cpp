@@ -10,8 +10,8 @@ void Mesh::init(){
 
 void Mesh::computeBB(Vec3Df &centre, float &radius){
 
-    Vec3Df BBMin( FLT_MAX, FLT_MAX, FLT_MAX );
-    Vec3Df BBMax( -FLT_MAX, -FLT_MAX, -FLT_MAX );
+    BBMin = Vec3Df( FLT_MAX, FLT_MAX, FLT_MAX );
+    BBMax = Vec3Df( -FLT_MAX, -FLT_MAX, -FLT_MAX );
 
     for( unsigned int i = 0 ; i < vertices.size() ; i ++ ){
         const Vec3Df &point = vertices[i];

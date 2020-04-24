@@ -7,7 +7,8 @@ ViewerFibula::ViewerFibula(QWidget *parent, StandardCamera *camera, int sliderMa
 
 void ViewerFibula::updateFibPolyline(const Vec& firstPoint, const std::vector<double>& distances){
     std::vector<Vec> newPoints;
-    newPoints.push_back(firstPoint);
+    poly.setFirstPoint(firstPoint);
+    newPoints.push_back(Vec(0,0,0));
     for(unsigned int i=0; i<distances.size(); i++) newPoints.push_back(newPoints[i] + Vec(distances[i], 0, 0));
     updatePolyline(newPoints);
 }
@@ -64,7 +65,7 @@ void ViewerFibula::initGhostPlanes(Movable s){
         Plane *p1 = new Plane(size, s, .5f, i+1);
         //p1->toggleIsPoly();
         ghostPlanes.push_back(p1);
-        ghostPlanes[i]->setPosition(poly.getPoint((i+2)/2));
+        ghostPlanes[i]->setPosition(poly.getMeshPoint((i+2)/2));
         ghostPlanes[i]->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
     }
 
@@ -123,6 +124,7 @@ void ViewerFibula::repositionPlanesOnPolyline(){
 
 void ViewerFibula::constructPolyline(const std::vector<double>& distances, const std::vector<Vec>& newPoints){
     isCut = true;
+    rotatePolyline();
 
     updateFibPolyline(curve.getPoint(curveIndexL), distances);
 
@@ -135,7 +137,7 @@ void ViewerFibula::constructPolyline(const std::vector<double>& distances, const
 
 void ViewerFibula::updateDistances(const std::vector<double>& distances){
     std::vector<Vec> newPoints;
-    newPoints.push_back(poly.getMeshPoint(0));
+    newPoints.push_back(Vec(0,0,0));
     for(unsigned int i=0; i<distances.size(); i++) newPoints.push_back(newPoints[i] + Vec(distances[i], 0, 0));
     poly.updatePoints(newPoints);
     repositionPlanesOnPolyline();
@@ -145,4 +147,11 @@ void ViewerFibula::movePlanes(double distance){     // move the planes when its 
     curveIndexR = curve.indexForLength(curveIndexL, distance);
     repositionPlane(rightPlane, curveIndexR);
     update();
+}
+
+void ViewerFibula::rotatePolyline(){
+    Vec v = curve.getPoint(nbU-1) - curve.getPoint(0);
+    double alpha = angle(poly.getWorldTransform(poly.getTangent()), v);
+    Quaternion q(-poly.getBinormal(), alpha);
+    poly.rotate(q);
 }
