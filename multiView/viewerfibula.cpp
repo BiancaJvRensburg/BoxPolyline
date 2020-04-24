@@ -2,7 +2,7 @@
 
 ViewerFibula::ViewerFibula(QWidget *parent, StandardCamera *camera, int sliderMax, int fibulaOffset) : Viewer (parent, camera, sliderMax)
 {
-
+    polyRotation = 0;
 }
 
 void ViewerFibula::updateFibPolyline(const Vec& firstPoint, const std::vector<double>& distances){
@@ -154,4 +154,16 @@ void ViewerFibula::rotatePolyline(){
     double alpha = angle(poly.getWorldTransform(poly.getTangent()), v);
     Quaternion q(-poly.getBinormal(), alpha);
     poly.rotate(q);
+}
+
+void ViewerFibula::rotatePolylineOnAxis(int position){
+    int pos = position - polyRotation;
+    polyRotation = position;
+    double alpha = static_cast<double>(pos) / 180. * M_PI;
+    poly.rotateOnAxis(alpha);
+    Quaternion q(Vec(0,0,1), alpha);
+    leftPlane->rotate(q);
+    rightPlane->rotate(q);
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->rotate(q);
+    update();
 }

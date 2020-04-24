@@ -27,6 +27,7 @@ public:
     const Vec& getTangent(){ return tangent; }
     void setFirstPoint(const Vec& firstPoint){ frame.setPosition(firstPoint); }
     void rotate(Quaternion q){ frame.rotate(q); }
+    void rotateOnAxis(double angle){ frame.rotate(Quaternion(tangent, angle)); }
 
 private:
     Vec projection(Vec &a, Vec &planeNormal);
