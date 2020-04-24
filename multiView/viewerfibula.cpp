@@ -163,9 +163,18 @@ void ViewerFibula::rotatePolylineOnAxis(int position){
     double alpha = static_cast<double>(pos) / 180. * M_PI;
 
     const Vec tangent = poly.getWorldTransform(Vec(1,0,0));
-    poly.rotateOnAxis(alpha);
+
+    double size = 20.;
+
+    Vec n = poly.getWorldTransform(poly.getNormal());
+    Vec b = poly.getWorldTransform(-poly.getBinormal());
+    poly.rotateOnAxis(alpha, poly.getMeshPoint(0)-(n+b)*size);
+
     leftPlane->rotate(Quaternion(leftPlane->getLocalVector(tangent), alpha));
     rightPlane->rotate(Quaternion(rightPlane->getLocalVector(tangent), alpha));
     for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->rotate( Quaternion(ghostPlanes[i]->getLocalVector(tangent), alpha));
+
+    repositionPlanesOnPolyline();
+
     update();
 }
