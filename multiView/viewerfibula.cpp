@@ -26,10 +26,10 @@ void ViewerFibula::bendPolylineNormals(std::vector<Vec>& normals, const std::vec
         ghostPlanes[i/2-2]->setPosition(poly.getMeshPoint(ghostPlanes[i/2-2]->getID()));//(ghostPlanes[i/2-2]->getID()+3)/2));
     }
 
-    leftPlane->setFrameFromBasis(normals[0],normals[1],cross(normals[0],normals[1]));
+    leftPlane->setFrameFromBasis(normals[2],normals[3],cross(normals[2],normals[3]));
     leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
 
-    unsigned long long lastIndex = normals.size()-2;
+    unsigned long long lastIndex = normals.size()-4;
     rightPlane->setFrameFromBasis(normals[lastIndex],normals[lastIndex+1],cross(normals[lastIndex],normals[lastIndex+1]));
     rightPlane->setPosition(poly.getMeshPoint(rightPlane->getID()));
 
@@ -48,10 +48,10 @@ void ViewerFibula::bendPolyline(unsigned int id, Vec v){
         ghostPlanes[i/2-2]->setPosition(poly.getMeshPoint(ghostPlanes[i/2-2]->getID()));//(ghostPlanes[i/2-2]->getID()+3)/2));
     }
 
-    leftPlane->setFrameFromBasis(normals[0],normals[1],cross(normals[0],normals[1]));
+    leftPlane->setFrameFromBasis(normals[2],normals[3],cross(normals[2],normals[3]));
     leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
 
-    unsigned long long lastIndex = normals.size()-2;
+    unsigned long long lastIndex = normals.size()-4;
     rightPlane->setFrameFromBasis(normals[lastIndex],normals[lastIndex+1],cross(normals[lastIndex],normals[lastIndex+1]));
     rightPlane->setPosition(poly.getMeshPoint(rightPlane->getID()));
 

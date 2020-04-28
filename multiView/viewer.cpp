@@ -253,15 +253,15 @@ void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
     endRotations.push_back(relativeNorms[lastIndex+1]);
 
     Plane tempPlane(1., Movable::STATIC, 0, 0);
-    tempPlane.setFrameFromBasis(relativeNorms[0], relativeNorms[1], cross(relativeNorms[0], relativeNorms[1]));
+    tempPlane.setFrameFromBasis(relativeNorms[2], relativeNorms[3], cross(relativeNorms[2], relativeNorms[3]));
 
     Vec n(1,0,0);
     Vec b(0,1,0);
     n = leftPlane->getMeshVectorFromLocal(n);
     b = leftPlane->getMeshVectorFromLocal(b);
 
-    relativeNorms[0] = tempPlane.getLocalVector(n);
-    relativeNorms[1] = tempPlane.getLocalVector(b);
+    relativeNorms[2] = tempPlane.getLocalVector(n);
+    relativeNorms[3] = tempPlane.getLocalVector(b);
 
     for(unsigned int i=0; i<ghostPlanes.size()*2; i++){
         Plane tempPlane(1., Movable::STATIC, 0, 0);
@@ -279,6 +279,7 @@ void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
         relativeNorms[(i+2)*2+1] = tempPlane.getLocalVector(b);
     }
 
+    lastIndex = relativeNorms.size()-4;
     tempPlane.setFrameFromBasis(relativeNorms[lastIndex], relativeNorms[lastIndex+1], cross(relativeNorms[lastIndex], relativeNorms[lastIndex+1]));
 
     n = Vec(1,0,0);
