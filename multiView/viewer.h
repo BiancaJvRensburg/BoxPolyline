@@ -23,14 +23,18 @@ public Q_SLOTS:
     void toUpdate();
     virtual void bendPolyline(unsigned int pointIndex, Vec v);
     void cutMesh();
+    void uncutMesh();
     void placePlanes(const std::vector<Vec>&);
     void moveLeftPlane(int);
     void moveRightPlane(int);
+    virtual void rotatePolylineOnAxis(int);
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
-    void polylineBent(const std::vector<Vec>&, const std::vector<double>&);
+    void polylineBent(std::vector<Vec>&, const std::vector<double>&);
     void constructPoly(const std::vector<double>&, const std::vector<Vec>&);
+    void toUpdateDistances(std::vector<double>&);
+    void planeMoved(double);
 
 protected:
     void draw();
@@ -50,6 +54,7 @@ protected:
     unsigned int partition(std::vector<unsigned int>& sorted, unsigned int start, unsigned int end);
     void quicksort(std::vector<unsigned int>& sorted, int start, int end);
     void findGhostLocations(unsigned int nbGhostPlanes, std::vector<unsigned int>& ghostLocations);
+    void deconstructPolyline();
 
     double angle(Vec a, Vec b);
     double segmentLength(const Vec a, const Vec b);
@@ -75,9 +80,11 @@ protected:
     int sliderMax;
     bool isCut;
 
+    int polyRotation;
+
 private:
     void constructPolyline(const std::vector<Vec>& polyPoints);
-    void movePlane(Plane *p, bool isLeft, unsigned int curveIndex);
+    void movePlane(Plane *p, unsigned int curveIndex);
 };
 
 #endif // VIEWER_H

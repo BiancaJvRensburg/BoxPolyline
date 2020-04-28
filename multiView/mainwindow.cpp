@@ -86,8 +86,18 @@ void MainWindow::initDisplayDockWidgets(){
     rightPlaneSlider->setMaximum(sliderMax);
     contentLayoutMand->addRow("Right slider", rightPlaneSlider);
 
+    QSlider *rotatePolylineMandible = new QSlider(Qt::Horizontal);
+    rotatePolylineMandible->setMaximum(360);
+    //contentLayoutMand->addRow("Rotate planes (mandible)", rotatePolylineMandible);
+
+    QSlider *rotatePolylineFibula = new QSlider(Qt::Horizontal);
+    rotatePolylineFibula->setMaximum(360);
+    contentLayoutMand->addRow("Rotate planes (fibula)", rotatePolylineFibula);
+
     connect(leftPlaneSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::moveLeftPlane);
     connect(rightPlaneSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::moveRightPlane);
+    connect(rotatePolylineFibula, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::rotatePolylineOnAxis);
+    connect(rotatePolylineMandible, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::rotatePolylineOnAxis);
 
     // Connect the two views
     connect(skullViewer, &Viewer::polylineBent, fibulaViewer, &ViewerFibula::bendPolylineNormals);
@@ -115,12 +125,19 @@ void MainWindow::initFileActions(){
     QAction *cutMeshAction = new QAction("Cut", this);
     connect(cutMeshAction, &QAction::triggered, skullViewer, &Viewer::cutMesh);
 
+    QAction *uncutMeshAction = new QAction("Undo cut", this);
+    connect(uncutMeshAction, &QAction::triggered, skullViewer, &Viewer::uncutMesh);
+    connect(uncutMeshAction, &QAction::triggered, fibulaViewer, &Viewer::uncutMesh);
+
     fileActionGroup->addAction(openJsonFileAction);
     fileActionGroup->addAction(openJsonFibFileAction);
     fileActionGroup->addAction(cutMeshAction);
+    fileActionGroup->addAction(uncutMeshAction);
 
     connect(skullViewer, &Viewer::constructPoly, fibulaViewer, &ViewerFibula::constructPolyline);
     connect(fibulaViewer, &ViewerFibula::okToPlacePlanes, skullViewer, &Viewer::placePlanes);
+    connect(skullViewer, &Viewer::toUpdateDistances, fibulaViewer, &ViewerFibula::updateDistances);
+    connect(skullViewer, &Viewer::planeMoved, fibulaViewer, &ViewerFibula::movePlanes);
 }
 
 void MainWindow::initFileMenu(){

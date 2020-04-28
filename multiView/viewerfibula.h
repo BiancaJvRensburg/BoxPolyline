@@ -17,13 +17,20 @@ public:
     void repositionPlanesOnPolyline();
 
 public Q_SLOTS:
-    void bendPolylineNormals(const std::vector<Vec>&, const std::vector<double>&);
+    void bendPolylineNormals(std::vector<Vec>&, const std::vector<double>&);
     void bendPolyline(unsigned int pointIndex, Vec v);
     void constructPolyline(const std::vector<double>&, const std::vector<Vec>&);
+    void updateDistances(const std::vector<double>&);
+    void movePlanes(double);
+    void rotatePolylineOnAxis(int);
 
 Q_SIGNALS:
     void okToPlacePlanes(const std::vector<Vec>&);
 
+private:
+    void rotatePolyline();
+    void setPlanesInPolyline(const std::vector<Vec> &normals);
+    std::vector<Vec> planeNormals;
 };
 
 #endif // VIEWERFIBULA_H
