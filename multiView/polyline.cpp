@@ -1,4 +1,5 @@
 #include "polyline.h"
+#include "plane.h"
 
 Polyline::Polyline()
 {
@@ -47,7 +48,41 @@ void Polyline::draw(){
     for(unsigned int i=0; i<points.size(); i++) glVertex3d(points[i].x, points[i].y, points[i].z);
     glEnd();
 
-    glPopMatrix();
+    glColor3f(1., 0., 0.);
+    double size = 20.;
+   glBegin(GL_LINES);
+   Vec endPoint = points[0]+size*segmentNormals[0];
+   glVertex3d(points[0].x, points[0].y, points[0].z);
+   glVertex3d(endPoint.x, endPoint.y, endPoint.z);
+   for(unsigned int i=1; i<points.size()-1; i++){
+       for(unsigned int j=0; j<2; j++){
+           endPoint = points[i]+size*segmentNormals[i-j];
+           glVertex3d(points[i].x, points[i].y, points[i].z);
+           glVertex3d(endPoint.x, endPoint.y, endPoint.z);
+       }
+   }
+   endPoint = points.back()+size*segmentNormals.back();
+   glVertex3d(points.back().x, points.back().y, points.back().z);
+   glVertex3d(endPoint.x, endPoint.y, endPoint.z);
+   glEnd();
+    glColor3f(1., 1., 0.);
+        glBegin(GL_LINES);
+        endPoint = points[0]+size*segmentBinormals[0];
+        glVertex3d(points[0].x, points[0].y, points[0].z);
+        glVertex3d(endPoint.x, endPoint.y, endPoint.z);
+        for(unsigned int i=1; i<points.size()-1; i++){
+            for(unsigned int j=0; j<2; j++){
+                endPoint = points[i]+size*segmentBinormals[i-j];
+                glVertex3d(points[i].x, points[i].y, points[i].z);
+                glVertex3d(endPoint.x, endPoint.y, endPoint.z);
+            }
+        }
+        endPoint = points.back()+size*segmentBinormals.back();
+        glVertex3d(points.back().x, points.back().y, points.back().z);
+        glVertex3d(endPoint.x, endPoint.y, endPoint.z);
+        glEnd();
+
+        glPopMatrix();
 }
 
 void Polyline::updatePoints(const std::vector<Vec> &newPoints){
@@ -74,12 +109,22 @@ Vec Polyline::projection(Vec &a, Vec &planeNormal){
 void Polyline::bend(unsigned int index, Vec &newPosition, std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals){
     if(index >= points.size()) return;
 
-    points[index] = newPosition;
+    points[index] = getLocalCoordinates(newPosition);
 
     if(index!=0) recalculateBinormal(index-1, points[index-1], points[index]);
     if(index!=points.size()-1) recalculateBinormal(index, points[index], points[index+1]);
 
     getCuttingAngles(relativeNorms, planeNormals, planeBinormals);
+}
+
+void Polyline::bendFibula(unsigned int index, Vec &newPosition){
+    if(index >= points.size()) return;
+
+    points[index] = getLocalCoordinates(newPosition);
+
+    if(index!=0) recalculateBinormal(index-1, points[index-1], points[index]);
+    if(index!=points.size()-1) recalculateBinormal(index, points[index], points[index+1]);
+
 }
 
 void Polyline::recalculateNormal(unsigned int index, const Vec &origin, const Vec &newPosition){
@@ -171,4 +216,17 @@ double Polyline::euclideanDistance(const Vec &a, const Vec &b){
 
 void Polyline::lowerPoint(unsigned int index, const Vec &toLower){
     points[index] += toLower;
+}
+
+void Polyline::getRelatvieNormals(std::vector<Vec> &relativeNorms){
+    Plane temp(0.5, Movable::STATIC, 0, 0);
+    temp.setFrameFromBasis(segmentNormals[0], segmentBinormals[0], cross(segmentNormals[0], segmentBinormals[0]));
+    relativeNorms[0] = getWorldTransform(temp.getMeshVectorFromLocal(relativeNorms[0]));
+    relativeNorms[1] = getWorldTransform(temp.getMeshVectorFromLocal(relativeNorms[1]));
+
+    for(unsigned int i=1; i<segmentNormals.size(); i++){
+        Plane temp(0.5, Movable::STATIC, 0, 0);
+        temp.setFrameFromBasis(segmentNormals[i], segmentBinormals[i], cross(segmentNormals[i], segmentBinormals[i]));
+        for(int j=-2; j<2; j++) relativeNorms[i*4+j] = getWorldTransform(temp.getMeshVectorFromLocal(relativeNorms[i*4+j]));
+    }
 }

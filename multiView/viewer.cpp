@@ -33,6 +33,8 @@ void Viewer::draw() {
 
     curve.draw();
 
+    //mesh.draw();
+
     /*for(unsigned int i=0; i<tempPlanes.size(); i++){
         glColor4f(1., 0., 1., tempPlanes[i]->getAlpha());
         tempPlanes[i]->draw();
@@ -251,7 +253,7 @@ void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
     endRotations.push_back(relativeNorms[lastIndex+1]);
 
     Plane tempPlane(1., Movable::STATIC, 0, 0);
-    tempPlane.setFrameFromBasis(relativeNorms[2], relativeNorms[3], cross(relativeNorms[2], relativeNorms[3]));
+    tempPlane.setFrameFromBasis(relativeNorms[0], relativeNorms[1], cross(relativeNorms[0], relativeNorms[1]));
 
     Vec n(1,0,0);
     Vec b(0,1,0);
@@ -273,8 +275,6 @@ void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
         b = ghostPlanes[i/2]->getMeshVectorFromLocal(b);
 
         // convert in relation to tempPlanes
-        /*relativeNorms[i*2] = tempPlanes[i]->getLocalVector(n);
-        relativeNorms[i*2+1] = tempPlanes[i]->getLocalVector(b);*/
         relativeNorms[(i+2)*2] = tempPlane.getLocalVector(n);
         relativeNorms[(i+2)*2+1] = tempPlane.getLocalVector(b);
     }

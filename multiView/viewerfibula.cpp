@@ -13,61 +13,62 @@ void ViewerFibula::updateFibPolyline(const Vec& firstPoint, const std::vector<do
     updatePolyline(newPoints);
 }
 
-void ViewerFibula::bendPolylineNormals(const std::vector<Vec>& normals, const std::vector<double>& distances){
+void ViewerFibula::bendPolylineNormals(std::vector<Vec>& normals, const std::vector<double>& distances){
     updateFibPolyline(poly.getMeshPoint(0), distances);
-    const Vec binorm = poly.getWorldTransform(poly.getBinormal());
+
+    planeNormals.clear();
+    for(unsigned int i=0; i<normals.size(); i++) planeNormals.push_back(normals[i]);
+
+    poly.getRelatvieNormals(normals);
 
     for(unsigned int i=4; i<normals.size()-4; i+=2){
-        Vec v = poly.getWorldTransform(normals[i]);
-        Vec a = poly.getWorldTransform(normals[i+1]);
-        ghostPlanes[i/2-2]->setFrameFromBasis(v, a, cross(v, a));
-        ghostPlanes[i/2-2]->setPosition(poly.getMeshPoint((ghostPlanes[i/2-2]->getID()+3)/2));
-
-        ghostPlanes[i/2-2]->rotate(Quaternion(ghostPlanes[i/2-2]->getLocalVector(binorm), M_PI/2.));
+        ghostPlanes[i/2-2]->setFrameFromBasis(normals[i], normals[i+1], cross(normals[i], normals[i+1]));
+        ghostPlanes[i/2-2]->setPosition(poly.getMeshPoint(ghostPlanes[i/2-2]->getID()));//(ghostPlanes[i/2-2]->getID()+3)/2));
     }
 
-    Vec n = poly.getWorldTransform(normals[0]);
-    Vec b = poly.getWorldTransform(normals[1]);
-
-    leftPlane->setFrameFromBasis(n,b,cross(n,b));
+    leftPlane->setFrameFromBasis(normals[0],normals[1],cross(normals[0],normals[1]));
     leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
 
     unsigned long long lastIndex = normals.size()-2;
-    n = poly.getWorldTransform(normals[lastIndex]);
-    b = poly.getWorldTransform(normals[lastIndex+1]);
-
-    rightPlane->setFrameFromBasis(n,b,cross(n,b));
+    rightPlane->setFrameFromBasis(normals[lastIndex],normals[lastIndex+1],cross(normals[lastIndex],normals[lastIndex+1]));
     rightPlane->setPosition(poly.getMeshPoint(rightPlane->getID()));
-
-    leftPlane->rotate(Quaternion(leftPlane->getLocalVector(binorm), M_PI/2.));
-    rightPlane->rotate(Quaternion(rightPlane->getLocalVector(binorm), M_PI/2.));
-
-    /*for(unsigned int i=0; i<tempNorms.size(); i+=2){
-        Vec v = poly.getWorldTransform(tempNorms[i]);
-        Vec a = poly.getWorldTransform(tempNorms[i+1]);
-        tempFibPlanes[i/2]->setFrameFromBasis(v, a, cross(v, a));
-        tempFibPlanes[i/2]->setPosition(poly.getPoint(((i/2)+1)));
-
-        tempFibPlanes[i/2]->rotate(Quaternion(tempFibPlanes[i/2]->getLocalVector(Vec(0,1,0)), M_PI/2.));
-    }*/
 
     update();
 }
 
 void ViewerFibula::bendPolyline(unsigned int id, Vec v){
+    poly.bendFibula(id, v);
 
+    std::vector<Vec> normals;
+    for(unsigned int i=0; i<planeNormals.size(); i++) normals.push_back(planeNormals[i]);
+    poly.getRelatvieNormals(normals);
+
+    for(unsigned int i=4; i<normals.size()-4; i+=2){
+        ghostPlanes[i/2-2]->setFrameFromBasis(normals[i], normals[i+1], cross(normals[i], normals[i+1]));
+        ghostPlanes[i/2-2]->setPosition(poly.getMeshPoint(ghostPlanes[i/2-2]->getID()));//(ghostPlanes[i/2-2]->getID()+3)/2));
+    }
+
+    leftPlane->setFrameFromBasis(normals[0],normals[1],cross(normals[0],normals[1]));
+    leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
+
+    unsigned long long lastIndex = normals.size()-2;
+    rightPlane->setFrameFromBasis(normals[lastIndex],normals[lastIndex+1],cross(normals[lastIndex],normals[lastIndex+1]));
+    rightPlane->setPosition(poly.getMeshPoint(rightPlane->getID()));
+
+    update();
 }
 
 void ViewerFibula::initGhostPlanes(Movable s){
     deleteGhostPlanes();
     double size = 20.;
     for(unsigned int i=0; i<(poly.getNbPoints()-4)*2; i++){     // -2 for total nb of planes, another -2 for nb of ghost planes
-        Plane *p1 = new Plane(size, s, .5f, i+1);
-        //p1->toggleIsPoly();
+        Plane *p1 = new Plane(size, s, .5f, i/2+2);
         ghostPlanes.push_back(p1);
         ghostPlanes[i]->setPosition(poly.getMeshPoint((i+2)/2));
         ghostPlanes[i]->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
     }
+
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) connect(&(ghostPlanes[i]->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolyline);        // connnect the ghost planes
 
     /*for(unsigned int i=0; i<tempFibPlanes.size(); i++) delete tempFibPlanes[i];
     tempFibPlanes.clear();
@@ -116,7 +117,7 @@ void ViewerFibula::toggleIsPolyline(){
 
 void ViewerFibula::repositionPlanesOnPolyline(){
     leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setPosition(poly.getMeshPoint((ghostPlanes[i]->getID()-1)/2+2));
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setPosition(poly.getMeshPoint(ghostPlanes[i]->getID())); //ghostPlanes[i]->setPosition(poly.getMeshPoint((ghostPlanes[i]->getID()-1)/2+2));
     rightPlane->setPosition(poly.getMeshPoint(rightPlane->getID()));
 }
 
@@ -124,9 +125,10 @@ void ViewerFibula::constructPolyline(const std::vector<double>& distances, const
     isCut = true;
     rotatePolyline();
 
+    poly.reinit(newPoints.size());
     updateFibPolyline(curve.getPoint(curveIndexL), distances);
 
-    initPolyPlanes(Movable::STATIC);
+    initPolyPlanes(Movable::DYNAMIC);
 
     toggleIsPolyline();
 
@@ -161,11 +163,9 @@ void ViewerFibula::rotatePolylineOnAxis(int position){
 
     const Vec tangent = poly.getWorldTransform(Vec(1,0,0));
 
-    double size = 20.;
-
     Vec n = poly.getWorldTransform(poly.getNormal());
     Vec b = poly.getWorldTransform(-poly.getBinormal());
-    poly.rotateOnAxis(alpha, poly.getMeshPoint(0)-(n+b)*size);
+    poly.rotateOnAxis(alpha, poly.getMeshPoint(0)-(n+b)*leftPlane->getSize());
 
     leftPlane->rotate(Quaternion(leftPlane->getLocalVector(tangent), alpha));
     rightPlane->rotate(Quaternion(rightPlane->getLocalVector(tangent), alpha));

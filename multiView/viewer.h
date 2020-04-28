@@ -31,7 +31,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
-    void polylineBent(const std::vector<Vec>&, const std::vector<double>&);
+    void polylineBent(std::vector<Vec>&, const std::vector<double>&);
     void constructPoly(const std::vector<double>&, const std::vector<Vec>&);
     void toUpdateDistances(std::vector<double>&);
     void planeMoved(double);

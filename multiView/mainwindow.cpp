@@ -88,7 +88,7 @@ void MainWindow::initDisplayDockWidgets(){
 
     QSlider *rotatePolylineMandible = new QSlider(Qt::Horizontal);
     rotatePolylineMandible->setMaximum(360);
-    contentLayoutMand->addRow("Rotate planes (mandible)", rotatePolylineMandible);
+    //contentLayoutMand->addRow("Rotate planes (mandible)", rotatePolylineMandible);
 
     QSlider *rotatePolylineFibula = new QSlider(Qt::Horizontal);
     rotatePolylineFibula->setMaximum(360);
