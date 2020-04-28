@@ -19,11 +19,11 @@ void ViewerFibula::bendPolylineNormals(std::vector<Vec>& normals, const std::vec
     planeNormals.clear();
     for(unsigned int i=0; i<normals.size(); i++) planeNormals.push_back(normals[i]);
 
-    poly.getRelatvieNormals(normals);
+    //poly.getRelatvieNormals(normals);
 
     for(unsigned int i=4; i<normals.size()-4; i+=2){
         ghostPlanes[i/2-2]->setFrameFromBasis(normals[i], normals[i+1], cross(normals[i], normals[i+1]));
-        ghostPlanes[i/2-2]->setPosition(poly.getMeshPoint(ghostPlanes[i/2-2]->getID()));//(ghostPlanes[i/2-2]->getID()+3)/2));
+        ghostPlanes[i/2-2]->setPosition(poly.getMeshPoint(ghostPlanes[i/2-2]->getID()));
     }
 
     leftPlane->setFrameFromBasis(normals[2],normals[3],cross(normals[2],normals[3]));
@@ -45,7 +45,7 @@ void ViewerFibula::bendPolyline(unsigned int id, Vec v){
 
     for(unsigned int i=4; i<normals.size()-4; i+=2){
         ghostPlanes[i/2-2]->setFrameFromBasis(normals[i], normals[i+1], cross(normals[i], normals[i+1]));
-        ghostPlanes[i/2-2]->setPosition(poly.getMeshPoint(ghostPlanes[i/2-2]->getID()));//(ghostPlanes[i/2-2]->getID()+3)/2));
+        ghostPlanes[i/2-2]->setPosition(poly.getMeshPoint(ghostPlanes[i/2-2]->getID()));
     }
 
     leftPlane->setFrameFromBasis(normals[2],normals[3],cross(normals[2],normals[3]));
@@ -68,7 +68,9 @@ void ViewerFibula::initGhostPlanes(Movable s){
         ghostPlanes[i]->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
     }
 
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) connect(&(ghostPlanes[i]->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolyline);        // connnect the ghost planes
+    connect(&(leftPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);
+    connect(&(rightPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) connect(&(ghostPlanes[i]->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);        // connnect the ghost planes
 
     /*for(unsigned int i=0; i<tempFibPlanes.size(); i++) delete tempFibPlanes[i];
     tempFibPlanes.clear();

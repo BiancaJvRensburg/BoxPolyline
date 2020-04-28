@@ -65,24 +65,24 @@ void Polyline::draw(){
    glVertex3d(points.back().x, points.back().y, points.back().z);
    glVertex3d(endPoint.x, endPoint.y, endPoint.z);
    glEnd();
-    glColor3f(1., 1., 0.);
-        glBegin(GL_LINES);
-        endPoint = points[0]+size*segmentBinormals[0];
-        glVertex3d(points[0].x, points[0].y, points[0].z);
-        glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-        for(unsigned int i=1; i<points.size()-1; i++){
-            for(unsigned int j=0; j<2; j++){
-                endPoint = points[i]+size*segmentBinormals[i-j];
-                glVertex3d(points[i].x, points[i].y, points[i].z);
-                glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-            }
+glColor3f(1., 1., 0.);
+    glBegin(GL_LINES);
+    endPoint = points[0]+size*segmentBinormals[0];
+    glVertex3d(points[0].x, points[0].y, points[0].z);
+    glVertex3d(endPoint.x, endPoint.y, endPoint.z);
+    for(unsigned int i=1; i<points.size()-1; i++){
+        for(unsigned int j=0; j<2; j++){
+            endPoint = points[i]+size*segmentBinormals[i-j];
+            glVertex3d(points[i].x, points[i].y, points[i].z);
+            glVertex3d(endPoint.x, endPoint.y, endPoint.z);
         }
-        endPoint = points.back()+size*segmentBinormals.back();
-        glVertex3d(points.back().x, points.back().y, points.back().z);
-        glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-        glEnd();
+    }
+    endPoint = points.back()+size*segmentBinormals.back();
+    glVertex3d(points.back().x, points.back().y, points.back().z);
+    glVertex3d(endPoint.x, endPoint.y, endPoint.z);
+    glEnd();
 
-        glPopMatrix();
+    glPopMatrix();
 }
 
 void Polyline::updatePoints(const std::vector<Vec> &newPoints){
@@ -224,8 +224,7 @@ void Polyline::getRelatvieNormals(std::vector<Vec> &relativeNorms){
     relativeNorms[0] = getWorldTransform(temp.getMeshVectorFromLocal(relativeNorms[0]));
     relativeNorms[1] = getWorldTransform(temp.getMeshVectorFromLocal(relativeNorms[1]));
 
-    for(unsigned int i=1; i<segmentNormals.size(); i++){
-        Plane temp(0.5, Movable::STATIC, 0, 0);
+    for(unsigned int i=1; i<segmentNormals.size()-1; i++){
         temp.setFrameFromBasis(segmentNormals[i], segmentBinormals[i], cross(segmentNormals[i], segmentBinormals[i]));
         for(int j=-2; j<2; j++) relativeNorms[i*4+j] = getWorldTransform(temp.getMeshVectorFromLocal(relativeNorms[i*4+j]));
     }
