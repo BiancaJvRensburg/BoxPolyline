@@ -28,6 +28,10 @@ public Q_SLOTS:
     void moveLeftPlane(int);
     void moveRightPlane(int);
     virtual void rotatePolylineOnAxis(int);
+    void toggleDrawMesh();
+    void setPlaneAlpha(int);
+    void setMeshAlpha(int);
+    void setBoxAlpha(int);
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
@@ -65,8 +69,6 @@ protected:
     std::vector<Vec> endRotations;      // leftend normal,binormal, rightend normal, binormal
     Plane* leftPlane;
     Plane* rightPlane;
-    //std::vector<Plane*> tempPlanes;
-    //std::vector<Plane*> tempFibPlanes;
 
     std::vector<Vec> control;
     Curve curve;
@@ -79,6 +81,7 @@ protected:
     const double constraint = 25.;
     int sliderMax;
     bool isCut;
+    bool isDrawMesh;
 
     int polyRotation;
 

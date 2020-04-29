@@ -33,6 +33,7 @@ public:
     void rotate(Quaternion q){ frame.rotate(q); }
     void rotateOnAxis(double angle, const Vec& point){ Quaternion q(tangent, angle); frame.rotateAroundPoint(q, point); }
     void getRelatvieNormals(std::vector<Vec>& relativeNorms);
+    void setAlpha(float a){ boxTransparency = a; }
 
 private:
     Vec projection(Vec &a, Vec &planeNormal);
@@ -53,6 +54,7 @@ private:
     std::vector<Vec> segmentBinormals;
     std::vector<Vec> cuttingLines;
     std::vector<Vec> cuttingBinormals;
+    float boxTransparency = 1.f;
 };
 
 #endif // POLYLINE_H

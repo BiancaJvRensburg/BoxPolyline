@@ -99,6 +99,29 @@ void MainWindow::initDisplayDockWidgets(){
     connect(rotatePolylineFibula, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::rotatePolylineOnAxis);
     connect(rotatePolylineMandible, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::rotatePolylineOnAxis);
 
+    QSlider *meshAlphaSlider = new QSlider(Qt::Horizontal);
+    meshAlphaSlider->setMaximum(100);
+    meshAlphaSlider->setSliderPosition(100);
+    contentLayoutMand->addRow("Mesh transparency", meshAlphaSlider);
+    connect(meshAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::setMeshAlpha);
+    connect(meshAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::setMeshAlpha);
+
+
+    QSlider *planeAlphaSlider = new QSlider(Qt::Horizontal);
+    planeAlphaSlider->setMaximum(100);
+    planeAlphaSlider->setSliderPosition(50);
+    contentLayoutMand->addRow("Plane transparency", planeAlphaSlider);
+    connect(planeAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::setPlaneAlpha);
+    connect(planeAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::setPlaneAlpha);
+
+    QSlider *boxAlphaSlider = new QSlider(Qt::Horizontal);
+    boxAlphaSlider->setMaximum(100);
+    boxAlphaSlider->setSliderPosition(100);
+    contentLayoutMand->addRow("Box transparency", boxAlphaSlider);
+    connect(boxAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::setBoxAlpha);
+    connect(boxAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::setBoxAlpha);
+
+
     // Connect the two views
     connect(skullViewer, &Viewer::polylineBent, fibulaViewer, &ViewerFibula::bendPolylineNormals);
 
@@ -129,10 +152,15 @@ void MainWindow::initFileActions(){
     connect(uncutMeshAction, &QAction::triggered, skullViewer, &Viewer::uncutMesh);
     connect(uncutMeshAction, &QAction::triggered, fibulaViewer, &Viewer::uncutMesh);
 
+    QAction *drawMeshAction = new QAction("Draw mesh", this);
+    connect(drawMeshAction, &QAction::triggered, skullViewer, &Viewer::toggleDrawMesh);
+    connect(drawMeshAction, &QAction::triggered, fibulaViewer, &ViewerFibula::toggleDrawMesh);
+
     fileActionGroup->addAction(openJsonFileAction);
     fileActionGroup->addAction(openJsonFibFileAction);
     fileActionGroup->addAction(cutMeshAction);
     fileActionGroup->addAction(uncutMeshAction);
+    fileActionGroup->addAction(drawMeshAction);
 
     connect(skullViewer, &Viewer::constructPoly, fibulaViewer, &ViewerFibula::constructPolyline);
     connect(fibulaViewer, &ViewerFibula::okToPlacePlanes, skullViewer, &Viewer::placePlanes);

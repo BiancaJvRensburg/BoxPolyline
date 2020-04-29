@@ -9,6 +9,7 @@ Viewer::Viewer(QWidget *parent, StandardCamera *cam, int sliderMax) : QGLViewer(
     isCurve = false;
     this->sliderMax = sliderMax;
     this->isCut = false;
+    this->isDrawMesh = true;
 }
 
 void Viewer::draw() {
@@ -32,6 +33,8 @@ void Viewer::draw() {
     }
 
     curve.draw();
+
+    if(isDrawMesh) mesh.draw();
 
     glPopMatrix();
 }
@@ -495,4 +498,30 @@ double Viewer::angle(Vec a, Vec b){
 
 void Viewer::rotatePolylineOnAxis(int position){
 
+}
+
+void Viewer::toggleDrawMesh(){
+    isDrawMesh = !isDrawMesh;
+    update();
+}
+
+void Viewer::setMeshAlpha(int position){
+    float p = static_cast<float>(position)/100.f;
+    mesh.setAlpha(p);
+    update();
+}
+
+void Viewer::setBoxAlpha(int position){
+    float p = static_cast<float>(position)/100.f;
+    poly.setAlpha(p);
+    update();
+}
+
+void Viewer::setPlaneAlpha(int position){
+    float p = static_cast<float>(position)/100.f;
+
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setAlpha(p);
+    leftPlane->setAlpha(p);
+    rightPlane->setAlpha(p);
+    update();
 }

@@ -50,8 +50,8 @@ void Polyline::draw(){
 
 
     for(unsigned int i=0; i<segmentNormals.size(); i++){
-        if(i%2==0) glColor3f(.5, 1., 0.);
-        else glColor3f(0., .5, 1.);
+        if(i%2==0) glColor4f(.5, 1., 0., boxTransparency);
+        else glColor4f(0., .5, 1., boxTransparency);
         drawBox(i);
     }
 

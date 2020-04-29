@@ -18,6 +18,7 @@ void ViewerFibula::bendPolylineNormals(std::vector<Vec>& normals, const std::vec
 
     planeNormals.clear();
     for(unsigned int i=0; i<normals.size(); i++) planeNormals.push_back(normals[i]);
+    poly.getRelatvieNormals(normals);
 
     setPlanesInPolyline(normals);
 }
