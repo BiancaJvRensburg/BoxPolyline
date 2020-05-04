@@ -9,6 +9,7 @@ Polyline::Polyline()
 void Polyline::init(const Frame *const refFrame, unsigned int nbPoints){
     frame.setReferenceFrame(refFrame);
     reinit(nbPoints);
+    box = Box();
 }
 
 void Polyline::reinit(unsigned int nbPoints){
@@ -49,11 +50,13 @@ void Polyline::draw(){
     for(unsigned int i=0; i<points.size(); i++) glVertex3d(points[i].x, points[i].y, points[i].z);
     glEnd();
 
-    for(unsigned int i=0; i<segmentNormals.size(); i++){
+    box.draw();
+
+    /*for(unsigned int i=0; i<segmentNormals.size(); i++){
         if(i%2==0) glColor4f(.5,.3,.9, boxTransparency);
         else glColor4f(.6,.9,0.3, boxTransparency);
         drawBox(i);
-    }
+    }*/
 
     /*glColor3f(1.,.75,0);
     double size = 40.;
@@ -149,10 +152,15 @@ Vec Polyline::projection(Vec &a, Vec &planeNormal){
 void Polyline::bend(unsigned int index, Vec &newPosition, std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals){
     if(index >= points.size()) return;
 
+    box.init(&frame, 100.);
+    box.setPosition(newPosition);
+
     points[index] = getLocalCoordinates(newPosition);
 
     if(index!=0) recalculateBinormal(index-1, points[index-1], points[index]);
     if(index!=points.size()-1) recalculateBinormal(index, points[index], points[index+1]);
+
+    box.setFrameFromBasis(-cross(segmentNormals[index], segmentBinormals[index]), segmentBinormals[index], segmentNormals[index]);
 
     getCuttingAngles(relativeNorms, planeNormals, planeBinormals);
 }

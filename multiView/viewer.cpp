@@ -26,9 +26,6 @@ void Viewer::draw() {
         glColor4f(1., 0, 0., leftPlane->getAlpha());
         rightPlane->draw();
 
-        endLeft->draw();
-        endRight->draw();
-
         for(unsigned int i=0; i<ghostPlanes.size(); i++){
             glColor4f(0., 1., 1., ghostPlanes[i]->getAlpha());
             ghostPlanes[i]->draw();

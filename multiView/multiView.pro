@@ -10,6 +10,7 @@ TEMPLATE = app
 TARGET   = multiView
 
 HEADERS  = \
+    box.h \
     controlpoint.h \
     curvepoint.h \
     curve.h \
@@ -24,6 +25,7 @@ HEADERS  = \
     viewer.h \
     viewerfibula.h
 SOURCES  = main.cpp \
+    box.cpp \
     controlpoint.cpp \
     curvepoint.cpp \
     curve.cpp \

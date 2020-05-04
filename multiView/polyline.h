@@ -2,6 +2,7 @@
 #define POLYLINE_H
 
 #include "curvepoint.h"
+#include "box.h"
 
 class Polyline
 {
@@ -56,6 +57,8 @@ private:
     std::vector<Vec> cuttingLines;
     std::vector<Vec> cuttingBinormals;
     float boxTransparency = 1.f;
+
+    Box box;
 };
 
 #endif // POLYLINE_H
