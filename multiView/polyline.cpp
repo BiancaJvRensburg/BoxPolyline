@@ -22,6 +22,7 @@ void Polyline::reinit(unsigned int nbPoints){
     for(unsigned int i=0; i<points.size()-1; i++) segmentNormals.push_back(normal);
     for(unsigned int i=0; i<points.size()-1; i++) segmentBinormals.push_back(binormal);
     for(unsigned int i=1; i<points.size()-1; i++) cuttingLines.push_back(normal);
+    for(unsigned int i=1; i<points.size()-1; i++) originalCuttingLines.push_back(normal);
     for(unsigned int i=1; i<points.size()-1; i++) cuttingBinormals.push_back(binormal);
 }
 
@@ -33,7 +34,7 @@ void Polyline::draw(){
 
     // The polyline
     glLineWidth(5.);
-    glColor3f(0.,0.,1.);
+    glColor3f(0,0,1);
     glBegin(GL_LINES);
     for(unsigned int i=0; i<points.size()-1; i++){
         glVertex3d(points[i].x, points[i].y, points[i].z);
@@ -42,47 +43,86 @@ void Polyline::draw(){
     glEnd();
 
     // The points
-    glColor3f(0.,1.,0.);
+    glColor3f(0,1,0);
     glPointSize(10.);
     glBegin(GL_POINTS);
     for(unsigned int i=0; i<points.size(); i++) glVertex3d(points[i].x, points[i].y, points[i].z);
     glEnd();
 
-    glColor3f(1., 0., 0.);
-    double size = 20.;
-   glBegin(GL_LINES);
-   Vec endPoint = points[0]+size*segmentNormals[0];
-   glVertex3d(points[0].x, points[0].y, points[0].z);
-   glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-   for(unsigned int i=1; i<points.size()-1; i++){
-       for(unsigned int j=0; j<2; j++){
-           endPoint = points[i]+size*segmentNormals[i-j];
-           glVertex3d(points[i].x, points[i].y, points[i].z);
+    for(unsigned int i=0; i<segmentNormals.size(); i++){
+        if(i%2==0) glColor4f(.5,.3,.9, boxTransparency);
+        else glColor4f(.6,.9,0.3, boxTransparency);
+        drawBox(i);
+    }
+
+    /*glColor3f(1.,.75,0);
+    double size = 40.;
+       glBegin(GL_LINES);
+       for(unsigned int i=0; i<cuttingBinormals.size(); i++){
+           Vec endPoint = points[i+1]+size*cuttingBinormals[i];
+           glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
            glVertex3d(endPoint.x, endPoint.y, endPoint.z);
        }
-   }
-   endPoint = points.back()+size*segmentNormals.back();
-   glVertex3d(points.back().x, points.back().y, points.back().z);
-   glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-   glEnd();
-glColor3f(1., 1., 0.);
-    glBegin(GL_LINES);
-    endPoint = points[0]+size*segmentBinormals[0];
-    glVertex3d(points[0].x, points[0].y, points[0].z);
-    glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-    for(unsigned int i=1; i<points.size()-1; i++){
-        for(unsigned int j=0; j<2; j++){
-            endPoint = points[i]+size*segmentBinormals[i-j];
-            glVertex3d(points[i].x, points[i].y, points[i].z);
+
+        for(unsigned int i=0; i<originalCuttingLines.size(); i++){
+            Vec endPoint = points[i+1]+size*originalCuttingLines[i];
+            glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
             glVertex3d(endPoint.x, endPoint.y, endPoint.z);
         }
-    }
-    endPoint = points.back()+size*segmentBinormals.back();
-    glVertex3d(points.back().x, points.back().y, points.back().z);
-    glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-    glEnd();
+    glEnd();*/
 
     glPopMatrix();
+}
+
+void Polyline::drawBox(unsigned int index){
+    double size = 25.;
+    const Vec& p0 = points[index];
+    const Vec& p1 = points[index+1];
+    Vec p2 = points[index] + segmentBinormals[index]*size;
+    Vec p3 = points[index+1] + segmentBinormals[index]*size;
+    Vec p4 = points[index] + segmentNormals[index]*size;
+    Vec p5 = points[index+1] + segmentNormals[index]*size;
+    Vec p6 = points[index] + (segmentNormals[index] +  segmentBinormals[index])*size;
+    Vec p7 = points[index+1] + (segmentNormals[index] +  segmentBinormals[index])*size;
+
+    glBegin(GL_LINES);
+        /*glVertex3d(p0.x, p0.y, p0.z);
+        glVertex3d(p1.x, p1.y, p1.z);*/
+
+        glVertex3d(p0.x, p0.y, p0.z);
+        glVertex3d(p4.x, p4.y, p4.z);
+
+        glVertex3d(p0.x, p0.y, p0.z);
+        glVertex3d(p2.x, p2.y, p2.z);
+
+        glVertex3d(p5.x, p5.y, p5.z);
+        glVertex3d(p1.x, p1.y, p1.z);
+
+        glVertex3d(p3.x, p3.y, p3.z);
+        glVertex3d(p1.x, p1.y, p1.z);
+
+        glVertex3d(p7.x, p7.y, p7.z);
+        glVertex3d(p5.x, p5.y, p5.z);
+
+        glVertex3d(p7.x, p7.y, p7.z);
+        glVertex3d(p3.x, p3.y, p3.z);
+
+        glVertex3d(p7.x, p7.y, p7.z);
+        glVertex3d(p6.x, p6.y, p6.z);
+
+        glVertex3d(p4.x, p4.y, p4.z);
+        glVertex3d(p6.x, p6.y, p6.z);
+
+        glVertex3d(p2.x, p2.y, p2.z);
+        glVertex3d(p6.x, p6.y, p6.z);
+
+        glVertex3d(p4.x, p4.y, p4.z);
+        glVertex3d(p5.x, p5.y, p5.z);
+
+        glVertex3d(p2.x, p2.y, p2.z);
+        glVertex3d(p3.x, p3.y, p3.z);
+
+    glEnd();
 }
 
 void Polyline::updatePoints(const std::vector<Vec> &newPoints){
@@ -171,6 +211,7 @@ void Polyline::initialiseFrame(Frame &f){
 void Polyline::getCuttingAngles(std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals){
     cuttingLines.clear();
     cuttingBinormals.clear();
+    originalCuttingLines.clear();
     relativeNorms.clear();
     planeNormals.clear();
     planeBinormals.clear();
@@ -180,6 +221,8 @@ void Polyline::getCuttingAngles(std::vector<Vec>& relativeNorms, std::vector<Vec
         v /= 2.0;
         v.normalize();
         cuttingLines.push_back(v);
+        originalCuttingLines.push_back(v);
+
         Vec b = segmentBinormals[i] + segmentBinormals[i+1];
         b /= 2.0;
         b.normalize();

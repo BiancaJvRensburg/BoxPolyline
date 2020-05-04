@@ -29,6 +29,7 @@ public:
     void setFrameFromBasis(Vec x, Vec y, Vec z);
 
     void rotatePlane(Vec axis, double angle);
+    void rotatePlaneXY(double percentage);
     void setPlaneRotation(Vec axis, double angle);
     void constrainZRotation(){ cp.getFrame().setConstraint(&constraint); }
     void freeZRotation(){ cp.getFrame().setConstraint(&constraintFree); }

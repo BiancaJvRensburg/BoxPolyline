@@ -18,22 +18,9 @@ void ViewerFibula::bendPolylineNormals(std::vector<Vec>& normals, const std::vec
 
     planeNormals.clear();
     for(unsigned int i=0; i<normals.size(); i++) planeNormals.push_back(normals[i]);
+    poly.getRelatvieNormals(normals);
 
-    //poly.getRelatvieNormals(normals);
-
-    for(unsigned int i=4; i<normals.size()-4; i+=2){
-        ghostPlanes[i/2-2]->setFrameFromBasis(normals[i], normals[i+1], cross(normals[i], normals[i+1]));
-        ghostPlanes[i/2-2]->setPosition(poly.getMeshPoint(ghostPlanes[i/2-2]->getID()));
-    }
-
-    leftPlane->setFrameFromBasis(normals[2],normals[3],cross(normals[2],normals[3]));
-    leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
-
-    unsigned long long lastIndex = normals.size()-4;
-    rightPlane->setFrameFromBasis(normals[lastIndex],normals[lastIndex+1],cross(normals[lastIndex],normals[lastIndex+1]));
-    rightPlane->setPosition(poly.getMeshPoint(rightPlane->getID()));
-
-    update();
+    setPlanesInPolyline(normals);
 }
 
 void ViewerFibula::bendPolyline(unsigned int id, Vec v){
@@ -43,24 +30,23 @@ void ViewerFibula::bendPolyline(unsigned int id, Vec v){
     for(unsigned int i=0; i<planeNormals.size(); i++) normals.push_back(planeNormals[i]);
     poly.getRelatvieNormals(normals);
 
-    for(unsigned int i=4; i<normals.size()-4; i+=2){
-        ghostPlanes[i/2-2]->setFrameFromBasis(normals[i], normals[i+1], cross(normals[i], normals[i+1]));
-        ghostPlanes[i/2-2]->setPosition(poly.getMeshPoint(ghostPlanes[i/2-2]->getID()));
-    }
+    setPlanesInPolyline(normals);
+}
 
+void ViewerFibula::setPlanesInPolyline(const std::vector<Vec> &normals){
+    for(unsigned int i=4; i<normals.size()-4; i+=2) ghostPlanes[i/2-2]->setFrameFromBasis(normals[i], normals[i+1], cross(normals[i], normals[i+1]));
     leftPlane->setFrameFromBasis(normals[2],normals[3],cross(normals[2],normals[3]));
-    leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
-
     unsigned long long lastIndex = normals.size()-4;
     rightPlane->setFrameFromBasis(normals[lastIndex],normals[lastIndex+1],cross(normals[lastIndex],normals[lastIndex+1]));
-    rightPlane->setPosition(poly.getMeshPoint(rightPlane->getID()));
+
+    repositionPlanesOnPolyline();
 
     update();
 }
 
 void ViewerFibula::initGhostPlanes(Movable s){
     deleteGhostPlanes();
-    double size = 20.;
+    double size = leftPlane->getSize();
     for(unsigned int i=0; i<(poly.getNbPoints()-4)*2; i++){     // -2 for total nb of planes, another -2 for nb of ghost planes
         Plane *p1 = new Plane(size, s, .5f, i/2+2);
         ghostPlanes.push_back(p1);
@@ -71,17 +57,6 @@ void ViewerFibula::initGhostPlanes(Movable s){
     connect(&(leftPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);
     connect(&(rightPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);
     for(unsigned int i=0; i<ghostPlanes.size(); i++) connect(&(ghostPlanes[i]->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);        // connnect the ghost planes
-
-    /*for(unsigned int i=0; i<tempFibPlanes.size(); i++) delete tempFibPlanes[i];
-    tempFibPlanes.clear();
-
-    for(unsigned int i=1; i<poly.getNbPoints()-1; i++){
-        Vec pos(0,0,0);
-        Plane *p1 = new Plane(1., Movable::DYNAMIC, pos, .5f, i);
-        p1->setPosition(poly.getPoint(i));
-        p1->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
-        tempFibPlanes.push_back(p1);
-    }*/
 }
 
 void ViewerFibula::initCurve(){
@@ -99,7 +74,7 @@ void ViewerFibula::constructCurve(){
     nbU = 2000;
     curve.init(control.size(), control);
     curve.generateCatmull(nbU);
-    //connect(curve, &Curve::curveReinitialised, this, &Viewer::updatePlanes);
+
     isCurve = true;
     initCurvePlanes(Movable::STATIC);
 }

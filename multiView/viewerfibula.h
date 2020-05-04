@@ -29,6 +29,7 @@ Q_SIGNALS:
 
 private:
     void rotatePolyline();
+    void setPlanesInPolyline(const std::vector<Vec> &normals);
     std::vector<Vec> planeNormals;
 };
 

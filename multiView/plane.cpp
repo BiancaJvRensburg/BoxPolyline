@@ -99,6 +99,16 @@ void Plane::setFrameFromBasis(Vec x, Vec y, Vec z){
     cp.getFrame().setOrientation(fromRotatedBasis(x,y,z));
 }
 
+void Plane::rotatePlaneXY(double percentage){
+    double r = (percentage - rotationPercentage);       // Get the percentage to rotate it by
+    rotationPercentage = percentage;
+
+    double theta = (M_PI*2.0)*r + M_PI;     // Get the theta from the percentage
+    Vec axis = Vec(0,0,1);
+
+    rotatePlane(axis, theta);
+}
+
 // MESH INTERSECTION
 
 /*
