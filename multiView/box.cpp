@@ -9,9 +9,8 @@ Box::Box()
     normal = Vec(0,0,1);
 }
 
-void Box::init(const Frame *ref, double length){
+void Box::init(const Frame *ref){
     f.setReferenceFrame(ref);
-    this->length = length;
 }
 
 void Box::setFrameFromBasis(Vec x, Vec y, Vec z){

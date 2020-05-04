@@ -9,11 +9,11 @@ Polyline::Polyline()
 void Polyline::init(const Frame *const refFrame, unsigned int nbPoints){
     frame.setReferenceFrame(refFrame);
     reinit(nbPoints);
-    box = Box();
 }
 
 void Polyline::reinit(unsigned int nbPoints){
     points.clear();
+    boxes.clear();
     segmentNormals.clear();
     segmentBinormals.clear();
     cuttingLines.clear();
@@ -25,6 +25,10 @@ void Polyline::reinit(unsigned int nbPoints){
     for(unsigned int i=1; i<points.size()-1; i++) cuttingLines.push_back(normal);
     for(unsigned int i=1; i<points.size()-1; i++) originalCuttingLines.push_back(normal);
     for(unsigned int i=1; i<points.size()-1; i++) cuttingBinormals.push_back(binormal);
+    for(unsigned int i=0; i<points.size()-1; i++){
+        boxes.push_back(Box());
+        boxes[i].init(&frame);
+    }
 }
 
 void Polyline::draw(){
@@ -50,29 +54,7 @@ void Polyline::draw(){
     for(unsigned int i=0; i<points.size(); i++) glVertex3d(points[i].x, points[i].y, points[i].z);
     glEnd();
 
-    box.draw();
-
-    /*for(unsigned int i=0; i<segmentNormals.size(); i++){
-        if(i%2==0) glColor4f(.5,.3,.9, boxTransparency);
-        else glColor4f(.6,.9,0.3, boxTransparency);
-        drawBox(i);
-    }*/
-
-    /*glColor3f(1.,.75,0);
-    double size = 40.;
-       glBegin(GL_LINES);
-       for(unsigned int i=0; i<cuttingBinormals.size(); i++){
-           Vec endPoint = points[i+1]+size*cuttingBinormals[i];
-           glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
-           glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-       }
-
-        for(unsigned int i=0; i<originalCuttingLines.size(); i++){
-            Vec endPoint = points[i+1]+size*originalCuttingLines[i];
-            glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
-            glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-        }
-    glEnd();*/
+    for(unsigned int i=0; i<boxes.size(); i++) boxes[i].draw();
 
     glPopMatrix();
 }
@@ -131,6 +113,7 @@ void Polyline::drawBox(unsigned int index){
 void Polyline::updatePoints(const std::vector<Vec> &newPoints){
     points.clear();
     for(unsigned int i=0; i<newPoints.size(); i++) points.push_back(newPoints[i]);
+    for(unsigned int i=0; i<boxes.size(); i++) resetBox(i);
 }
 
 double Polyline::angle(const Vec &a, const Vec &b){
@@ -149,18 +132,28 @@ Vec Polyline::projection(Vec &a, Vec &planeNormal){
     return a - planeNormal * alpha;
 }
 
+void Polyline::resetBox(unsigned int index){
+    boxes[index].setPosition(getMeshPoint(index));
+    Vec n = frame.localInverseTransformOf(segmentNormals[index]);
+    Vec b = frame.localInverseTransformOf(segmentBinormals[index]);
+    boxes[index].setFrameFromBasis(-cross(n,b),b,n);
+    double length = euclideanDistance(points[index], points[index+1]);
+    boxes[index].setLength(length);
+}
+
 void Polyline::bend(unsigned int index, Vec &newPosition, std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals){
     if(index >= points.size()) return;
 
-    box.init(&frame, 100.);
-    box.setPosition(newPosition);
-
     points[index] = getLocalCoordinates(newPosition);
 
-    if(index!=0) recalculateBinormal(index-1, points[index-1], points[index]);
-    if(index!=points.size()-1) recalculateBinormal(index, points[index], points[index+1]);
-
-    box.setFrameFromBasis(-cross(segmentNormals[index], segmentBinormals[index]), segmentBinormals[index], segmentNormals[index]);
+    if(index!=0){
+        recalculateBinormal(index-1, points[index-1], points[index]);
+        resetBox(index-1);
+    }
+    if(index!=points.size()-1){
+        recalculateBinormal(index, points[index], points[index+1]);
+        resetBox(index);
+     }
 
     getCuttingAngles(relativeNorms, planeNormals, planeBinormals);
 }
@@ -170,8 +163,14 @@ void Polyline::bendFibula(unsigned int index, Vec &newPosition){
 
     points[index] = getLocalCoordinates(newPosition);
 
-    if(index!=0) recalculateBinormal(index-1, points[index-1], points[index]);
-    if(index!=points.size()-1) recalculateBinormal(index, points[index], points[index+1]);
+    if(index!=0){
+        recalculateBinormal(index-1, points[index-1], points[index]);
+        resetBox(index-1);
+    }
+    if(index!=points.size()-1){
+        recalculateBinormal(index, points[index], points[index+1]);
+        resetBox(index);
+    }
 
 }
 
@@ -267,6 +266,10 @@ double Polyline::euclideanDistance(const Vec &a, const Vec &b){
 
 void Polyline::lowerPoint(unsigned int index, const Vec &toLower){
     points[index] += toLower;
+}
+
+void Polyline::resetBoxes(){
+    for(unsigned int i=0; i<boxes.size(); i++) resetBox(i);
 }
 
 void Polyline::getRelatvieNormals(std::vector<Vec> &relativeNorms){

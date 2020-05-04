@@ -11,7 +11,7 @@ class Box
 public:
     Box();
     void draw();
-    void init(const Frame *ref, double length);
+    void init(const Frame *ref);
     void setPosition(const Vec& v){ f.setPosition(v); }
     void setFrameFromBasis(Vec x, Vec y, Vec z);
     void setLength(double l){ length = l; }

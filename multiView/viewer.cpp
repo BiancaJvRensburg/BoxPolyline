@@ -200,6 +200,8 @@ void Viewer::placePlanes(const std::vector<Vec> &polyPoints){
     std::vector<double> distances;
     poly.getDistances(distances);
     Q_EMIT toUpdateDistances(distances);        // the distances are no longer the same because the polyline has been lowered
+
+    poly.resetBoxes();
 }
 
 double Viewer::segmentLength(const Vec a, const Vec b){

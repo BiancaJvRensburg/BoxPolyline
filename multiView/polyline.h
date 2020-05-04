@@ -35,6 +35,7 @@ public:
     void rotateOnAxis(double angle, const Vec& point){ Quaternion q(tangent, angle); frame.rotateAroundPoint(q, point); }
     void getRelatvieNormals(std::vector<Vec>& relativeNorms);
     void setAlpha(float a){ boxTransparency = a; }
+    void resetBoxes();
 
 private:
     Vec projection(Vec &a, Vec &planeNormal);
@@ -45,6 +46,7 @@ private:
     void initialiseFrame(Frame &f);
     void getCuttingAngles(std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
     double euclideanDistance(const Vec &a, const Vec &b);
+    void resetBox(unsigned int index);
 
     ManipulatedFrame frame;
     const Vec tangent = Vec(1,0,0);
@@ -57,8 +59,7 @@ private:
     std::vector<Vec> cuttingLines;
     std::vector<Vec> cuttingBinormals;
     float boxTransparency = 1.f;
-
-    Box box;
+    std::vector<Box> boxes;
 };
 
 #endif // POLYLINE_H

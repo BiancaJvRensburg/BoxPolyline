@@ -118,6 +118,7 @@ void ViewerFibula::updateDistances(const std::vector<double>& distances){
     for(unsigned int i=0; i<distances.size(); i++) newPoints.push_back(newPoints[i] + Vec(distances[i], 0, 0));
     poly.updatePoints(newPoints);
     repositionPlanesOnPolyline();
+    //poly.resetBoxes();
 }
 
 void ViewerFibula::movePlanes(double distance){     // move the planes when its not cut
