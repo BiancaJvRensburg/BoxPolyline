@@ -27,11 +27,13 @@ public Q_SLOTS:
     void placePlanes(const std::vector<Vec>&);
     void moveLeftPlane(int);
     void moveRightPlane(int);
-    virtual void rotatePolylineOnAxis(int);
+    void rotatePolylineOnAxis(int);
     void toggleDrawMesh();
+    void toggleDrawPlane();
     void setPlaneAlpha(int);
     void setMeshAlpha(int);
     void setBoxAlpha(int);
+    void cut();
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
@@ -66,9 +68,10 @@ protected:
     ManipulatedFrame* viewerFrame;
     class Polyline poly;
     std::vector<Plane*> ghostPlanes;
-    std::vector<Vec> endRotations;      // leftend normal,binormal, rightend normal, binormal
     Plane* leftPlane;
     Plane* rightPlane;
+    Plane* endLeft;
+    Plane* endRight;
 
     std::vector<Vec> control;
     Curve curve;

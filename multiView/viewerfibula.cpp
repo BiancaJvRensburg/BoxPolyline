@@ -46,7 +46,7 @@ void ViewerFibula::setPlanesInPolyline(const std::vector<Vec> &normals){
 
 void ViewerFibula::initGhostPlanes(Movable s){
     deleteGhostPlanes();
-    double size = 20.;
+    double size = leftPlane->getSize();
     for(unsigned int i=0; i<(poly.getNbPoints()-4)*2; i++){     // -2 for total nb of planes, another -2 for nb of ghost planes
         Plane *p1 = new Plane(size, s, .5f, i/2+2);
         ghostPlanes.push_back(p1);
@@ -118,6 +118,7 @@ void ViewerFibula::updateDistances(const std::vector<double>& distances){
     for(unsigned int i=0; i<distances.size(); i++) newPoints.push_back(newPoints[i] + Vec(distances[i], 0, 0));
     poly.updatePoints(newPoints);
     repositionPlanesOnPolyline();
+    //poly.resetBoxes();
 }
 
 void ViewerFibula::movePlanes(double distance){     // move the planes when its not cut
@@ -133,7 +134,7 @@ void ViewerFibula::rotatePolyline(){
     poly.rotate(q);
 }
 
-void ViewerFibula::rotatePolylineOnAxis(int position){
+/*void ViewerFibula::rotatePolylineOnAxis(int position){
     int pos = position - polyRotation;
     polyRotation = position;
     double alpha = static_cast<double>(pos) / 180. * M_PI;
@@ -151,4 +152,4 @@ void ViewerFibula::rotatePolylineOnAxis(int position){
     repositionPlanesOnPolyline();
 
     update();
-}
+}*/

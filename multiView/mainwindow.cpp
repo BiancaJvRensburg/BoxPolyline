@@ -88,7 +88,7 @@ void MainWindow::initDisplayDockWidgets(){
 
     QSlider *rotatePolylineMandible = new QSlider(Qt::Horizontal);
     rotatePolylineMandible->setMaximum(360);
-    //contentLayoutMand->addRow("Rotate planes (mandible)", rotatePolylineMandible);
+    contentLayoutMand->addRow("Rotate planes (mandible)", rotatePolylineMandible);
 
     QSlider *rotatePolylineFibula = new QSlider(Qt::Horizontal);
     rotatePolylineFibula->setMaximum(360);
@@ -148,6 +148,9 @@ void MainWindow::initFileActions(){
     QAction *cutMeshAction = new QAction("Cut", this);
     connect(cutMeshAction, &QAction::triggered, skullViewer, &Viewer::cutMesh);
 
+    QAction *cutAction = new QAction("Cut mesh", this);
+    connect(cutAction, &QAction::triggered, skullViewer, &Viewer::cut);
+
     QAction *uncutMeshAction = new QAction("Undo cut", this);
     connect(uncutMeshAction, &QAction::triggered, skullViewer, &Viewer::uncutMesh);
     connect(uncutMeshAction, &QAction::triggered, fibulaViewer, &Viewer::uncutMesh);
@@ -156,11 +159,17 @@ void MainWindow::initFileActions(){
     connect(drawMeshAction, &QAction::triggered, skullViewer, &Viewer::toggleDrawMesh);
     connect(drawMeshAction, &QAction::triggered, fibulaViewer, &ViewerFibula::toggleDrawMesh);
 
+    QAction *drawPlanesAction = new QAction("Draw planes", this);
+    connect(drawPlanesAction, &QAction::triggered, skullViewer, &Viewer::toggleDrawPlane);
+    connect(drawPlanesAction, &QAction::triggered, fibulaViewer, &ViewerFibula::toggleDrawPlane);
+
     fileActionGroup->addAction(openJsonFileAction);
     fileActionGroup->addAction(openJsonFibFileAction);
     fileActionGroup->addAction(cutMeshAction);
+    //fileActionGroup->addAction(cutAction);
     fileActionGroup->addAction(uncutMeshAction);
     fileActionGroup->addAction(drawMeshAction);
+    fileActionGroup->addAction(drawPlanesAction);
 
     connect(skullViewer, &Viewer::constructPoly, fibulaViewer, &ViewerFibula::constructPolyline);
     connect(fibulaViewer, &ViewerFibula::okToPlacePlanes, skullViewer, &Viewer::placePlanes);

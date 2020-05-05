@@ -22,7 +22,7 @@ public Q_SLOTS:
     void constructPolyline(const std::vector<double>&, const std::vector<Vec>&);
     void updateDistances(const std::vector<double>&);
     void movePlanes(double);
-    void rotatePolylineOnAxis(int);
+    //void rotatePolylineOnAxis(int);
 
 Q_SIGNALS:
     void okToPlacePlanes(const std::vector<Vec>&);

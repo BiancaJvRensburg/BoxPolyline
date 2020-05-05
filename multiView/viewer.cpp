@@ -68,13 +68,21 @@ void Viewer::init() {
 void Viewer::initCurvePlanes(Movable s){
     curveIndexR = nbU - 1;
     curveIndexL = 0;
-    float size = 20.0;
+    float size = 30.0;
 
     leftPlane = new Plane(static_cast<double>(size), s, 0.5, 0);
     rightPlane = new Plane(static_cast<double>(size), s, 0.5, 1);
 
+    mesh.addPlane(leftPlane);
+    mesh.addPlane(rightPlane);
+
     repositionPlane(leftPlane, curveIndexL);
     repositionPlane(rightPlane, curveIndexR);
+
+    endLeft = new Plane(static_cast<double>(size), Movable::STATIC, 0.5, 0);
+    endRight = new Plane(static_cast<double>(size), Movable::STATIC, 0.5, 2);
+    repositionPlane(endLeft, 0);
+    repositionPlane(endRight, nbU-1);
 }
 
 void Viewer::repositionPlane(Plane *p, unsigned int index){
@@ -91,6 +99,7 @@ void Viewer::matchPlaneToFrenet(Plane *p, unsigned int index){
 void Viewer::initPolyPlanes(Movable s){
     leftPlane->setID(1);
     rightPlane->setID(poly.getNbPoints()-2);
+    endRight->setID(poly.getNbPoints()-1);
 
     leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
     leftPlane->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
@@ -105,8 +114,10 @@ void Viewer::toggleIsPolyline(){
     Vec direction = Vec(1,1,0);
 
     if(!leftPlane->getIsPoly()){
-        poly.lowerPoint(0, -(endRotations[0]+endRotations[1])*leftPlane->getSize());
-        poly.lowerPoint(poly.getNbPoints()-1,-(endRotations[2]+endRotations[3])*leftPlane->getSize());
+        endLeft->toggleIsPoly();
+        poly.lowerPoint(endLeft->getID(), endLeft->getMeshVectorFromLocal(-direction)*leftPlane->getSize());
+        endRight->toggleIsPoly();
+        poly.lowerPoint(endRight->getID(), endRight->getMeshVectorFromLocal(-direction)*leftPlane->getSize());
 
         leftPlane->toggleIsPoly();
         poly.lowerPoint(leftPlane->getID(), leftPlane->getMeshVectorFromLocal(-direction)*leftPlane->getSize());
@@ -118,8 +129,10 @@ void Viewer::toggleIsPolyline(){
         }
     }
     else{
-        poly.lowerPoint(0, (endRotations[0]+endRotations[1])*leftPlane->getSize());
-        poly.lowerPoint(poly.getNbPoints()-1, (endRotations[2]+endRotations[3])*leftPlane->getSize());
+        endLeft->toggleIsPoly();
+        poly.lowerPoint(endLeft->getID(), endLeft->getMeshVectorFromLocal(direction)*leftPlane->getSize());
+        endRight->toggleIsPoly();
+        poly.lowerPoint(endRight->getID(), endRight->getMeshVectorFromLocal(direction)*leftPlane->getSize());
 
         leftPlane->toggleIsPoly();
         poly.lowerPoint(leftPlane->getID(), leftPlane->getMeshVectorFromLocal(direction)*leftPlane->getSize());
@@ -138,10 +151,12 @@ void Viewer::repositionPlanesOnPolyline(){
     leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
     for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setPosition(poly.getMeshPoint(ghostPlanes[i]->getID()));
     rightPlane->setPosition(poly.getMeshPoint(rightPlane->getID()));
+    endLeft->setPosition(poly.getMeshPoint(endLeft->getID()));
+    endRight->setPosition(poly.getMeshPoint(endRight->getID()));
 }
 
 void Viewer::initGhostPlanes(Movable s){
-    float size = 20.0;
+    double size = leftPlane->getSize();
 
     for(unsigned int i=2; i<static_cast<unsigned int>(poly.getNbPoints()-2); i++){
         Plane *p = new Plane(size, s, .5f, i);
@@ -185,6 +200,8 @@ void Viewer::placePlanes(const std::vector<Vec> &polyPoints){
     std::vector<double> distances;
     poly.getDistances(distances);
     Q_EMIT toUpdateDistances(distances);        // the distances are no longer the same because the polyline has been lowered
+
+    poly.resetBoxes();
 }
 
 double Viewer::segmentLength(const Vec a, const Vec b){
@@ -219,11 +236,8 @@ void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
     rightPlane->setFrameFromBasis(planeNormals.back(), planeBinormals.back(), cross(planeNormals.back(), planeBinormals.back()));
 
     unsigned long long lastIndex = relativeNorms.size()-2;
-    endRotations.clear();
-    endRotations.push_back(relativeNorms[0]);
-    endRotations.push_back(relativeNorms[1]);
-    endRotations.push_back(relativeNorms[lastIndex]);
-    endRotations.push_back(relativeNorms[lastIndex+1]);
+    endLeft->setFrameFromBasis(relativeNorms[0], relativeNorms[1], cross(relativeNorms[0], relativeNorms[1]));
+    endRight->setFrameFromBasis(relativeNorms[lastIndex], relativeNorms[lastIndex+1], cross(relativeNorms[lastIndex], relativeNorms[lastIndex+1]));
 
     Plane tempPlane(1., Movable::STATIC, 0, 0);
     tempPlane.setFrameFromBasis(relativeNorms[2], relativeNorms[3], cross(relativeNorms[2], relativeNorms[3]));
@@ -497,11 +511,27 @@ double Viewer::angle(Vec a, Vec b){
 }
 
 void Viewer::rotatePolylineOnAxis(int position){
-
+    double r = position/360.;
+    /*toggleIsPolyline();
+    leftPlane->rotatePlaneXY(r);
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->rotatePlaneXY(r);
+    rightPlane->rotatePlaneXY(r);
+    endLeft->rotatePlaneXY(r);
+    endRight->rotatePlaneXY(r);
+    toggleIsPolyline();*/
+    for(unsigned int i=0; i<poly.getNbPoints()-1; i++) poly.rotateBox(i, r*2.*M_PI);
+    update();
 }
 
 void Viewer::toggleDrawMesh(){
     isDrawMesh = !isDrawMesh;
+    update();
+}
+
+void Viewer::toggleDrawPlane(){
+    leftPlane->toggleIsVisible();
+    rightPlane->toggleIsVisible();
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->toggleIsVisible();
     update();
 }
 
@@ -524,4 +554,10 @@ void Viewer::setPlaneAlpha(int position){
     leftPlane->setAlpha(p);
     rightPlane->setAlpha(p);
     update();
+}
+
+void Viewer::cut(){
+    /*mesh.setIsCut(Side::INTERIOR, true, true);
+
+    update();*/
 }
