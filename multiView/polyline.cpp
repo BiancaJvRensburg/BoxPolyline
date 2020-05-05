@@ -1,5 +1,4 @@
 #include "polyline.h"
-#include "plane.h"
 
 Polyline::Polyline()
 {
@@ -171,7 +170,10 @@ void Polyline::bendFibula(unsigned int index, Vec &newPosition){
         recalculateBinormal(index, points[index], points[index+1]);
         resetBox(index);
     }
+}
 
+void Polyline::recalculateOrientations(){
+    for(unsigned int i=1; i<points.size()-1; i++) recalculateBinormal(i, points[i], points[i+1]);
 }
 
 void Polyline::recalculateNormal(unsigned int index, const Vec &origin, const Vec &newPosition){
@@ -215,6 +217,8 @@ void Polyline::initialiseFrame(Frame &f){
     f.setOrientation(q);
 }
 
+
+// Get the angles for the plane, and the angles to send over to the fibula
 void Polyline::getCuttingAngles(std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals){
     cuttingLines.clear();
     cuttingBinormals.clear();
@@ -235,7 +239,7 @@ void Polyline::getCuttingAngles(std::vector<Vec>& relativeNorms, std::vector<Vec
         b.normalize();
         cuttingBinormals.push_back(b);
 
-        relativeNorms.push_back(segmentNormals[i]);
+        relativeNorms.push_back(segmentNormals[i]);     // get the right angles in terms of the polyline
         relativeNorms.push_back(segmentBinormals[i]);
         relativeNorms.push_back(segmentNormals[i+1]);
         relativeNorms.push_back(segmentBinormals[i+1]);
@@ -273,7 +277,7 @@ void Polyline::resetBoxes(){
 }
 
 void Polyline::getRelatvieNormals(std::vector<Vec> &relativeNorms){
-    Plane temp(0.5, Movable::STATIC, 0, 0);
+    /*Plane temp(0.5, Movable::STATIC, 0, 0);
     temp.setFrameFromBasis(segmentNormals[0], segmentBinormals[0], cross(segmentNormals[0], segmentBinormals[0]));
     relativeNorms[0] = getWorldTransform(temp.getMeshVectorFromLocal(relativeNorms[0]));
     relativeNorms[1] = getWorldTransform(temp.getMeshVectorFromLocal(relativeNorms[1]));
@@ -281,9 +285,35 @@ void Polyline::getRelatvieNormals(std::vector<Vec> &relativeNorms){
     for(unsigned int i=1; i<segmentNormals.size()-1; i++){
         temp.setFrameFromBasis(segmentNormals[i], segmentBinormals[i], cross(segmentNormals[i], segmentBinormals[i]));
         for(int j=-2; j<2; j++) relativeNorms[i*4+j] = getWorldTransform(temp.getMeshVectorFromLocal(relativeNorms[i*4+j]));
+    }*/
+
+    relativeNorms[0] = getWorldTransform(boxes[0].worldTransform(relativeNorms[0]));
+    relativeNorms[1] = getWorldTransform(boxes[0].worldTransform(relativeNorms[1]));
+    for(unsigned int i=1; i<boxes.size(); i++){
+        for(int j=-2; j<2; j++) relativeNorms[i*4+j] = getWorldTransform(boxes[i].worldTransform(relativeNorms[i*4+j]));
     }
 }
 
 void Polyline::rotateBox(unsigned int i, double angle){
     boxes[i].rotateOnAxis(angle);
+}
+
+void Polyline::getRelativePlane(Plane &p, std::vector<Vec> &norms){
+    // Get the plane norms in terms of the mesh
+    Vec n(1,0,0);
+    Vec b(0,1,0);
+    n = p.getMeshVectorFromLocal(n);
+    b = p.getMeshVectorFromLocal(b);
+
+    // Now get it in terms of its boxes
+    norms.clear();
+    const unsigned int& id = p.getID();
+    if(id!=0){
+        norms.push_back(boxes[id-1].localTransform(n));
+        norms.push_back(boxes[id-1].localTransform(b));
+    }
+    if(id<boxes.size()){
+        norms.push_back(boxes[id].localTransform(n));
+        norms.push_back(boxes[id].localTransform(b));
+    }
 }

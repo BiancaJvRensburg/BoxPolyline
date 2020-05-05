@@ -3,6 +3,7 @@
 
 #include "curvepoint.h"
 #include "box.h"
+#include "plane.h"
 
 class Polyline
 {
@@ -37,6 +38,8 @@ public:
     void setAlpha(float a){ boxTransparency = a; }
     void resetBoxes();
     void rotateBox(unsigned int i, double angle);
+    void getRelativePlane(Plane& p, std::vector<Vec>& norms);
+    void recalculateOrientations();
 
 private:
     Vec projection(Vec &a, Vec &planeNormal);

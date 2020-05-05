@@ -201,6 +201,7 @@ void Viewer::placePlanes(const std::vector<Vec> &polyPoints){
     poly.getDistances(distances);
     Q_EMIT toUpdateDistances(distances);        // the distances are no longer the same because the polyline has been lowered
 
+    poly.recalculateOrientations();
     poly.resetBoxes();
 }
 
@@ -239,7 +240,28 @@ void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
     endLeft->setFrameFromBasis(relativeNorms[0], relativeNorms[1], cross(relativeNorms[0], relativeNorms[1]));
     endRight->setFrameFromBasis(relativeNorms[lastIndex], relativeNorms[lastIndex+1], cross(relativeNorms[lastIndex], relativeNorms[lastIndex+1]));
 
-    Plane tempPlane(1., Movable::STATIC, 0, 0);
+    // Get the rotation of the planes in terms of the relative normals
+    std::vector<Vec> norms;
+    poly.getRelativePlane(*leftPlane, norms);
+    relativeNorms[2] = norms[2];
+    relativeNorms[3] = norms[3];
+
+    unsigned int index = 4;
+    for(unsigned int i=0; i<ghostPlanes.size(); i++){
+        std::vector<Vec> norms;
+        poly.getRelativePlane(*ghostPlanes[i], norms);
+        for(unsigned int j=0; j<norms.size(); j++){
+            relativeNorms[index] = norms[j];
+            index++;
+        }
+    }
+
+    lastIndex = relativeNorms.size()-4;
+    poly.getRelativePlane(*rightPlane, norms);
+    relativeNorms[lastIndex] = norms[0];
+    relativeNorms[lastIndex+1] = norms[1];
+
+    /*Plane tempPlane(1., Movable::STATIC, 0, 0);
     tempPlane.setFrameFromBasis(relativeNorms[2], relativeNorms[3], cross(relativeNorms[2], relativeNorms[3]));
 
     Vec n(1,0,0);
@@ -274,7 +296,7 @@ void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
     b = rightPlane->getMeshVectorFromLocal(b);
 
     relativeNorms[lastIndex] = tempPlane.getLocalVector(n);
-    relativeNorms[lastIndex+1] = tempPlane.getLocalVector(b);
+    relativeNorms[lastIndex+1] = tempPlane.getLocalVector(b);*/
 
     Q_EMIT polylineBent(relativeNorms, distances);
 
@@ -512,13 +534,6 @@ double Viewer::angle(Vec a, Vec b){
 
 void Viewer::rotatePolylineOnAxis(int position){
     double r = position/360.;
-    /*toggleIsPolyline();
-    leftPlane->rotatePlaneXY(r);
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->rotatePlaneXY(r);
-    rightPlane->rotatePlaneXY(r);
-    endLeft->rotatePlaneXY(r);
-    endRight->rotatePlaneXY(r);
-    toggleIsPolyline();*/
     for(unsigned int i=0; i<poly.getNbPoints()-1; i++) poly.rotateBox(i, r*2.*M_PI);
     update();
 }

@@ -18,7 +18,7 @@ void ViewerFibula::bendPolylineNormals(std::vector<Vec>& normals, const std::vec
 
     planeNormals.clear();
     for(unsigned int i=0; i<normals.size(); i++) planeNormals.push_back(normals[i]);
-    poly.getRelatvieNormals(normals);
+
 
     setPlanesInPolyline(normals);
 }
@@ -28,12 +28,13 @@ void ViewerFibula::bendPolyline(unsigned int id, Vec v){
 
     std::vector<Vec> normals;
     for(unsigned int i=0; i<planeNormals.size(); i++) normals.push_back(planeNormals[i]);
-    poly.getRelatvieNormals(normals);
 
     setPlanesInPolyline(normals);
 }
 
-void ViewerFibula::setPlanesInPolyline(const std::vector<Vec> &normals){
+void ViewerFibula::setPlanesInPolyline(std::vector<Vec> &normals){
+    poly.getRelatvieNormals(normals);
+
     for(unsigned int i=4; i<normals.size()-4; i+=2) ghostPlanes[i/2-2]->setFrameFromBasis(normals[i], normals[i+1], cross(normals[i], normals[i+1]));
     leftPlane->setFrameFromBasis(normals[2],normals[3],cross(normals[2],normals[3]));
     unsigned long long lastIndex = normals.size()-4;
@@ -118,7 +119,6 @@ void ViewerFibula::updateDistances(const std::vector<double>& distances){
     for(unsigned int i=0; i<distances.size(); i++) newPoints.push_back(newPoints[i] + Vec(distances[i], 0, 0));
     poly.updatePoints(newPoints);
     repositionPlanesOnPolyline();
-    //poly.resetBoxes();
 }
 
 void ViewerFibula::movePlanes(double distance){     // move the planes when its not cut
@@ -133,23 +133,3 @@ void ViewerFibula::rotatePolyline(){
     Quaternion q(-poly.getBinormal(), alpha);
     poly.rotate(q);
 }
-
-/*void ViewerFibula::rotatePolylineOnAxis(int position){
-    int pos = position - polyRotation;
-    polyRotation = position;
-    double alpha = static_cast<double>(pos) / 180. * M_PI;
-
-    const Vec tangent = poly.getWorldTransform(Vec(1,0,0));
-
-    Vec n = poly.getWorldTransform(poly.getNormal());
-    Vec b = poly.getWorldTransform(-poly.getBinormal());
-    poly.rotateOnAxis(alpha, poly.getMeshPoint(0)-(n+b)*leftPlane->getSize());
-
-    leftPlane->rotate(Quaternion(leftPlane->getLocalVector(tangent), alpha));
-    rightPlane->rotate(Quaternion(rightPlane->getLocalVector(tangent), alpha));
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->rotate( Quaternion(ghostPlanes[i]->getLocalVector(tangent), alpha));
-
-    repositionPlanesOnPolyline();
-
-    update();
-}*/

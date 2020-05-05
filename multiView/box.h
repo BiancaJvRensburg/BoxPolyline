@@ -21,6 +21,8 @@ public:
     const double& getWidth(){ return dimensions.y; }
     const double& getHeight(){ return dimensions.z; }
     void rotateOnAxis(double angle);
+    Vec localTransform(Vec v){ return f.localTransformOf(v); }
+    Vec worldTransform(Vec v){ return f.localInverseTransformOf(v); }
 
 private:
     Frame f;
