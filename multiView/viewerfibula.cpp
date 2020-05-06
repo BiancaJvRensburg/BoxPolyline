@@ -19,9 +19,12 @@ void ViewerFibula::updateDistances(const std::vector<double>& distances){
 
 // Re-initialise the polyline to a straight line with corresponding distances. TODO don't reset it in a straight line but along the current tragectory
 void ViewerFibula::setDistances(const std::vector<double> &distances){
+    std::vector<Vec> directions;
+    for(unsigned int i=0; i<distances.size(); i++) directions.push_back(Vec(1,0,0));
+
     std::vector<Vec> newPoints;
     newPoints.push_back(Vec(0,0,0));
-    for(unsigned int i=0; i<distances.size(); i++) newPoints.push_back(newPoints[i] + Vec(distances[i], 0, 0));
+    for(unsigned int i=0; i<distances.size(); i++) newPoints.push_back(newPoints[i] + distances[i]*directions[i]);
     updatePolyline(newPoints);
 }
 
@@ -45,8 +48,6 @@ void ViewerFibula::bendPolyline(unsigned int id, Vec v){
     for(unsigned int i=0; i<planeNormals.size(); i++) normals.push_back(planeNormals[i]);
 
     setPlanesInPolyline(normals);       // Set the planes
-
-    //poly.restoreBoxRotations();
 }
 
 // Match the planes with the polyline
@@ -65,9 +66,10 @@ void ViewerFibula::setPlaneOrientations(std::vector<Vec> &normals){
     rightPlane->setFrameFromBasis(normals[lastIndex],normals[lastIndex+1],cross(normals[lastIndex],normals[lastIndex+1]));
 }
 
+// Update the relationship between the planes and the boxes when the mandible boxes are rotated
 void ViewerFibula::updatePlaneOrientations(std::vector<Vec> &normals){
-    setPlaneOrientations(normals);
-    update();
+    planeNormals.clear();
+    for(unsigned int i=0; i<normals.size(); i++) planeNormals.push_back(normals[i]);
 }
 
 void ViewerFibula::initGhostPlanes(Movable s){
