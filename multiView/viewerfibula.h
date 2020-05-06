@@ -11,7 +11,6 @@ public:
     ViewerFibula(QWidget *parent, StandardCamera *camera, int sliderMax, int fibulaOffsetMax);
     void initGhostPlanes(Movable s);
     void updateFibPolyline(const Vec& firstPoint, const std::vector<double>& distances);
-    void initCurve();
     void constructCurve();
     void toggleIsPolyline();
     void repositionPlanesOnPolyline();

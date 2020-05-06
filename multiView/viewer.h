@@ -47,7 +47,6 @@ Q_SIGNALS:
 protected:
     void draw();
     void init();
-    virtual void initCurve();
     virtual void constructCurve();
     virtual void initGhostPlanes(Movable s);
     void initPolyPlanes(Movable s);
@@ -64,6 +63,7 @@ protected:
     void findGhostLocations(unsigned int nbGhostPlanes, std::vector<unsigned int>& ghostLocations);
     void deconstructPolyline();
     void getPlaneBoxOrientations(std::vector<Vec>& norms);
+
 
     double angle(Vec a, Vec b);
     double segmentLength(const Vec a, const Vec b);
@@ -94,6 +94,8 @@ protected:
 private:
     void constructPolyline(const std::vector<Vec>& polyPoints);
     void movePlane(Plane *p, unsigned int curveIndex);
+    void setPlaneOrientation(Plane& p, std::vector<Vec>& norms, std::vector<Vec>& binorms);
+    void setPlaneOrientations(std::vector<Vec>& norms, std::vector<Vec>& binorms);
 };
 
 #endif // VIEWER_H

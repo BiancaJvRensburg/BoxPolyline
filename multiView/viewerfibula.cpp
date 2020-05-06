@@ -36,16 +36,15 @@ void ViewerFibula::bendPolyline(unsigned int id, Vec v){
 void ViewerFibula::setPlanesInPolyline(std::vector<Vec> &normals){
     setPlaneOrientations(normals);
     repositionPlanesOnPolyline();
-
     update();
 }
 
 void ViewerFibula::setPlaneOrientations(std::vector<Vec> &normals){
     poly.getRelatvieNormals(normals);
 
-    for(unsigned int i=4; i<normals.size()-4; i+=2) ghostPlanes[i/2-2]->setFrameFromBasis(normals[i], normals[i+1], cross(normals[i], normals[i+1]));
-    leftPlane->setFrameFromBasis(normals[2],normals[3],cross(normals[2],normals[3]));
-    unsigned long long lastIndex = normals.size()-4;
+    for(unsigned int i=2; i<normals.size()-2; i+=2) ghostPlanes[i/2-1]->setFrameFromBasis(normals[i], normals[i+1], cross(normals[i], normals[i+1]));
+    leftPlane->setFrameFromBasis(normals[0],normals[1],cross(normals[0],normals[1]));
+    unsigned long long lastIndex = normals.size()-2;
     rightPlane->setFrameFromBasis(normals[lastIndex],normals[lastIndex+1],cross(normals[lastIndex],normals[lastIndex+1]));
 }
 
@@ -67,17 +66,6 @@ void ViewerFibula::initGhostPlanes(Movable s){
     connect(&(leftPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);
     connect(&(rightPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);
     for(unsigned int i=0; i<ghostPlanes.size(); i++) connect(&(ghostPlanes[i]->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);        // connnect the ghost planes
-}
-
-void ViewerFibula::initCurve(){
-    control.push_back(Vec(108.241, 69.6891, -804.132));
-    control.push_back(Vec(97.122, 82.1788, -866.868));
-    control.push_back(Vec(93.5364, 90.1045, -956.126));
-    control.push_back(Vec(83.3966, 92.5807, -1069.7));
-    control.push_back(Vec(80.9, 90.1, -1155));
-    control.push_back(Vec(86.4811, 90.9929, -1199.7));
-
-    constructCurve();
 }
 
 void ViewerFibula::constructCurve(){
