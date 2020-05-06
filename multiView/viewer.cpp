@@ -96,13 +96,14 @@ void Viewer::matchPlaneToFrenet(Plane *p, unsigned int index){
     p->setFrameFromBasis(x,y,z);
 }
 
+// Initialise the position and rotations of each plane on the polyline and set their IDs
 void Viewer::initPolyPlanes(Movable s){
     leftPlane->setID(1);
     rightPlane->setID(poly.getNbPoints()-2);
     endRight->setID(poly.getNbPoints()-1);
 
     leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
-    leftPlane->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
+    leftPlane->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));      // TODO this could be done with an existing function?
 
     rightPlane->setPosition(poly.getMeshPoint(rightPlane->getID()));
     rightPlane->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
@@ -143,7 +144,7 @@ void Viewer::repositionPlanesOnPolyline(){
 }
 
 void Viewer::initGhostPlanes(Movable s){
-    double size = leftPlane->getSize();
+    double size = leftPlane->getSize();     // match everythign to the size of the left plane
 
     for(unsigned int i=2; i<static_cast<unsigned int>(poly.getNbPoints()-2); i++){
         Plane *p = new Plane(size, s, .5f, i);
@@ -152,6 +153,7 @@ void Viewer::initGhostPlanes(Movable s){
         ghostPlanes.push_back(p);
     }
 
+    // Connect all planes' movement (except the two end planes which we don't see). If a plane is moved, bend the polyline.
     connect(&(leftPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolyline);
     connect(&(rightPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolyline);
 
@@ -166,10 +168,10 @@ void Viewer::updateCamera(const Vec& center, float radius){
 }
 
 void Viewer::constructPolyline(const std::vector<Vec> &polyPoints){
-    poly.reinit(polyPoints.size());
+    poly.reinit(polyPoints.size());     // re-initialise the polyline
     std::vector<double> dists;
-    poly.getDistances(dists);
-    Q_EMIT constructPoly(dists, polyPoints);
+    poly.getDistances(dists);       // the distances should all be 1 here
+    Q_EMIT constructPoly(dists, polyPoints);        // The fibula polyline has to be initialised before we can start bending the polylines
 }
 
 void Viewer::deconstructPolyline(){
@@ -180,16 +182,19 @@ void Viewer::deconstructPolyline(){
     repositionPlane(rightPlane, curveIndexR);
 }
 
+/*
+ * Physically place planes on the polyline
+ * Bend the polyline so it corresponds to the correct point
+*/
 void Viewer::placePlanes(const std::vector<Vec> &polyPoints){
-    initPolyPlanes(Movable::DYNAMIC);
-    for(unsigned int i=0; i<poly.getNbPoints(); i++) bendPolyline(i, polyPoints[i]);
-    toggleIsPolyline();
+    initPolyPlanes(Movable::DYNAMIC);       // Create the planes
+    for(unsigned int i=0; i<poly.getNbPoints(); i++) bendPolyline(i, polyPoints[i]);        // Bend the polyline point by point
+    toggleIsPolyline();     // Change the polyline from going through the centre of the planes to going through the corner
     std::vector<double> distances;
     poly.getDistances(distances);
-    Q_EMIT toUpdateDistances(distances);        // the distances are no longer the same because the polyline has been lowered
+    Q_EMIT toUpdateDistances(distances);        // the distances are no longer the same because the polyline has been lowered, so update it in the fibula
 
-    poly.recalculateOrientations();
-    poly.resetBoxes();
+    poly.resetBoxes();      // Set the boxes to the polyline
 }
 
 double Viewer::segmentLength(const Vec a, const Vec b){
@@ -200,22 +205,30 @@ void Viewer::updatePolyline(const std::vector<Vec> &newPoints){
     poly.updatePoints(newPoints);
 }
 
-void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
-    std::vector<double> distances;
-    poly.getDistances(distances);
 
-    std::vector<Vec> planeNormals;     // the x,y,z vectors of each frame
+/*
+ * Modify the polyline point pointIndex to v
+ * Activated when a plane is moved by hand in the mandible
+*/
+void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
+    std::vector<Vec> planeNormals;
     std::vector<Vec> planeBinormals;
 
-    poly.bend(pointIndex, v, planeNormals, planeBinormals);
+    poly.bend(pointIndex, v, planeNormals, planeBinormals);     // Bend the polyline and get the planeNormals and planeBinormals which will be used to set the planes' orientations
 
+    // Update the planes
     repositionPlanesOnPolyline();
     setPlaneOrientations(planeNormals, planeBinormals);
 
+    // Get the mandible polyine planes in relation to the boxes so this info can be sent to the fibula
     std::vector<Vec> relativeNorms;
     getPlaneBoxOrientations(relativeNorms);
 
-    Q_EMIT polylineBent(relativeNorms, distances);
+    // Get the new distances between each point in the mandible
+    std::vector<double> distances;
+    poly.getDistances(distances);
+
+    Q_EMIT polylineBent(relativeNorms, distances);      // Send the new normals and distances to the fibula TODO only send over the info for the corresponding point
 }
 
 void Viewer::setPlaneOrientation(Plane &p, std::vector<Vec> &norms, std::vector<Vec> &binorms){
@@ -307,8 +320,8 @@ void Viewer::cutMesh(){
     polylinePoints.push_back(curve.getPoint(curveIndexL));  // the left plane
 
     std::vector<unsigned int> ghostLocations;
-    findGhostLocations(nbGhostPlanes, ghostLocations);
-    for(unsigned int i=0; i<ghostLocations.size(); i++) polylinePoints.push_back(curve.getPoint(ghostLocations[i]));
+    findGhostLocations(nbGhostPlanes, ghostLocations);      // find the curve indexes on which the ghost planes must be placed
+    for(unsigned int i=0; i<ghostLocations.size(); i++) polylinePoints.push_back(curve.getPoint(ghostLocations[i]));        // get the world location of these indexes
 
     polylinePoints.push_back(curve.getPoint(curveIndexR));      // the right plane
     polylinePoints.push_back(curve.getPoint(nbU-1));        // the end of the curve

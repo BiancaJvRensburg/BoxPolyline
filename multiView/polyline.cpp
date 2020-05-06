@@ -5,11 +5,16 @@ Polyline::Polyline()
     frame = ManipulatedFrame();
 }
 
+// This is only called once. Used to set the reference frame.
 void Polyline::init(const Frame *const refFrame, unsigned int nbPoints){
     frame.setReferenceFrame(refFrame);
     reinit(nbPoints);
 }
 
+/* A simple reinitialisation where we set all the normals to the polyline normal
+ * and create an evenly spaced polyline with the correct number of points.
+ * Note: the points are not correctly positioned here, this is simply a initialisation.
+*/
 void Polyline::reinit(unsigned int nbPoints){
     points.clear();
     boxes.clear();
@@ -69,8 +74,8 @@ void Polyline::drawBox(unsigned int index){
     Vec p7 = points[index+1] + (segmentNormals[index] +  segmentBinormals[index])*size;
 
     glBegin(GL_LINES);
-        /*glVertex3d(p0.x, p0.y, p0.z);
-        glVertex3d(p1.x, p1.y, p1.z);*/
+        glVertex3d(p0.x, p0.y, p0.z);
+        glVertex3d(p1.x, p1.y, p1.z);
 
         glVertex3d(p0.x, p0.y, p0.z);
         glVertex3d(p4.x, p4.y, p4.z);
@@ -108,6 +113,7 @@ void Polyline::drawBox(unsigned int index){
     glEnd();
 }
 
+// Update the points locations without updating their orientations
 void Polyline::updatePoints(const std::vector<Vec> &newPoints){
     points.clear();
     for(unsigned int i=0; i<newPoints.size(); i++) points.push_back(newPoints[i]);
@@ -130,10 +136,12 @@ Vec Polyline::projection(Vec &a, Vec &planeNormal){
     return a - planeNormal * alpha;
 }
 
+// Match the box to the current position and orientation of a point index
 void Polyline::resetBox(unsigned int index){
     boxes[index].setPosition(points[index]);
     const Vec& n = segmentNormals[index];
     const Vec& b = segmentBinormals[index];
+
     boxes[index].setFrameFromBasis(-cross(n,b),b,n);
     double length = euclideanDistance(points[index], points[index+1]);
     boxes[index].setLength(length);
@@ -144,7 +152,7 @@ void Polyline::bend(unsigned int index, Vec &newPosition, std::vector<Vec>& plan
 
     bendFibula(index, newPosition);     // the fibula is bent in the same way but does not need to send info
 
-    getCuttingAngles(planeNormals, planeBinormals);
+    getCuttingAngles(planeNormals, planeBinormals);     // Get the normals and binormals of the planes which interset two boxes at a polyline point
 }
 
 void Polyline::bendFibula(unsigned int index, Vec &newPosition){
@@ -152,6 +160,7 @@ void Polyline::bendFibula(unsigned int index, Vec &newPosition){
 
     points[index] = getLocalCoordinates(newPosition);
 
+    // Recalculate the orientations of the two boxes attached to the point index (the box behind and the box infront)
     if(index!=0){
         recalculateBinormal(index-1, points[index-1], points[index]);
         resetBox(index-1);
@@ -166,6 +175,7 @@ void Polyline::recalculateOrientations(){
     for(unsigned int i=1; i<points.size()-1; i++) recalculateBinormal(i, points[i], points[i+1]);
 }
 
+// Recalculate the normal as a cross product of the binormal and the tangent
 void Polyline::recalculateNormal(unsigned int index, const Vec &origin, const Vec &newPosition){
     Vec pos = newPosition - origin;
     pos.normalize();
@@ -182,6 +192,7 @@ void Polyline::recalculateBinormal(unsigned int index, const Vec &origin, const 
     double theta = angle(pos, tangent);        // get the angle which the tangent rotated
     if(pos.y <0) theta = -theta;        // rotate the opposite way
 
+    // Rotate the CONSTANT binormal around the z axis
     double x = binormal.x * cos(theta) - binormal.y * sin(theta);
     double y = binormal.x * sin(theta) + binormal.y * cos(theta);
     segmentBinormals[index] = Vec(x,y,0);
@@ -207,16 +218,17 @@ void Polyline::initialiseFrame(Frame &f){
 }
 
 
-// Get the angles for the plane, and the angles to send over to the fibula
+// Get the normals and binormals of the planes which interset two boxes at a polyline point in order to send it to the fibula
 void Polyline::getCuttingAngles(std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals){
     cuttingLines.clear();
     cuttingBinormals.clear();
     planeNormals.clear();
     planeBinormals.clear();
 
-    planeNormals.push_back(segmentNormals[0]);      // for the first plane
+    planeNormals.push_back(segmentNormals[0]);      // for the first plane (there's only one box attached to the first and last point)
     planeBinormals.push_back(segmentBinormals[0]);
 
+    // Get the angle between the two boxes
     for(unsigned int i=0; i<segmentNormals.size()-1; i++){
         Vec v = (segmentNormals[i] + segmentNormals[i+1]) / 2.;
         v.normalize();
@@ -227,11 +239,12 @@ void Polyline::getCuttingAngles(std::vector<Vec>& planeNormals, std::vector<Vec>
         cuttingBinormals.push_back(b);
     }
 
+    // Make sure the normal and binormal have a right angle between them
     for(unsigned int i=0; i<cuttingLines.size(); i++){
-        double theta = angle(cuttingLines[i], cuttingBinormals[i]);
-        double alpha = M_PI / 2.0 - theta + M_PI;
-        Vec axis = cross(cuttingLines[i], cuttingBinormals[i]);
-        cuttingLines[i] = vectorQuaternionRotation(alpha, axis, cuttingLines[i]);
+        double theta = angle(cuttingLines[i], cuttingBinormals[i]);     // Get the current angle between them
+        double alpha = M_PI / 2.0 - theta + M_PI;           // Get the angle it needs to rotate in order for it to be a right angle
+        Vec axis = cross(cuttingLines[i], cuttingBinormals[i]);     // Get the axis on which it has to rotate (which is orthogonal to the current normal and binormal)
+        cuttingLines[i] = vectorQuaternionRotation(alpha, axis, cuttingLines[i]);       // Rotate the normal so its now at a right angle to the binormal
 
         planeNormals.push_back(cuttingLines[i]);            // save for the mandible
         planeBinormals.push_back(cuttingBinormals[i]);
@@ -241,6 +254,7 @@ void Polyline::getCuttingAngles(std::vector<Vec>& planeNormals, std::vector<Vec>
     planeBinormals.push_back(segmentBinormals.back());
 }
 
+// Get the distances between the polyline points
 void Polyline::getDistances(std::vector<double> &distances){
     distances.clear();
 
@@ -253,14 +267,18 @@ double Polyline::euclideanDistance(const Vec &a, const Vec &b){
     return sqrt(pow(a.x-b.x, 2.) + pow(a.y-b.y, 2.) + pow(a.z-b.z, 2.));
 }
 
+// Move the polyline point by the vector toLower
 void Polyline::lowerPoint(unsigned int index, const Vec &toLower){
     points[index] += toLower;
 }
 
+// Reset the boxes to the current orientation, position and length of the polyline
 void Polyline::resetBoxes(){
+    recalculateOrientations();
     for(unsigned int i=0; i<boxes.size(); i++) resetBox(i);
 }
 
+// Rotate the box on its own axis
 void Polyline::rotateBox(unsigned int i, double angle){
     boxes[i].rotateOnAxis(angle);
 }
@@ -269,6 +287,8 @@ void Polyline::restoreBoxRotations(){
     for(unsigned int i=0; i<boxes.size(); i++) boxes[i].restoreRotation();
 }
 
+
+// Convert the vectors from the box frame to the world frame
 void Polyline::getRelatvieNormals(std::vector<Vec> &relativeNorms){
     for(unsigned int i=0; i<relativeNorms.size(); i++){
         unsigned int boxID = i/4+1;
@@ -276,7 +296,8 @@ void Polyline::getRelatvieNormals(std::vector<Vec> &relativeNorms){
     }
 }
 
-void Polyline::getRelativePlane(Plane &p, std::vector<Vec> &norms){     // get the plane -> mesh -> box
+// Get each plane in relation to each of its corresponding boxes
+void Polyline::getRelativePlane(Plane &p, std::vector<Vec> &norms){
     // Get the plane norms in terms of the mesh
     Vec n(1,0,0);
     Vec b(0,1,0);

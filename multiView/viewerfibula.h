@@ -31,6 +31,7 @@ private:
     void rotatePolyline();
     void setPlanesInPolyline(std::vector<Vec> &normals);
     void setPlaneOrientations(std::vector<Vec> &normals);
+    void setDistances(const std::vector<double> &distances);
     std::vector<Vec> planeNormals;
 };
 
