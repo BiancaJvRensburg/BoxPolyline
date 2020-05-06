@@ -27,7 +27,7 @@ public Q_SLOTS:
     void placePlanes(const std::vector<Vec>&);
     void moveLeftPlane(int);
     void moveRightPlane(int);
-    virtual void rotatePolylineOnAxis(int);
+    void rotatePolylineOnAxis(int);
     void toggleDrawMesh();
     void toggleDrawPlane();
     void setPlaneAlpha(int);
@@ -40,6 +40,8 @@ Q_SIGNALS:
     void polylineBent(std::vector<Vec>&, const std::vector<double>&);
     void constructPoly(const std::vector<double>&, const std::vector<Vec>&);
     void toUpdateDistances(std::vector<double>&);
+    void toUpdatePlaneOrientations(std::vector<Vec>&);
+    void toRotatePolylineOnAxis(double);
     void planeMoved(double);
 
 protected:
@@ -61,6 +63,7 @@ protected:
     void quicksort(std::vector<unsigned int>& sorted, int start, int end);
     void findGhostLocations(unsigned int nbGhostPlanes, std::vector<unsigned int>& ghostLocations);
     void deconstructPolyline();
+    void getPlaneBoxOrientations(std::vector<Vec>& norms);
 
     double angle(Vec a, Vec b);
     double segmentLength(const Vec a, const Vec b);

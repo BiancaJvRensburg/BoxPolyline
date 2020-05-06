@@ -90,13 +90,13 @@ void MainWindow::initDisplayDockWidgets(){
     rotatePolylineMandible->setMaximum(360);
     contentLayoutMand->addRow("Rotate planes (mandible)", rotatePolylineMandible);
 
-    QSlider *rotatePolylineFibula = new QSlider(Qt::Horizontal);
+    /*QSlider *rotatePolylineFibula = new QSlider(Qt::Horizontal);
     rotatePolylineFibula->setMaximum(360);
-    contentLayoutMand->addRow("Rotate planes (fibula)", rotatePolylineFibula);
+    contentLayoutMand->addRow("Rotate planes (fibula)", rotatePolylineFibula);*/
 
     connect(leftPlaneSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::moveLeftPlane);
     connect(rightPlaneSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::moveRightPlane);
-    connect(rotatePolylineFibula, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::rotatePolylineOnAxis);
+    //connect(rotatePolylineFibula, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::rotatePolylineOnAxis);
     connect(rotatePolylineMandible, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::rotatePolylineOnAxis);
 
     QSlider *meshAlphaSlider = new QSlider(Qt::Horizontal);
@@ -174,6 +174,8 @@ void MainWindow::initFileActions(){
     connect(skullViewer, &Viewer::constructPoly, fibulaViewer, &ViewerFibula::constructPolyline);
     connect(fibulaViewer, &ViewerFibula::okToPlacePlanes, skullViewer, &Viewer::placePlanes);
     connect(skullViewer, &Viewer::toUpdateDistances, fibulaViewer, &ViewerFibula::updateDistances);
+    connect(skullViewer, &Viewer::toUpdatePlaneOrientations, fibulaViewer, &ViewerFibula::updatePlaneOrientations);
+    connect(skullViewer, &Viewer::toRotatePolylineOnAxis, fibulaViewer, &ViewerFibula::rotatePolylineOnAxisFibula);
     connect(skullViewer, &Viewer::planeMoved, fibulaViewer, &ViewerFibula::movePlanes);
 }
 

@@ -3,10 +3,11 @@
 Box::Box()
 {
     f = Frame();
-    length = 0;
-    tangent = Vec(1,0,0);
-    binormal = Vec(0,1,0);
-    normal = Vec(0,0,1);
+    dimensions = Vec(100., 25., 25.);
+    tangent = Vec(1.,0.,0.);
+    binormal = Vec(0.,1.,0.);
+    normal = Vec(0.,0.,1.);
+    prevRotation = 0.;
 }
 
 void Box::init(const Frame *ref){
@@ -29,15 +30,18 @@ void Box::draw(){
 
     QGLViewer::drawAxis(40.);
 
-    double size = 25.;
+    const double& length = getLength();
+    const double& width = getWidth();
+    const double& height = getHeight();
+
     const Vec& p0 = Vec(0,0,0);
     const Vec& p1 = p0 + length*tangent;
-    Vec p2 = p0 + binormal*size;
-    Vec p3 = p1 + binormal*size;
-    Vec p4 = p0 + normal*size;
-    Vec p5 = p1 + normal*size;
-    Vec p6 = p0 + (normal +  binormal)*size;
-    Vec p7 = p1 + (normal + binormal)*size;
+    Vec p2 = p0 + binormal*width;
+    Vec p3 = p1 + binormal*width;
+    Vec p4 = p0 + normal*height;
+    Vec p5 = p1 + normal*height;
+    Vec p6 = p0 + normal*height +  binormal*width;
+    Vec p7 = p1 + normal*height +  binormal*width;
 
     glBegin(GL_LINES);
         /*glVertex3d(p0.x, p0.y, p0.z);
@@ -79,4 +83,24 @@ void Box::draw(){
     glEnd();
 
     glPopMatrix();
+}
+
+void Box::rotateOnAxis(double angle){
+    double alpha = angle - prevRotation;
+    prevRotation = angle;
+    Vec centre = f.localInverseCoordinatesOf(dimensions/2.);
+
+    Vec axis(1,0,0);
+    Quaternion r(axis, alpha);
+
+    f.rotateAroundPoint(r, centre);
+}
+
+void Box::restoreRotation(){
+    Vec centre = f.localInverseCoordinatesOf(dimensions/2.);
+
+    Vec axis(1,0,0);
+    Quaternion r(axis, prevRotation);
+
+    f.rotateAroundPoint(r, centre);
 }

@@ -195,12 +195,13 @@ void Viewer::deconstructPolyline(){
 
 void Viewer::placePlanes(const std::vector<Vec> &polyPoints){
     initPolyPlanes(Movable::DYNAMIC);
-    for(unsigned int i=0; i<poly.getNbPoints(); i++) bendPolyline(i, polyPoints[i]);   
+    for(unsigned int i=0; i<poly.getNbPoints(); i++) bendPolyline(i, polyPoints[i]);
     toggleIsPolyline();
     std::vector<double> distances;
     poly.getDistances(distances);
     Q_EMIT toUpdateDistances(distances);        // the distances are no longer the same because the polyline has been lowered
 
+    poly.recalculateOrientations();
     poly.resetBoxes();
 }
 
@@ -239,45 +240,37 @@ void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
     endLeft->setFrameFromBasis(relativeNorms[0], relativeNorms[1], cross(relativeNorms[0], relativeNorms[1]));
     endRight->setFrameFromBasis(relativeNorms[lastIndex], relativeNorms[lastIndex+1], cross(relativeNorms[lastIndex], relativeNorms[lastIndex+1]));
 
-    Plane tempPlane(1., Movable::STATIC, 0, 0);
-    tempPlane.setFrameFromBasis(relativeNorms[2], relativeNorms[3], cross(relativeNorms[2], relativeNorms[3]));
 
-    Vec n(1,0,0);
-    Vec b(0,1,0);
-    n = leftPlane->getMeshVectorFromLocal(n);
-    b = leftPlane->getMeshVectorFromLocal(b);
+    getPlaneBoxOrientations(relativeNorms);
 
-    relativeNorms[2] = tempPlane.getLocalVector(n);
-    relativeNorms[3] = tempPlane.getLocalVector(b);
-
-    for(unsigned int i=0; i<ghostPlanes.size()*2; i++){
-        Plane tempPlane(1., Movable::STATIC, 0, 0);
-        tempPlane.setFrameFromBasis(relativeNorms[(i+2)*2], relativeNorms[(i+2)*2+1], cross(relativeNorms[(i+2)*2], relativeNorms[(i+2)*2+1]));
-
-        // convert the normal and binormal into these coordinates
-        Vec n(1,0,0);
-        Vec b(0,1,0);
-        n = ghostPlanes[i/2]->getMeshVectorFromLocal(n);
-        b = ghostPlanes[i/2]->getMeshVectorFromLocal(b);
-
-        // convert in relation to tempPlanes
-        relativeNorms[(i+2)*2] = tempPlane.getLocalVector(n);
-        relativeNorms[(i+2)*2+1] = tempPlane.getLocalVector(b);
-    }
-
-    lastIndex = relativeNorms.size()-4;
-    tempPlane.setFrameFromBasis(relativeNorms[lastIndex], relativeNorms[lastIndex+1], cross(relativeNorms[lastIndex], relativeNorms[lastIndex+1]));
-
-    n = Vec(1,0,0);
-    b = Vec(0,1,0);
-    n = rightPlane->getMeshVectorFromLocal(n);
-    b = rightPlane->getMeshVectorFromLocal(b);
-
-    relativeNorms[lastIndex] = tempPlane.getLocalVector(n);
-    relativeNorms[lastIndex+1] = tempPlane.getLocalVector(b);
 
     Q_EMIT polylineBent(relativeNorms, distances);
 
+}
+
+// Get the rotation of the planes in terms of the relative normals
+void Viewer::getPlaneBoxOrientations(std::vector<Vec> &relativeNorms){
+    relativeNorms.clear();
+    relativeNorms.push_back(Vec(0,0,0));
+    relativeNorms.push_back(Vec(0,0,0));
+    std::vector<Vec> norms;
+    poly.getRelativePlane(*leftPlane, norms);
+    relativeNorms.push_back(norms[2]);
+    relativeNorms.push_back(norms[3]);
+
+    for(unsigned int i=0; i<ghostPlanes.size(); i++){
+        std::vector<Vec> norms;
+        poly.getRelativePlane(*ghostPlanes[i], norms);
+        for(unsigned int j=0; j<norms.size(); j++){
+            relativeNorms.push_back(norms[j]);
+        }
+    }
+
+    poly.getRelativePlane(*rightPlane, norms);
+    relativeNorms.push_back(norms[0]);
+    relativeNorms.push_back(norms[1]);
+    relativeNorms.push_back(Vec(0,0,0));
+    relativeNorms.push_back(Vec(0,0,0));
 }
 
 void Viewer::initCurve(){
@@ -511,14 +504,14 @@ double Viewer::angle(Vec a, Vec b){
 }
 
 void Viewer::rotatePolylineOnAxis(int position){
-    double r = position/360.;
-    toggleIsPolyline();
-    leftPlane->rotatePlaneXY(r);
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->rotatePlaneXY(r);
-    rightPlane->rotatePlaneXY(r);
-    endLeft->rotatePlaneXY(r);
-    endRight->rotatePlaneXY(r);
-    toggleIsPolyline();
+    double r = (position/360.*2.*M_PI);
+    for(unsigned int i=0; i<poly.getNbPoints()-1; i++) poly.rotateBox(i, r);
+
+    // send over the new norms
+    /*std::vector<Vec> norms;
+    getPlaneBoxOrientations(norms);
+    Q_EMIT toUpdatePlaneOrientations(norms);*/
+    Q_EMIT toRotatePolylineOnAxis(r);
     update();
 }
 
