@@ -17,21 +17,25 @@ public:
     void updatePoints(const std::vector<Vec> &newPoints);
      void reinitAngles(unsigned int nbPoints);
     unsigned int getNbPoints(){ return points.size(); }
+
     Vec& getPoint(unsigned int i){return points[i];}
     Vec getMeshPoint(unsigned int i){ return getWorldCoordinates(points[i]); }
     Vec getWorldCoordinates(const Vec& v){ return frame.localInverseCoordinatesOf(v);}
     Vec getLocalCoordinates(const Vec& v){ return frame.localCoordinatesOf(v);}
     Vec getWorldTransform(const Vec& v){ return frame.localInverseTransformOf(v);}
     Vec getLocalTransform(const Vec& v){ return frame.localTransformOf(v); }
-    void bend(unsigned int index, Vec &newPosition, std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
+
+    void bend(unsigned int index, Vec &newPosition, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
     void bendFibula(unsigned int index, Vec &newPosition);
     void getDistances(std::vector<double>& distances);
     void lowerPoint(unsigned int index, const Vec &toLower);
     const std::vector<Vec>& getPoints(){ return points; }
+
     const Vec& getNormal(){ return normal; }
     const Vec& getBinormal(){ return binormal; }
     const Vec& getTangent(){ return tangent; }
     void setFirstPoint(const Vec& firstPoint){ frame.setPosition(firstPoint); }
+
     void rotate(Quaternion q){ frame.rotate(q); }
     void rotateOnAxis(double angle, const Vec& point){ Quaternion q(tangent, angle); frame.rotateAroundPoint(q, point); }
     void getRelatvieNormals(std::vector<Vec>& relativeNorms);
@@ -40,6 +44,7 @@ public:
     void rotateBox(unsigned int i, double angle);
     void getRelativePlane(Plane& p, std::vector<Vec>& norms);
     void recalculateOrientations();
+    void restoreBoxRotations();
 
 private:
     Vec projection(Vec &a, Vec &planeNormal);
@@ -48,7 +53,7 @@ private:
     void recalculateNormal(unsigned int index, const Vec &origin, const Vec &newPoint);
     void recalculateBinormal(unsigned int index, const Vec &origin, const Vec &newPoint);
     void initialiseFrame(Frame &f);
-    void getCuttingAngles(std::vector<Vec>& relativeNorms, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
+    void getCuttingAngles(std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
     double euclideanDistance(const Vec &a, const Vec &b);
     void resetBox(unsigned int index);
 

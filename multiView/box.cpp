@@ -95,3 +95,12 @@ void Box::rotateOnAxis(double angle){
 
     f.rotateAroundPoint(r, centre);
 }
+
+void Box::restoreRotation(){
+    Vec centre = f.localInverseCoordinatesOf(dimensions/2.);
+
+    Vec axis(1,0,0);
+    Quaternion r(axis, prevRotation);
+
+    f.rotateAroundPoint(r, centre);
+}

@@ -40,12 +40,13 @@ Q_SIGNALS:
     void polylineBent(std::vector<Vec>&, const std::vector<double>&);
     void constructPoly(const std::vector<double>&, const std::vector<Vec>&);
     void toUpdateDistances(std::vector<double>&);
+    void toUpdatePlaneOrientations(std::vector<Vec>&);
+    void toRotatePolylineOnAxis(double);
     void planeMoved(double);
 
 protected:
     void draw();
     void init();
-    virtual void initCurve();
     virtual void constructCurve();
     virtual void initGhostPlanes(Movable s);
     void initPolyPlanes(Movable s);
@@ -61,6 +62,8 @@ protected:
     void quicksort(std::vector<unsigned int>& sorted, int start, int end);
     void findGhostLocations(unsigned int nbGhostPlanes, std::vector<unsigned int>& ghostLocations);
     void deconstructPolyline();
+    void getPlaneBoxOrientations(std::vector<Vec>& norms);
+
 
     double angle(Vec a, Vec b);
     double segmentLength(const Vec a, const Vec b);
@@ -91,6 +94,8 @@ protected:
 private:
     void constructPolyline(const std::vector<Vec>& polyPoints);
     void movePlane(Plane *p, unsigned int curveIndex);
+    void setPlaneOrientation(Plane& p, std::vector<Vec>& norms, std::vector<Vec>& binorms);
+    void setPlaneOrientations(std::vector<Vec>& norms, std::vector<Vec>& binorms);
 };
 
 #endif // VIEWER_H

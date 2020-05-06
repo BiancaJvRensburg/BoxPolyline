@@ -96,13 +96,14 @@ void Viewer::matchPlaneToFrenet(Plane *p, unsigned int index){
     p->setFrameFromBasis(x,y,z);
 }
 
+// Initialise the position and rotations of each plane on the polyline and set their IDs
 void Viewer::initPolyPlanes(Movable s){
     leftPlane->setID(1);
     rightPlane->setID(poly.getNbPoints()-2);
     endRight->setID(poly.getNbPoints()-1);
 
     leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
-    leftPlane->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
+    leftPlane->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));      // TODO this could be done with an existing function?
 
     rightPlane->setPosition(poly.getMeshPoint(rightPlane->getID()));
     rightPlane->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
@@ -114,34 +115,21 @@ void Viewer::toggleIsPolyline(){
     Vec direction = Vec(1,1,0);
 
     if(!leftPlane->getIsPoly()){
-        endLeft->toggleIsPoly();
-        poly.lowerPoint(endLeft->getID(), endLeft->getMeshVectorFromLocal(-direction)*leftPlane->getSize());
-        endRight->toggleIsPoly();
-        poly.lowerPoint(endRight->getID(), endRight->getMeshVectorFromLocal(-direction)*leftPlane->getSize());
-
-        leftPlane->toggleIsPoly();
-        poly.lowerPoint(leftPlane->getID(), leftPlane->getMeshVectorFromLocal(-direction)*leftPlane->getSize());
-        rightPlane->toggleIsPoly();
-        poly.lowerPoint(rightPlane->getID(), rightPlane->getMeshVectorFromLocal(-direction)*leftPlane->getSize());
-        for(unsigned int i=0; i<ghostPlanes.size(); i++) {
-            ghostPlanes[i]->toggleIsPoly();
-            poly.lowerPoint(i+2, ghostPlanes[i]->getMeshVectorFromLocal(-direction)*leftPlane->getSize());
-        }
+        direction = -Vec(1,1,0);
     }
-    else{
-        endLeft->toggleIsPoly();
-        poly.lowerPoint(endLeft->getID(), endLeft->getMeshVectorFromLocal(direction)*leftPlane->getSize());
-        endRight->toggleIsPoly();
-        poly.lowerPoint(endRight->getID(), endRight->getMeshVectorFromLocal(direction)*leftPlane->getSize());
 
-        leftPlane->toggleIsPoly();
-        poly.lowerPoint(leftPlane->getID(), leftPlane->getMeshVectorFromLocal(direction)*leftPlane->getSize());
-        rightPlane->toggleIsPoly();
-        poly.lowerPoint(rightPlane->getID(), rightPlane->getMeshVectorFromLocal(direction)*leftPlane->getSize());
-        for(unsigned int i=0; i<ghostPlanes.size(); i++) {
-            ghostPlanes[i]->toggleIsPoly();
-            poly.lowerPoint(i+2, ghostPlanes[i]->getMeshVectorFromLocal(direction)*leftPlane->getSize());
-        }
+    endLeft->toggleIsPoly();
+    poly.lowerPoint(endLeft->getID(), endLeft->getMeshVectorFromLocal(direction)*leftPlane->getSize());
+    endRight->toggleIsPoly();
+    poly.lowerPoint(endRight->getID(), endRight->getMeshVectorFromLocal(direction)*leftPlane->getSize());
+
+    leftPlane->toggleIsPoly();
+    poly.lowerPoint(leftPlane->getID(), leftPlane->getMeshVectorFromLocal(direction)*leftPlane->getSize());
+    rightPlane->toggleIsPoly();
+    poly.lowerPoint(rightPlane->getID(), rightPlane->getMeshVectorFromLocal(direction)*leftPlane->getSize());
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) {
+        ghostPlanes[i]->toggleIsPoly();
+        poly.lowerPoint(i+2, ghostPlanes[i]->getMeshVectorFromLocal(direction)*leftPlane->getSize());
     }
 
     repositionPlanesOnPolyline();
@@ -156,7 +144,7 @@ void Viewer::repositionPlanesOnPolyline(){
 }
 
 void Viewer::initGhostPlanes(Movable s){
-    double size = leftPlane->getSize();
+    double size = leftPlane->getSize();     // match everythign to the size of the left plane
 
     for(unsigned int i=2; i<static_cast<unsigned int>(poly.getNbPoints()-2); i++){
         Plane *p = new Plane(size, s, .5f, i);
@@ -165,6 +153,7 @@ void Viewer::initGhostPlanes(Movable s){
         ghostPlanes.push_back(p);
     }
 
+    // Connect all planes' movement (except the two end planes which we don't see). If a plane is moved, bend the polyline.
     connect(&(leftPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolyline);
     connect(&(rightPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolyline);
 
@@ -179,10 +168,10 @@ void Viewer::updateCamera(const Vec& center, float radius){
 }
 
 void Viewer::constructPolyline(const std::vector<Vec> &polyPoints){
-    poly.reinit(polyPoints.size());
+    poly.reinit(polyPoints.size());     // re-initialise the polyline
     std::vector<double> dists;
-    poly.getDistances(dists);
-    Q_EMIT constructPoly(dists, polyPoints);
+    poly.getDistances(dists);       // the distances should all be 1 here
+    Q_EMIT constructPoly(dists, polyPoints);        // The fibula polyline has to be initialised before we can start bending the polylines
 }
 
 void Viewer::deconstructPolyline(){
@@ -193,16 +182,19 @@ void Viewer::deconstructPolyline(){
     repositionPlane(rightPlane, curveIndexR);
 }
 
+/*
+ * Physically place planes on the polyline
+ * Bend the polyline so it corresponds to the correct point
+*/
 void Viewer::placePlanes(const std::vector<Vec> &polyPoints){
-    initPolyPlanes(Movable::DYNAMIC);
-    for(unsigned int i=0; i<poly.getNbPoints(); i++) bendPolyline(i, polyPoints[i]);   
-    toggleIsPolyline();
+    initPolyPlanes(Movable::DYNAMIC);       // Create the planes
+    for(unsigned int i=0; i<poly.getNbPoints(); i++) bendPolyline(i, polyPoints[i]);        // Bend the polyline point by point
+    toggleIsPolyline();     // Change the polyline from going through the centre of the planes to going through the corner
     std::vector<double> distances;
     poly.getDistances(distances);
-    Q_EMIT toUpdateDistances(distances);        // the distances are no longer the same because the polyline has been lowered
+    Q_EMIT toUpdateDistances(distances);        // the distances are no longer the same because the polyline has been lowered, so update it in the fibula
 
-    poly.recalculateOrientations();
-    poly.resetBoxes();
+    poly.resetBoxes();      // Set the boxes to the polyline
 }
 
 double Viewer::segmentLength(const Vec a, const Vec b){
@@ -211,113 +203,65 @@ double Viewer::segmentLength(const Vec a, const Vec b){
 
 void Viewer::updatePolyline(const std::vector<Vec> &newPoints){
     poly.updatePoints(newPoints);
-    //update();
 }
 
+
+/*
+ * Modify the polyline point pointIndex to v
+ * Activated when a plane is moved by hand in the mandible
+*/
 void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
+    std::vector<Vec> planeNormals;
+    std::vector<Vec> planeBinormals;
+
+    poly.bend(pointIndex, v, planeNormals, planeBinormals);     // Bend the polyline and get the planeNormals and planeBinormals which will be used to set the planes' orientations
+
+    // Update the planes
+    repositionPlanesOnPolyline();
+    setPlaneOrientations(planeNormals, planeBinormals);
+
+    // Get the mandible polyine planes in relation to the boxes so this info can be sent to the fibula
+    std::vector<Vec> relativeNorms;
+    getPlaneBoxOrientations(relativeNorms);
+
+    // Get the new distances between each point in the mandible
     std::vector<double> distances;
     poly.getDistances(distances);
 
-    std::vector<Vec> relativeNorms;
-    std::vector<Vec> planeNormals;     // the x,y,z vectors of each frame
-    std::vector<Vec> planeBinormals;
+    Q_EMIT polylineBent(relativeNorms, distances);      // Send the new normals and distances to the fibula TODO only send over the info for the corresponding point
+}
 
-    poly.bend(pointIndex, v, relativeNorms, planeNormals, planeBinormals);
+void Viewer::setPlaneOrientation(Plane &p, std::vector<Vec> &norms, std::vector<Vec> &binorms){
+    p.setFrameFromBasis(norms[p.getID()], binorms[p.getID()], cross(norms[p.getID()], binorms[p.getID()]));
+}
 
-    // set the planes' orientations
-    for(unsigned int i=0; i<ghostPlanes.size(); i++){
-        ghostPlanes[i]->setPosition(poly.getPoint(ghostPlanes[i]->getID()));
-        ghostPlanes[i]->setFrameFromBasis(planeNormals[i+1], planeBinormals[i+1], cross(planeNormals[i+1],planeBinormals[i+1]));
-    }
+void Viewer::setPlaneOrientations(std::vector<Vec> &norms, std::vector<Vec> &binorms){
+    setPlaneOrientation(*leftPlane, norms, binorms);
+    setPlaneOrientation(*rightPlane, norms, binorms);
+    setPlaneOrientation(*endLeft, norms, binorms);
+    setPlaneOrientation(*endRight, norms, binorms);
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) setPlaneOrientation(*ghostPlanes[i], norms, binorms);
+}
 
-    leftPlane->setPosition(poly.getPoint(leftPlane->getID()));
-    leftPlane->setFrameFromBasis(planeNormals[0], planeBinormals[0], cross(planeNormals[0], planeBinormals[0]));
-
-    rightPlane->setPosition(poly.getPoint(static_cast<unsigned int>(poly.getNbPoints()-2)));
-    rightPlane->setFrameFromBasis(planeNormals.back(), planeBinormals.back(), cross(planeNormals.back(), planeBinormals.back()));
-
-    unsigned long long lastIndex = relativeNorms.size()-2;
-    endLeft->setFrameFromBasis(relativeNorms[0], relativeNorms[1], cross(relativeNorms[0], relativeNorms[1]));
-    endRight->setFrameFromBasis(relativeNorms[lastIndex], relativeNorms[lastIndex+1], cross(relativeNorms[lastIndex], relativeNorms[lastIndex+1]));
-
-    // Get the rotation of the planes in terms of the relative normals
+// Get the rotation of the planes in terms of the boxes
+void Viewer::getPlaneBoxOrientations(std::vector<Vec> &relativeNorms){
+    relativeNorms.clear();
     std::vector<Vec> norms;
     poly.getRelativePlane(*leftPlane, norms);
-    relativeNorms[2] = norms[2];
-    relativeNorms[3] = norms[3];
+    relativeNorms.push_back(norms[2]);
+    relativeNorms.push_back(norms[3]);
 
-    unsigned int index = 4;
     for(unsigned int i=0; i<ghostPlanes.size(); i++){
         std::vector<Vec> norms;
         poly.getRelativePlane(*ghostPlanes[i], norms);
         for(unsigned int j=0; j<norms.size(); j++){
-            relativeNorms[index] = norms[j];
-            index++;
+            relativeNorms.push_back(norms[j]);
         }
     }
 
-    lastIndex = relativeNorms.size()-4;
     poly.getRelativePlane(*rightPlane, norms);
-    relativeNorms[lastIndex] = norms[0];
-    relativeNorms[lastIndex+1] = norms[1];
-
-    /*Plane tempPlane(1., Movable::STATIC, 0, 0);
-    tempPlane.setFrameFromBasis(relativeNorms[2], relativeNorms[3], cross(relativeNorms[2], relativeNorms[3]));
-
-    Vec n(1,0,0);
-    Vec b(0,1,0);
-    n = leftPlane->getMeshVectorFromLocal(n);
-    b = leftPlane->getMeshVectorFromLocal(b);
-
-    relativeNorms[2] = tempPlane.getLocalVector(n);
-    relativeNorms[3] = tempPlane.getLocalVector(b);
-
-    for(unsigned int i=0; i<ghostPlanes.size()*2; i++){
-        Plane tempPlane(1., Movable::STATIC, 0, 0);
-        tempPlane.setFrameFromBasis(relativeNorms[(i+2)*2], relativeNorms[(i+2)*2+1], cross(relativeNorms[(i+2)*2], relativeNorms[(i+2)*2+1]));
-
-        // convert the normal and binormal into these coordinates
-        Vec n(1,0,0);
-        Vec b(0,1,0);
-        n = ghostPlanes[i/2]->getMeshVectorFromLocal(n);
-        b = ghostPlanes[i/2]->getMeshVectorFromLocal(b);
-
-        // convert in relation to tempPlanes
-        relativeNorms[(i+2)*2] = tempPlane.getLocalVector(n);
-        relativeNorms[(i+2)*2+1] = tempPlane.getLocalVector(b);
-    }
-
-    lastIndex = relativeNorms.size()-4;
-    tempPlane.setFrameFromBasis(relativeNorms[lastIndex], relativeNorms[lastIndex+1], cross(relativeNorms[lastIndex], relativeNorms[lastIndex+1]));
-
-    n = Vec(1,0,0);
-    b = Vec(0,1,0);
-    n = rightPlane->getMeshVectorFromLocal(n);
-    b = rightPlane->getMeshVectorFromLocal(b);
-
-    relativeNorms[lastIndex] = tempPlane.getLocalVector(n);
-    relativeNorms[lastIndex+1] = tempPlane.getLocalVector(b);*/
-
-    Q_EMIT polylineBent(relativeNorms, distances);
-
-}
-
-void Viewer::initCurve(){
-    control.push_back(Vec(-56.9335, -13.9973, 8.25454));
-
-    control.push_back(Vec(-50.8191, -20.195, -19.53));
-    control.push_back(Vec(-40.155, -34.5957, -50.7005));
-    control.push_back(Vec(-27.6007, -69.2743, -67.6769));
-
-    control.push_back(Vec(0, -85.966, -68.3154));
-
-    control.push_back(Vec(26.7572, -69.0705, -65.6261));
-    control.push_back(Vec(40.3576, -34.3609, -50.7634));
-    control.push_back(Vec(46.2189, -21.3245, -17.9009));
-
-    control.push_back(Vec(52.3669, -15.4613, 8.70223));
-
-    constructCurve();
+    relativeNorms.push_back(norms[0]);
+    relativeNorms.push_back(norms[1]);
 }
 
 void Viewer::constructCurve(){
@@ -376,8 +320,8 @@ void Viewer::cutMesh(){
     polylinePoints.push_back(curve.getPoint(curveIndexL));  // the left plane
 
     std::vector<unsigned int> ghostLocations;
-    findGhostLocations(nbGhostPlanes, ghostLocations);
-    for(unsigned int i=0; i<ghostLocations.size(); i++) polylinePoints.push_back(curve.getPoint(ghostLocations[i]));
+    findGhostLocations(nbGhostPlanes, ghostLocations);      // find the curve indexes on which the ghost planes must be placed
+    for(unsigned int i=0; i<ghostLocations.size(); i++) polylinePoints.push_back(curve.getPoint(ghostLocations[i]));        // get the world location of these indexes
 
     polylinePoints.push_back(curve.getPoint(curveIndexR));      // the right plane
     polylinePoints.push_back(curve.getPoint(nbU-1));        // the end of the curve
@@ -533,8 +477,14 @@ double Viewer::angle(Vec a, Vec b){
 }
 
 void Viewer::rotatePolylineOnAxis(int position){
-    double r = position/360.;
-    for(unsigned int i=0; i<poly.getNbPoints()-1; i++) poly.rotateBox(i, r*2.*M_PI);
+    double r = (position/360.*2.*M_PI);
+    for(unsigned int i=0; i<poly.getNbPoints()-1; i++) poly.rotateBox(i, r);
+
+    // send over the new norms
+    /*std::vector<Vec> norms;
+    getPlaneBoxOrientations(norms);
+    Q_EMIT toUpdatePlaneOrientations(norms);*/
+    Q_EMIT toRotatePolylineOnAxis(r);
     update();
 }
 
