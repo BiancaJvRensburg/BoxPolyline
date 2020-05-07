@@ -117,7 +117,10 @@ void Polyline::drawBox(unsigned int index){
 void Polyline::updatePoints(const std::vector<Vec> &newPoints){
     points.clear();
     for(unsigned int i=0; i<newPoints.size(); i++) points.push_back(newPoints[i]);
-    for(unsigned int i=0; i<boxes.size(); i++) resetBox(i);
+    for(unsigned int i=0; i<boxes.size(); i++){
+        resetBox(i);
+        boxes[i].restoreRotation();
+    }
 }
 
 double Polyline::angle(const Vec &a, const Vec &b){
@@ -164,10 +167,12 @@ void Polyline::bendFibula(unsigned int index, Vec &newPosition){
     if(index!=0){
         recalculateBinormal(index-1, points[index-1], points[index]);
         resetBox(index-1);
+        boxes[index-1].restoreRotation();
     }
     if(index!=points.size()-1){
         recalculateBinormal(index, points[index], points[index+1]);
         resetBox(index);
+        boxes[index].restoreRotation();
     }
 }
 
@@ -315,4 +320,10 @@ void Polyline::getRelativePlane(Plane &p, std::vector<Vec> &norms){
         norms.push_back(boxes[id].localTransform(n));
         norms.push_back(boxes[id].localTransform(b));
     }
+}
+
+// Get the vector direction of each segment of the polyline
+void Polyline::getDirections(std::vector<Vec> &directions){
+    directions.clear();
+    for(unsigned int i=0; i<boxes.size(); i++) directions.push_back(boxes[i].worldTangent());
 }

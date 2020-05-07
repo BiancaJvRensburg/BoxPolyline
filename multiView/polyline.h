@@ -45,6 +45,7 @@ public:
     void getRelativePlane(Plane& p, std::vector<Vec>& norms);
     void recalculateOrientations();
     void restoreBoxRotations();
+    void getDirections(std::vector<Vec>& directions);
 
 private:
     Vec projection(Vec &a, Vec &planeNormal);

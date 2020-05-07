@@ -23,6 +23,7 @@ public:
     void rotateOnAxis(double angle);
     Vec localTransform(Vec v){ return f.localTransformOf(v); }
     Vec worldTransform(Vec v){ return f.localInverseTransformOf(v); }
+    Vec worldTangent(){ return worldTransform(tangent); }
     void restoreRotation();
 
 private:

@@ -481,9 +481,9 @@ void Viewer::rotatePolylineOnAxis(int position){
     for(unsigned int i=0; i<poly.getNbPoints()-1; i++) poly.rotateBox(i, r);
 
     // send over the new norms
-    /*std::vector<Vec> norms;
+    std::vector<Vec> norms;
     getPlaneBoxOrientations(norms);
-    Q_EMIT toUpdatePlaneOrientations(norms);*/
+    Q_EMIT toUpdatePlaneOrientations(norms);
     Q_EMIT toRotatePolylineOnAxis(r);
     update();
 }
