@@ -23,6 +23,7 @@ public Q_SLOTS:
     void movePlanes(double);
     void updatePlaneOrientations(std::vector<Vec>&);
     void rotatePolylineOnAxisFibula(double);
+    void projectToMesh();
 
 Q_SIGNALS:
     void okToPlacePlanes(const std::vector<Vec>&);

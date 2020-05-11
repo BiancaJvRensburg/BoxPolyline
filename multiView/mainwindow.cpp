@@ -163,9 +163,14 @@ void MainWindow::initFileActions(){
     connect(drawPlanesAction, &QAction::triggered, skullViewer, &Viewer::toggleDrawPlane);
     connect(drawPlanesAction, &QAction::triggered, fibulaViewer, &ViewerFibula::toggleDrawPlane);
 
+    QAction *projectionAction = new QAction("Projection", this);
+    connect(projectionAction, &QAction::triggered, fibulaViewer, &ViewerFibula::projectToMesh);
+
+
     fileActionGroup->addAction(openJsonFileAction);
     fileActionGroup->addAction(openJsonFibFileAction);
     fileActionGroup->addAction(cutMeshAction);
+    fileActionGroup->addAction(projectionAction);
     //fileActionGroup->addAction(cutAction);
     fileActionGroup->addAction(uncutMeshAction);
     fileActionGroup->addAction(drawMeshAction);

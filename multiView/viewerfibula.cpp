@@ -14,19 +14,22 @@ void ViewerFibula::updateFibPolyline(const Vec& firstPoint, const std::vector<do
 // Reset distances and place the planes on the updated polyline. Note: this is the end of the initial cut procedure
 void ViewerFibula::updateDistances(const std::vector<double>& distances){
     setDistances(distances);
+    projectToMesh();
     repositionPlanesOnPolyline();
 }
 
-// Re-initialise the polyline to a straight line with corresponding distances. TODO don't reset it in a straight line but along the current tragectory
+// Re-initialise the polyline to a straight line with corresponding distances
 void ViewerFibula::setDistances(const std::vector<double> &distances){
-    std::vector<Vec> directions;
-    poly.getDirections(directions);
+    /*std::vector<Vec> directions;
+    poly.getDirections(directions);*/
     //for(unsigned int i=0; i<distances.size(); i++) directions.push_back(Vec(1,0,0));
+    Vec direction(1,0,0);
 
     std::vector<Vec> newPoints;
     newPoints.push_back(Vec(0,0,0));
-    for(unsigned int i=0; i<distances.size(); i++) newPoints.push_back(newPoints[i] + distances[i]*directions[i]);
+    for(unsigned int i=0; i<distances.size(); i++) newPoints.push_back(newPoints[i] + distances[i]*direction);
     updatePolyline(newPoints);
+    poly.resetBoxes();
 }
 
 // This is activated by the mandible
@@ -37,6 +40,8 @@ void ViewerFibula::bendPolylineNormals(std::vector<Vec>& normals, const std::vec
     planeNormals.clear();
     for(unsigned int i=0; i<normals.size(); i++) planeNormals.push_back(normals[i]);
 
+    projectToMesh();
+
     setPlanesInPolyline(normals);
 }
 
@@ -45,10 +50,10 @@ void ViewerFibula::bendPolyline(unsigned int id, Vec v){
     poly.bendFibula(id, v);     // Bend the polyline
 
     // Get the normals
-    std::vector<Vec> normals;
+   /* std::vector<Vec> normals;
     for(unsigned int i=0; i<planeNormals.size(); i++) normals.push_back(planeNormals[i]);
 
-    setPlanesInPolyline(normals);       // Set the planes
+    setPlanesInPolyline(normals); */      // Set the planes
 }
 
 // Match the planes with the polyline
@@ -115,17 +120,27 @@ void ViewerFibula::toggleIsPolyline(){
     repositionPlanesOnPolyline();       // The planes have to be reset to their new polyline positions
 }
 
+void ViewerFibula::projectToMesh(){
+    for(unsigned int i=0; i<poly.getNbPoints(); i++){
+        Vec p;
+        mesh.mlsProjection(poly.getMeshPoint(i), p);
+        bendPolyline(i, p);
+    }
+}
+
 // Position the planes on their corresponding polyline points
 void ViewerFibula::repositionPlanesOnPolyline(){
+    // project the points onto the fibula and bend the polyline
+    /**/
+
     /*leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
     for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setPosition(poly.getMeshPoint(ghostPlanes[i]->getID())); //ghostPlanes[i]->setPosition(poly.getMeshPoint((ghostPlanes[i]->getID()-1)/2+2));
     rightPlane->setPosition(poly.getMeshPoint(rightPlane->getID()));*/
-    /*leftPlane->setPosition(poly.getMeshBoxPoint(leftPlane->getID()));
+    leftPlane->setPosition(poly.getMeshBoxPoint(leftPlane->getID()));
     for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setPosition(poly.getMeshBoxPoint(ghostPlanes[i]->getID()));
-    rightPlane->setPosition(poly.getMeshBoxPoint(rightPlane->getID()));*/
+    rightPlane->setPosition(poly.getMeshBoxPoint(rightPlane->getID()));
 
-    std::cout << "Left plane : " << std::endl;
-    Vec p;
+    /*Vec p;
     mesh.mlsProjection(poly.getMeshBoxPoint(leftPlane->getID()), p);
     leftPlane->setPosition(p);
 
@@ -135,7 +150,7 @@ void ViewerFibula::repositionPlanesOnPolyline(){
     }
 
     mesh.mlsProjection(poly.getMeshBoxPoint(rightPlane->getID()), p);
-    rightPlane->setPosition(p);
+    rightPlane->setPosition(p);*/
 }
 
 void ViewerFibula::constructPolyline(const std::vector<double>& distances, const std::vector<Vec>& newPoints){

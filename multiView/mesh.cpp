@@ -830,7 +830,6 @@ void Mesh::HPSS(Vec inputPoint, Vec &outputPoint, Vec &outputNormal, float radiu
     }
 
     outputPoint = newPoint;
-    std::cout << "Output point : " << outputPoint.x << "," << outputPoint.y << "," << outputPoint.z << std::endl;
 }
 
 void Mesh::mlsProjection(Vec inputPoint, Vec &outputPoint){

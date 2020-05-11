@@ -59,11 +59,10 @@ void Polyline::draw(){
     for(unsigned int i=0; i<points.size(); i++) glVertex3d(points[i].x, points[i].y, points[i].z);
     glEnd();
 
-    /*glColor3f(0,1,1);
     for(unsigned int i=0; i<boxes.size(); i++){
         glColor3f(0,i%2,(i+1)%2);
         boxes[i].draw();
-    }*/
+    }
 
     glPopMatrix();
 }
@@ -183,7 +182,7 @@ void Polyline::bendFibula(unsigned int index, Vec &newPosition){
 }
 
 void Polyline::recalculateOrientations(){
-    for(unsigned int i=1; i<points.size()-1; i++) recalculateBinormal(i, points[i], points[i+1]);
+    for(unsigned int i=0; i<points.size()-1; i++) recalculateBinormal(i, points[i], points[i+1]);
 }
 
 // Recalculate the normal as a cross product of the binormal and the tangent

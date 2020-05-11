@@ -203,6 +203,7 @@ double Viewer::segmentLength(const Vec a, const Vec b){
 
 void Viewer::updatePolyline(const std::vector<Vec> &newPoints){
     poly.updatePoints(newPoints);
+    //poly.resetBoxes();
 }
 
 
