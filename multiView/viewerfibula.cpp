@@ -121,10 +121,13 @@ void ViewerFibula::toggleIsPolyline(){
 }
 
 void ViewerFibula::projectToMesh(){
+    std::vector<Vec> meshPoints;
+    std::vector<Vec> outputPoints;
+    for(unsigned int i=0; i<poly.getNbPoints(); i++) meshPoints.push_back(poly.getMeshPoint(i));
+    mesh.mlsProjection(meshPoints, outputPoints);
+
     for(unsigned int i=0; i<poly.getNbPoints(); i++){
-        Vec p;
-        mesh.mlsProjection(poly.getMeshPoint(i), p);
-        bendPolyline(i, p);
+        bendPolyline(i, outputPoints[i]);
     }
 }
 

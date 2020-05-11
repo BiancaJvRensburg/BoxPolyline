@@ -8,6 +8,8 @@
 #include <Eigenvalues>
 #include <nanoflann.hpp>
 
+typedef nanoflann::KDTreeEigenMatrixAdaptor<Eigen::MatrixXd> KDTree;
+
 enum Side {INTERIOR, EXTERIOR};
 
 class Mesh : public QObject
@@ -58,7 +60,7 @@ public:
     void invertNormal(){normalDirection *= -1;}
 
 
-    void mlsProjection(Vec inputPoint, Vec &outputPoint);
+    void mlsProjection(const std::vector<Vec> &inputPoints, std::vector<Vec> &outputPoints);
 
 public Q_SLOTS:
     void recieveInfoFromFibula(const std::vector<Vec>&, const std::vector<std::vector<int>>&, const std::vector<int>&, const std::vector<Vec>&, const int);
@@ -130,8 +132,9 @@ protected:
     Vec3Df BBMax;
 
     Eigen::MatrixXd pointsToMatrix(const std::vector<Vec3Df> &basePoints, const int dimension);
-    void HPSS( Vec inputPoint, Vec &outputPoint , Vec &outputNormal, float radius, unsigned int nbIterations=10, int knn=20, double s=1.0);
-    void weightGauss(Vec x, std::vector<double> &weights, int knn, std::vector<size_t> const &id_nearest_neighbors, std::vector<double> const &square_distances_to_neighbors, double h);
+    Eigen::MatrixXd mat;
+    void HPSS( Vec inputPoint, Vec &outputPoint , Vec &outputNormal, double radius, unsigned int nbIterations=10, unsigned int knn=20, double s=1.0);
+    void weightGauss(Vec x, std::vector<double> &weights, unsigned int knn, std::vector<size_t> const &id_nearest_neighbors, std::vector<double> const &square_distances_to_neighbors, double h);
 };
 
 #endif // MESH_H

@@ -2,9 +2,11 @@
 #include <algorithm>
 #include <float.h>
 
+
 void Mesh::init(){
     collectOneRing(oneRing);
     collectTriangleOneRing(oneTriangleRing);
+    mat = pointsToMatrix(vertices, 3);
     update();
 }
 
@@ -699,61 +701,25 @@ Vec planeProjection(Vec a, Vec pOrigin, Vec pNorm){
 }
 
 // Get the weight for each nearest neighbour of x
-void Mesh::weightGauss(Vec x, std::vector<double> &weights, int knn, std::vector<size_t> const &id_nearest_neighbors, std::vector<double> const &square_distances_to_neighbors, double h){
+void Mesh::weightGauss(Vec x, std::vector<double> &weights, unsigned int knn, std::vector<size_t> const &id_nearest_neighbors, std::vector<double> const &square_distances_to_neighbors, double h){
   weights.clear();
 
     // Get the max distance between x and a point
     h = square_distances_to_neighbors[0];
-    for(int i=0; i<knn; i++){
+    for(unsigned int i=0; i<knn; i++){
         double dist = square_distances_to_neighbors[i];
         if(dist > h) h = dist;
     }
 
     h = sqrt(h);
 
-    for(int i=0; i<knn; i++){
+    for(unsigned int i=0; i<knn; i++){
         Vec v = Vec(vertices[id_nearest_neighbors[i]]);
         double r = (x - v).norm();       // the length of a vector
         double gauss = exp(-(r*r)/(h*h));
         weights.push_back(gauss);
     }
 }
-
-/*void weightWendland(Vec3 x, std::vector<float> &weights, int knn, std::vector<Vec3> const &positions, ANNidxArray const &id_nearest_neighbors, ANNdistArray const &square_distances_to_neighbors){
-  weights.clear();
-
-    float h = square_distances_to_neighbors[0];
-    for(int i=0; i<knn; i++){
-        float dist = square_distances_to_neighbors[i];
-        if(dist > h) h = dist;
-    }
-
-    h = sqrt(h);
-
-    for(int i=0; i<knn; i++){
-        float r = (x - positions[id_nearest_neighbors[i]]).length();
-        float wendland = pow((1-r/h),4)*(1+4*r/h);
-    weights.push_back(wendland);
-    }
-}
-
-void weightSingulier(Vec3 x, std::vector<float> &weights, int knn, std::vector<Vec3> const &positions, ANNidxArray const &id_nearest_neighbors, ANNdistArray const &square_distances_to_neighbors, float s){
-  weights.clear();
-
-    float h = square_distances_to_neighbors[0];
-    for(int i=0; i<knn; i++){
-        float dist = square_distances_to_neighbors[i];
-        if(dist > h) h = dist;
-    }
-
-    h = sqrt(h);
-
-    for(int i=0; i<knn; i++){
-        float r = (x - positions[id_nearest_neighbors[i]]).length();
-        float singulier = pow(h/r, s);
-    weights.push_back(singulier);
-    }
-}*/
 
 Eigen::MatrixXd Mesh::pointsToMatrix(const std::vector<Vec3Df> &basePoints, const int dimension){
     unsigned long long size = basePoints.size();
@@ -768,25 +734,18 @@ Eigen::MatrixXd Mesh::pointsToMatrix(const std::vector<Vec3Df> &basePoints, cons
     return mat;
 }
 
+
 // HPSS of one point
-void Mesh::HPSS(Vec inputPoint, Vec &outputPoint, Vec &outputNormal, float radius, unsigned int nbIterations, const int knn, double s){
+void Mesh::HPSS(Vec inputPoint, Vec &outputPoint, Vec &outputNormal, double radius, unsigned int nbIterations, const unsigned int knn, double s){
 
     Vec newPoint = inputPoint;
 
     // define the kd-tree from the matrix
     const int dimension = 3;
-    Eigen::MatrixXd mat = pointsToMatrix(vertices, dimension);
-    typedef nanoflann::KDTreeEigenMatrixAdaptor<Eigen::MatrixXd> KDTree;
-
     KDTree tree(dimension, mat, 10);
     tree.index->buildIndex();       // build the tree
 
     for(unsigned int it=0; it<nbIterations; it++){
-        /*ANNidxArray id_nearest_neighbors = new ANNidx[knn];     // define the array of the knn nearest neighbours
-        ANNdistArray square_distances_to_neighbors = new ANNdist[knn];       // define the array of the knn nearest neighbours' distances
-
-        kdtree.knearest(newPoint, knn, id_nearest_neighbors, square_distances_to_neighbors); */       // get the nearest neighbours
-
         std::vector<double> queryPoint(dimension);      // the result will be a 3D point
         for(unsigned int j=0; j<dimension; j++) queryPoint[j] = static_cast<double>(newPoint[static_cast<int>(j)]);       // the query point is the input point
 
@@ -799,8 +758,6 @@ void Mesh::HPSS(Vec inputPoint, Vec &outputPoint, Vec &outputNormal, float radiu
 
         tree.index->findNeighbors(resultSet, &queryPoint[0], nanoflann::SearchParams(10));
 
-        //closestPoints.push_back(baseVerticies[closest_indicies[0]]);
-
         // Get the projection for each closest neighbour
         Vec sum = Vec(0.,0.,0.);
         outputNormal = Vec(0., 0.,0.);
@@ -808,9 +765,6 @@ void Mesh::HPSS(Vec inputPoint, Vec &outputPoint, Vec &outputNormal, float radiu
 
         std::vector<double> weights;
         weightGauss(newPoint, weights, knn, closest_indicies, distances, radius);
-        /*if(kernel_type==0) weightGauss(newPoint, weights, knn, positions, id_nearest_neighbors, square_distances_to_neighbors, radius);
-        else if(kernel_type==1) weightWendland(newPoint, weights, knn, positions, id_nearest_neighbors, square_distances_to_neighbors);
-        else weightSingulier(newPoint, weights, knn, positions, id_nearest_neighbors, square_distances_to_neighbors, s);*/
 
         for(unsigned int i=0; i<knn; i++){
             unsigned long long id = closest_indicies[i];
@@ -832,7 +786,12 @@ void Mesh::HPSS(Vec inputPoint, Vec &outputPoint, Vec &outputNormal, float radiu
     outputPoint = newPoint;
 }
 
-void Mesh::mlsProjection(Vec inputPoint, Vec &outputPoint){
+void Mesh::mlsProjection(const std::vector<Vec> &inputPoints, std::vector<Vec> &outputPoints){
     Vec outputNormal;
-    HPSS(inputPoint, outputPoint, outputNormal, 1, 100.);
+    outputPoints.resize(inputPoints.size());
+
+    for(unsigned int i=0; i<inputPoints.size(); i++){
+        HPSS(inputPoints[i], outputPoints[i], outputNormal, 1, 100.);
+    }
+
 }
