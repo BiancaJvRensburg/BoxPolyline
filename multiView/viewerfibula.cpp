@@ -20,7 +20,8 @@ void ViewerFibula::updateDistances(const std::vector<double>& distances){
 // Re-initialise the polyline to a straight line with corresponding distances. TODO don't reset it in a straight line but along the current tragectory
 void ViewerFibula::setDistances(const std::vector<double> &distances){
     std::vector<Vec> directions;
-    for(unsigned int i=0; i<distances.size(); i++) directions.push_back(Vec(1,0,0));
+    poly.getDirections(directions);
+    //for(unsigned int i=0; i<distances.size(); i++) directions.push_back(Vec(1,0,0));
 
     std::vector<Vec> newPoints;
     newPoints.push_back(Vec(0,0,0));
@@ -68,8 +69,9 @@ void ViewerFibula::setPlaneOrientations(std::vector<Vec> &normals){
 
 // Update the relationship between the planes and the boxes when the mandible boxes are rotated
 void ViewerFibula::updatePlaneOrientations(std::vector<Vec> &normals){
-    planeNormals.clear();
-    for(unsigned int i=0; i<normals.size(); i++) planeNormals.push_back(normals[i]);
+    //planeNormals.clear();
+    //for(unsigned int i=0; i<normals.size(); i++) planeNormals.push_back(normals[i]);
+    setPlanesInPolyline(normals);
 }
 
 void ViewerFibula::initGhostPlanes(Movable s){
@@ -78,14 +80,15 @@ void ViewerFibula::initGhostPlanes(Movable s){
     for(unsigned int i=0; i<(poly.getNbPoints()-4)*2; i++){     // -2 for total nb of planes, another -2 for nb of ghost planes
         Plane *p1 = new Plane(size, s, .5f, i/2+2);
         ghostPlanes.push_back(p1);
-        ghostPlanes[i]->setPosition(poly.getMeshPoint((i+2)/2));
+        //ghostPlanes[i]->setPosition(poly.getMeshPoint((i+2)/2));
+        ghostPlanes[i]->setPosition(poly.getMeshBoxPoint((i+2)/2));
         ghostPlanes[i]->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
     }
 
     // Connect the planes' movement. If bend the polyline if a plane is moved by hand.
-    connect(&(leftPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);
-    connect(&(rightPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) connect(&(ghostPlanes[i]->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);        // connnect the ghost planes
+    /*connect(&(leftPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);
+    connect(&(rightPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);*/
+    // for(unsigned int i=0; i<ghostPlanes.size(); i++) connect(&(ghostPlanes[i]->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);        // connnect the ghost planes
 }
 
 void ViewerFibula::constructCurve(){
@@ -114,9 +117,25 @@ void ViewerFibula::toggleIsPolyline(){
 
 // Position the planes on their corresponding polyline points
 void ViewerFibula::repositionPlanesOnPolyline(){
-    leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
+    /*leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
     for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setPosition(poly.getMeshPoint(ghostPlanes[i]->getID())); //ghostPlanes[i]->setPosition(poly.getMeshPoint((ghostPlanes[i]->getID()-1)/2+2));
-    rightPlane->setPosition(poly.getMeshPoint(rightPlane->getID()));
+    rightPlane->setPosition(poly.getMeshPoint(rightPlane->getID()));*/
+    /*leftPlane->setPosition(poly.getMeshBoxPoint(leftPlane->getID()));
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setPosition(poly.getMeshBoxPoint(ghostPlanes[i]->getID()));
+    rightPlane->setPosition(poly.getMeshBoxPoint(rightPlane->getID()));*/
+
+    std::cout << "Left plane : " << std::endl;
+    Vec p;
+    mesh.mlsProjection(poly.getMeshBoxPoint(leftPlane->getID()), p);
+    leftPlane->setPosition(p);
+
+    for(unsigned int i=0; i<ghostPlanes.size(); i++){
+        mesh.mlsProjection(poly.getMeshBoxPoint(ghostPlanes[i]->getID()), p);
+        ghostPlanes[i]->setPosition(p);
+    }
+
+    mesh.mlsProjection(poly.getMeshBoxPoint(rightPlane->getID()), p);
+    rightPlane->setPosition(p);
 }
 
 void ViewerFibula::constructPolyline(const std::vector<double>& distances, const std::vector<Vec>& newPoints){
@@ -151,5 +170,6 @@ void ViewerFibula::rotatePolyline(){
 // Rotate the boxes
 void ViewerFibula::rotatePolylineOnAxisFibula(double r){
     for(unsigned int i=0; i<poly.getNbPoints()-1; i++) poly.rotateBox(i, r);
+    //poly.rotateBox(1,r);
     update();
 }

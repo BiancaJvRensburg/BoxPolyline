@@ -38,6 +38,8 @@ void Polyline::draw(){
     glPushMatrix();
     glMultMatrixd(frame.matrix());
 
+    glColor3f(1.,1.,1.);
+
     QGLViewer::drawAxis(20.);
 
     // The polyline
@@ -57,7 +59,11 @@ void Polyline::draw(){
     for(unsigned int i=0; i<points.size(); i++) glVertex3d(points[i].x, points[i].y, points[i].z);
     glEnd();
 
-    for(unsigned int i=0; i<boxes.size(); i++) boxes[i].draw();
+    /*glColor3f(0,1,1);
+    for(unsigned int i=0; i<boxes.size(); i++){
+        glColor3f(0,i%2,(i+1)%2);
+        boxes[i].draw();
+    }*/
 
     glPopMatrix();
 }
@@ -320,4 +326,10 @@ void Polyline::getRelativePlane(Plane &p, std::vector<Vec> &norms){
         norms.push_back(boxes[id].localTransform(n));
         norms.push_back(boxes[id].localTransform(b));
     }
+}
+
+// Get the vector direction of each segment of the polyline
+void Polyline::getDirections(std::vector<Vec> &directions){
+    directions.clear();
+    for(unsigned int i=0; i<boxes.size(); i++) directions.push_back(boxes[i].worldTangent());
 }

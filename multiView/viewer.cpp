@@ -18,7 +18,7 @@ void Viewer::draw() {
     glPushMatrix();
     glMultMatrixd(viewerFrame->matrix());
 
-    if(isCut) poly.draw();
+    if(isDrawMesh) mesh.draw();
 
     if(isCurve){
         glColor4f(0., 1., 0., leftPlane->getAlpha());
@@ -34,7 +34,7 @@ void Viewer::draw() {
 
     curve.draw();
 
-    if(isDrawMesh) mesh.draw();
+    if(isCut) poly.draw();
 
     glPopMatrix();
 }
@@ -414,6 +414,7 @@ void Viewer::quicksort(std::vector<unsigned int>& sorted, int start, int end){
     }
 }
 
+// Find where the ghost planes should be placed
 void Viewer::findGhostLocations(unsigned int nbGhostPlanes, std::vector<unsigned int>& ghostLocation){
     unsigned int finalNb = nbGhostPlanes;        // the number we can actually fit in
     std::vector<unsigned int> maxIndicies(nbGhostPlanes);
@@ -478,7 +479,7 @@ double Viewer::angle(Vec a, Vec b){
 
 void Viewer::rotatePolylineOnAxis(int position){
     double r = (position/360.*2.*M_PI);
-    for(unsigned int i=0; i<poly.getNbPoints()-1; i++) poly.rotateBox(i, r);
+    //for(unsigned int i=0; i<poly.getNbPoints()-1; i++) poly.rotateBox(i, r);
 
     // send over the new norms
     std::vector<Vec> norms;

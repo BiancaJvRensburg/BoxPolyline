@@ -1,10 +1,12 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include "Vec3D.h"
-#include "Triangle.h"
+#include "vec3D.h"
+#include "triangle.h"
 #include "plane.h"
 #include <queue>
+#include <Eigenvalues>
+#include <nanoflann.hpp>
 
 enum Side {INTERIOR, EXTERIOR};
 
@@ -54,6 +56,9 @@ public:
     typedef std::priority_queue< std::pair< float , int > , std::deque< std::pair< float , int > > , std::greater< std::pair< float , int > > > FacesQueue;
 
     void invertNormal(){normalDirection *= -1;}
+
+
+    void mlsProjection(Vec inputPoint, Vec &outputPoint);
 
 public Q_SLOTS:
     void recieveInfoFromFibula(const std::vector<Vec>&, const std::vector<std::vector<int>>&, const std::vector<int>&, const std::vector<Vec>&, const int);
@@ -123,6 +128,10 @@ protected:
     float alphaTransparency = 1.f;
     Vec3Df BBMin;
     Vec3Df BBMax;
+
+    Eigen::MatrixXd pointsToMatrix(const std::vector<Vec3Df> &basePoints, const int dimension);
+    void HPSS( Vec inputPoint, Vec &outputPoint , Vec &outputNormal, float radius, unsigned int nbIterations=10, int knn=20, double s=1.0);
+    void weightGauss(Vec x, std::vector<double> &weights, int knn, std::vector<size_t> const &id_nearest_neighbors, std::vector<double> const &square_distances_to_neighbors, double h);
 };
 
 #endif // MESH_H

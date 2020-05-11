@@ -43,44 +43,86 @@ void Box::draw(){
     Vec p6 = p0 + normal*height +  binormal*width;
     Vec p7 = p1 + normal*height +  binormal*width;
 
-    glBegin(GL_LINES);
-        /*glVertex3d(p0.x, p0.y, p0.z);
-        glVertex3d(p1.x, p1.y, p1.z);*/
-
+    glBegin(GL_QUADS);
         glVertex3d(p0.x, p0.y, p0.z);
-        glVertex3d(p4.x, p4.y, p4.z);
-
-        glVertex3d(p0.x, p0.y, p0.z);
-        glVertex3d(p2.x, p2.y, p2.z);
-
-        glVertex3d(p5.x, p5.y, p5.z);
         glVertex3d(p1.x, p1.y, p1.z);
-
-        glVertex3d(p3.x, p3.y, p3.z);
-        glVertex3d(p1.x, p1.y, p1.z);
-
-        glVertex3d(p7.x, p7.y, p7.z);
         glVertex3d(p5.x, p5.y, p5.z);
-
-        glVertex3d(p7.x, p7.y, p7.z);
-        glVertex3d(p3.x, p3.y, p3.z);
-
-        glVertex3d(p7.x, p7.y, p7.z);
-        glVertex3d(p6.x, p6.y, p6.z);
-
         glVertex3d(p4.x, p4.y, p4.z);
-        glVertex3d(p6.x, p6.y, p6.z);
-
-        glVertex3d(p2.x, p2.y, p2.z);
-        glVertex3d(p6.x, p6.y, p6.z);
-
-        glVertex3d(p4.x, p4.y, p4.z);
-        glVertex3d(p5.x, p5.y, p5.z);
-
-        glVertex3d(p2.x, p2.y, p2.z);
-        glVertex3d(p3.x, p3.y, p3.z);
-
     glEnd();
+
+    glBegin(GL_QUADS);
+        glVertex3d(p0.x, p0.y, p0.z);
+        glVertex3d(p1.x, p1.y, p1.z);
+        glVertex3d(p3.x, p3.y, p3.z);
+        glVertex3d(p2.x, p2.y, p2.z);
+    glEnd();
+
+    glBegin(GL_QUADS);
+        glVertex3d(p2.x, p2.y, p2.z);
+        glVertex3d(p3.x, p3.y, p3.z);
+        glVertex3d(p7.x, p7.y, p7.z);
+        glVertex3d(p6.x, p6.y, p6.z);
+    glEnd();
+
+    glBegin(GL_QUADS);
+        glVertex3d(p6.x, p6.y, p6.z);
+        glVertex3d(p7.x, p7.y, p7.z);
+        glVertex3d(p5.x, p5.y, p5.z);
+        glVertex3d(p4.x, p4.y, p4.z);
+    glEnd();
+
+    glBegin(GL_QUADS);
+        glVertex3d(p1.x, p1.y, p1.z);
+        glVertex3d(p3.x, p3.y, p3.z);
+        glVertex3d(p7.x, p7.y, p7.z);
+        glVertex3d(p5.x, p5.y, p5.z);
+    glEnd();
+
+    glBegin(GL_QUADS);
+        glVertex3d(p0.x, p0.y, p0.z);
+        glVertex3d(p2.x, p2.y, p2.z);
+        glVertex3d(p6.x, p6.y, p6.z);
+        glVertex3d(p4.x, p4.y, p4.z);
+    glEnd();
+
+    /*glBegin(GL_LINES);
+        glVertex3d(p0.x, p0.y, p0.z);
+        glVertex3d(p1.x, p1.y, p1.z);
+
+        glVertex3d(p0.x, p0.y, p0.z);
+        glVertex3d(p4.x, p4.y, p4.z);
+
+        glVertex3d(p0.x, p0.y, p0.z);
+        glVertex3d(p2.x, p2.y, p2.z);
+
+        glVertex3d(p5.x, p5.y, p5.z);
+        glVertex3d(p1.x, p1.y, p1.z);
+
+        glVertex3d(p3.x, p3.y, p3.z);
+        glVertex3d(p1.x, p1.y, p1.z);
+
+        glVertex3d(p7.x, p7.y, p7.z);
+        glVertex3d(p5.x, p5.y, p5.z);
+
+        glVertex3d(p7.x, p7.y, p7.z);
+        glVertex3d(p3.x, p3.y, p3.z);
+
+        glVertex3d(p7.x, p7.y, p7.z);
+        glVertex3d(p6.x, p6.y, p6.z);
+
+        glVertex3d(p4.x, p4.y, p4.z);
+        glVertex3d(p6.x, p6.y, p6.z);
+
+        glVertex3d(p2.x, p2.y, p2.z);
+        glVertex3d(p6.x, p6.y, p6.z);
+
+        glVertex3d(p4.x, p4.y, p4.z);
+        glVertex3d(p5.x, p5.y, p5.z);
+
+        glVertex3d(p2.x, p2.y, p2.z);
+        glVertex3d(p3.x, p3.y, p3.z);
+
+    glEnd();*/
 
     glPopMatrix();
 }
@@ -103,4 +145,8 @@ void Box::restoreRotation(){
     Quaternion r(axis, prevRotation);
 
     f.rotateAroundPoint(r, centre);
+}
+
+Vec Box::getLocation(){
+    return f.position();
 }
