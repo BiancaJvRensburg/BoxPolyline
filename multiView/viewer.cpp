@@ -188,7 +188,9 @@ void Viewer::deconstructPolyline(){
 */
 void Viewer::placePlanes(const std::vector<Vec> &polyPoints){
     initPolyPlanes(Movable::DYNAMIC);       // Create the planes
-    for(unsigned int i=0; i<poly.getNbPoints(); i++) bendPolyline(i, polyPoints[i]);        // Bend the polyline point by point
+    std::vector<Vec> norms, binorms;
+    for(unsigned int i=0; i<poly.getNbPoints()-1; i++) simpleBend(i, polyPoints[i], norms, binorms);        // Bend the polyline point by point WITHOUT updating rest
+    bendPolyline(poly.getNbPoints()-1, polyPoints[poly.getNbPoints()-1]);       // update the fibula and set the planes for all points on the last point
     toggleIsPolyline();     // Change the polyline from going through the centre of the planes to going through the corner
     std::vector<double> distances;
     poly.getDistances(distances);
@@ -215,7 +217,7 @@ void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
     std::vector<Vec> planeNormals;
     std::vector<Vec> planeBinormals;
 
-    poly.bend(pointIndex, v, planeNormals, planeBinormals);     // Bend the polyline and get the planeNormals and planeBinormals which will be used to set the planes' orientations
+    simpleBend(pointIndex, v, planeNormals, planeBinormals);
 
     // Update the planes
     repositionPlanesOnPolyline();
@@ -230,6 +232,10 @@ void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
     poly.getDistances(distances);
 
     Q_EMIT polylineBent(relativeNorms, distances);      // Send the new normals and distances to the fibula TODO only send over the info for the corresponding point
+}
+
+void Viewer::simpleBend(const unsigned int &pointIndex, Vec v,std::vector<Vec> &planeNormals, std::vector<Vec> &planeBinormals){
+    poly.bend(pointIndex, v, planeNormals, planeBinormals);     // Bend the polyline and get the planeNormals and planeBinormals which will be used to set the planes' orientations
 }
 
 void Viewer::setPlaneOrientation(Plane &p, std::vector<Vec> &norms, std::vector<Vec> &binorms){

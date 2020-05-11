@@ -63,6 +63,7 @@ protected:
     void findGhostLocations(unsigned int nbGhostPlanes, std::vector<unsigned int>& ghostLocations);
     void deconstructPolyline();
     void getPlaneBoxOrientations(std::vector<Vec>& norms);
+    void simpleBend(const unsigned int &pointIndex, Vec v, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
 
 
     double angle(Vec a, Vec b);
