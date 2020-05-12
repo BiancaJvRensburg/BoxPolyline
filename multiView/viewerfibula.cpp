@@ -113,7 +113,7 @@ void ViewerFibula::toggleIsPolyline(){
 
 // Project the polyline onto the fibula mesh
 void ViewerFibula::projectToMesh(const std::vector<double>& distances){
-    unsigned int nbU = 100;
+    unsigned int nbU = 50;
     constructSegmentPoints(nbU);     // construct the new polyline with segments
 
     std::vector<Vec> outputPoints;
@@ -121,10 +121,12 @@ void ViewerFibula::projectToMesh(const std::vector<double>& distances){
 
     outTemp = outputPoints;
 
-    std::vector<int> segIndexes;
+    std::vector<unsigned int> segIndexes;
     for(unsigned int i=0; i<poly.getNbPoints(); i++) segIndexes.push_back(i*nbU);
 
-     matchDistances(distances, segIndexes, outputPoints);
+    double epsilon = 0.05;
+    unsigned int maxIterations = 10;
+    matchDistances(distances, segIndexes, outputPoints, epsilon, maxIterations);
 
     for(unsigned int i=0; i<poly.getNbPoints(); i++){
         bendPolyline(i, outputPoints[segIndexes[i]]);
@@ -134,56 +136,37 @@ void ViewerFibula::projectToMesh(const std::vector<double>& distances){
     for(unsigned int i=0; i<poly.getNbPoints()-1; i++) std::cout << i << " : " << euclideanDistance(poly.getMeshPoint(i), poly.getMeshPoint(i+1)) << std::endl;
 */
 
-    /*std::vector<Vec> meshPoints;
-    std::vector<Vec> outputPoints;
-    for(unsigned int i=0; i<poly.getNbPoints(); i++) meshPoints.push_back(poly.getMeshPoint(i));
-    mesh.mlsProjection(meshPoints, outputPoints);
-
-    for(unsigned int i=0; i<poly.getNbPoints(); i++){
-        bendPolyline(i, outputPoints[i]);
-    }*/
 }
 
-
 // Check if the projected distances match the actual distance. If not, modify it
-void ViewerFibula::matchDistances(const std::vector<double> &distances, std::vector<int> &segIndexes, std::vector<Vec> &outputPoints){
+void ViewerFibula::matchDistances(const std::vector<double> &distances, std::vector<unsigned int> &segIndexes, std::vector<Vec> &outputPoints, double epsilon, const unsigned int &searchRadius){
     /*std::cout << "Target distances : " << std::endl;
     for(unsigned int i=0; i<distances.size(); i++) std::cout << i << " : " << distances[i] << std::endl;
 
     std::cout << "Actual distances : " << std::endl;
-    for(unsigned int i=0; i<poly.getNbPoints()-1; i++) std::cout << i << " : " << euclideanDistance(outputPoints[segIndexes[i]], outputPoints[segIndexes[i+1]]) << std::endl;*/
+    for(unsigned int i=0; i<poly.getNbPoints()-1; i++) std::cout << i << " : " << euclideanDistance(outputPoints[segIndexes[i]], outputPoints[segIndexes[i+1]]) << std::endl;
+*/
+    for(unsigned int i=1; i<poly.getNbPoints()-2; i++){
+        segIndexes[i+1] = getClosestDistance(i, distances[i], segIndexes, outputPoints, searchRadius);
+    }
+}
 
-    double epsilon = 0.05;
-    for(unsigned int i=1; i<poly.getNbPoints()-2; i++){     // we don't care about the two end segments
-        const double &targetD = distances[i];
-        unsigned int maxIterations = 50;
-        for(unsigned int j=0; j<maxIterations; j++){
-            double d = euclideanDistance(outputPoints[segIndexes[i]], outputPoints[segIndexes[i+1]]);      // the abs difference between the segment length and the target length
-            //std::cout << i << " : " << d << std::endl;
-            if(abs(d) < epsilon) break;
-            if(d > targetD) segIndexes[i+1]--;
-            else segIndexes[i+1]++;
+// Get the closest index to the target distance. Search within an index radius
+unsigned int ViewerFibula::getClosestDistance(unsigned int index, const double &targetDistance, std::vector<unsigned int> &segIndexes, std::vector<Vec> &outputPoints, unsigned int searchRadius){
+    double minDist = DBL_MAX;
+    unsigned int minIndex = segIndexes[index+1];
+    unsigned int indexDist = segIndexes[index+1] - segIndexes[index];
+    if(indexDist < searchRadius) searchRadius = indexDist;      // if the search radius is too large
+
+    for(unsigned int i=segIndexes[index+1]-searchRadius; i<segIndexes[index+1]+searchRadius; i++){
+        double d = abs(euclideanDistance(outputPoints[segIndexes[index]], outputPoints[i]) - targetDistance);
+        if(minDist > d){
+            minDist = d;
+            minIndex = i;
         }
     }
 
-    // for each segment
-    /*for(unsigned int i=1; i<poly.getNbPoints()-2; i++){     // we don't care about the two end segments
-        const double &targetD = distances[i];
-        std::cout << "i : " << i << std::endl;
-        unsigned int maxIterations = 10;
-        for(unsigned int j=0; j<maxIterations; j++){
-            double d = abs(euclideanDistance(outputPoints[segIndexes[i]], outputPoints[segIndexes[i+1]]) - targetD);      // the abs difference between the segment length and the target length
-            double prevD = abs(euclideanDistance(outputPoints[segIndexes[i]], outputPoints[segIndexes[i+1]-1]) - targetD);
-            double nextD = abs(euclideanDistance(outputPoints[segIndexes[i]], outputPoints[segIndexes[i+1]+1]) - targetD);
-             std::cout << "ds : " << prevD << "," << d << "," << nextD << std::endl;
-            if(d<prevD && d<nextD) break;       // TODO can this be caught in a local minima?
-            else if(prevD < nextD) segIndexes[i+1] -= 1;     // the previous distance is closer to the target distance
-            else segIndexes[i+1] += 1;
-        }
-    }*/
-
-    //std::cout << "Treated distances : " << std::endl;
-    //for(unsigned int i=0; i<poly.getNbPoints()-1; i++) std::cout << i << " : " << euclideanDistance(outputPoints[segIndexes[i]], outputPoints[segIndexes[i+1]]) << std::endl;
+    return minIndex;
 }
 
 // Position the planes on their corresponding polyline points
