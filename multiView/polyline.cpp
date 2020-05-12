@@ -36,6 +36,9 @@ void Polyline::reinit(unsigned int nbPoints){
 }
 
 void Polyline::draw(){
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH);
+
     glPushMatrix();
     glMultMatrixd(frame.matrix());
 
@@ -60,12 +63,17 @@ void Polyline::draw(){
     for(unsigned int i=0; i<points.size(); i++) glVertex3d(points[i].x, points[i].y, points[i].z);
     glEnd();
 
+    if(isWireframe) glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
     for(unsigned int i=0; i<boxes.size(); i++){
-        glColor3f(0,i%2,(i+1)%2);
+        glColor4f(0,i%2,(i+1)%2, boxTransparency);
         boxes[i].draw();
     }
+    glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 
     glPopMatrix();
+
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_DEPTH);
 }
 
 void Polyline::drawBox(unsigned int index){

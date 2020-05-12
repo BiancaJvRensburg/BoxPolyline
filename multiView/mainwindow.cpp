@@ -163,6 +163,10 @@ void MainWindow::initFileActions(){
     connect(drawPlanesAction, &QAction::triggered, skullViewer, &Viewer::toggleDrawPlane);
     connect(drawPlanesAction, &QAction::triggered, fibulaViewer, &ViewerFibula::toggleDrawPlane);
 
+    QAction *wireframeAction = new QAction("Box wireframe", this);
+    connect(wireframeAction, &QAction::triggered, skullViewer, &Viewer::toggleWireframe);
+    connect(wireframeAction, &QAction::triggered, fibulaViewer, &ViewerFibula::toggleWireframe);
+
    /* QAction *projectionAction = new QAction("Projection", this);
     connect(projectionAction, &QAction::triggered, fibulaViewer, &ViewerFibula::projectToMesh);*/
 
@@ -175,6 +179,7 @@ void MainWindow::initFileActions(){
     fileActionGroup->addAction(uncutMeshAction);
     fileActionGroup->addAction(drawMeshAction);
     fileActionGroup->addAction(drawPlanesAction);
+    fileActionGroup->addAction(wireframeAction);
 
     connect(skullViewer, &Viewer::constructPoly, fibulaViewer, &ViewerFibula::constructPolyline);
     connect(fibulaViewer, &ViewerFibula::okToPlacePlanes, skullViewer, &Viewer::placePlanes);

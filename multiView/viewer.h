@@ -34,6 +34,7 @@ public Q_SLOTS:
     void setMeshAlpha(int);
     void setBoxAlpha(int);
     void cut();
+    void toggleWireframe();
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);

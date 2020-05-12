@@ -20,21 +20,7 @@ void Viewer::draw() {
 
     if(isDrawMesh) mesh.draw();
 
-    if(isCurve){
-        glColor4f(0., 1., 0., leftPlane->getAlpha());
-        leftPlane->draw();
-        glColor4f(1., 0, 0., leftPlane->getAlpha());
-        rightPlane->draw();
-
-        for(unsigned int i=0; i<ghostPlanes.size(); i++){
-            glColor4f(0., 1., 1., ghostPlanes[i]->getAlpha());
-            ghostPlanes[i]->draw();
-        }
-    }
-
     curve.draw();
-
-    if(isCut) poly.draw();
 
     glPointSize(5.);
     glColor3b(1., 0, 0);
@@ -46,6 +32,20 @@ void Viewer::draw() {
             glVertex3d(segmentPoints[i].x, segmentPoints[i].y, segmentPoints[i].z);
     }
      glEnd();
+
+     if(isCurve){
+         glColor4f(0., 1., 0., leftPlane->getAlpha());
+         leftPlane->draw();
+         glColor4f(1., 0, 0., leftPlane->getAlpha());
+         rightPlane->draw();
+
+         for(unsigned int i=0; i<ghostPlanes.size(); i++){
+             glColor4f(0., 1., 1., ghostPlanes[i]->getAlpha());
+             ghostPlanes[i]->draw();
+         }
+     }
+
+    if(isCut) poly.draw();
 
 
     glPopMatrix();
@@ -519,6 +519,11 @@ void Viewer::rotatePolylineOnAxis(int position){
 
 void Viewer::toggleDrawMesh(){
     isDrawMesh = !isDrawMesh;
+    update();
+}
+
+void Viewer::toggleWireframe(){
+    poly.toggleIsWireframe();
     update();
 }
 

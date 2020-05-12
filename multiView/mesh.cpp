@@ -108,6 +108,7 @@ void Mesh::glTriangle(unsigned int i){
     }
 
     glColor4f(1.0, 1.0, 1.0, alphaTransparency);
+    //glColor3f(1.0, 1.0, 1.0);
 }
 
 void Mesh::glTriangleSmooth(unsigned int i, std::vector <int> &coloursIndicies){
@@ -120,6 +121,7 @@ void Mesh::glTriangleSmooth(unsigned int i, std::vector <int> &coloursIndicies){
     }
 
     glColor4f(1.0, 1.0, 1.0, alphaTransparency);
+   // glColor3f(1.0, 1.0, 1.0);
 }
 
 void Mesh::glTriangleFibInMand(unsigned int i, std::vector <int> &coloursIndicies){
@@ -132,6 +134,7 @@ void Mesh::glTriangleFibInMand(unsigned int i, std::vector <int> &coloursIndicie
     }
 
     glColor4f(1.0, 1.0, 1.0, alphaTransparency);
+   // glColor3f(1.0, 1.0, 1.0);
 }
 
 void Mesh::getColour(unsigned int vertex, std::vector <int> &coloursIndicies){
@@ -159,7 +162,8 @@ void Mesh::getColour(unsigned int vertex, std::vector <int> &coloursIndicies){
         while(g>1.f) g -= 1.f;
         while(b>1.f) b -= 1.f;
 
-        glColor4f(r,g,b, alphaTransparency);
+        //glColor4f(r,g,b, alphaTransparency);
+        glColor3f(r,g,b);
     }
     else glColor4f(1.0, 1.0, 1.0, alphaTransparency);
 }
