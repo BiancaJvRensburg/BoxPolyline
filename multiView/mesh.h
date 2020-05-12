@@ -59,7 +59,6 @@ public:
 
     void invertNormal(){normalDirection *= -1;}
 
-
     void mlsProjection(const std::vector<Vec> &inputPoints, std::vector<Vec> &outputPoints);
 
 public Q_SLOTS:
@@ -133,7 +132,7 @@ protected:
 
     Eigen::MatrixXd pointsToMatrix(const std::vector<Vec3Df> &basePoints, const int dimension);
     Eigen::MatrixXd mat;
-    void HPSS( Vec inputPoint, Vec &outputPoint , Vec &outputNormal, double radius, unsigned int nbIterations=10, unsigned int knn=20, double s=1.0);
+    void HPSS(KDTree &tree, const int dimension, Vec inputPoint, Vec &outputPoint , Vec &outputNormal, double radius, unsigned int nbIterations=10, unsigned int knn=20, double s=1.0);
     void weightGauss(Vec x, std::vector<double> &weights, unsigned int knn, std::vector<size_t> const &id_nearest_neighbors, std::vector<double> const &square_distances_to_neighbors, double h);
 };
 

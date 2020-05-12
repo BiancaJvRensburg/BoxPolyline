@@ -14,15 +14,12 @@ void ViewerFibula::updateFibPolyline(const Vec& firstPoint, const std::vector<do
 // Reset distances and place the planes on the updated polyline. Note: this is the end of the initial cut procedure
 void ViewerFibula::updateDistances(const std::vector<double>& distances){
     setDistances(distances);
-    projectToMesh();
+    projectToMesh(distances);
     repositionPlanesOnPolyline();
 }
 
 // Re-initialise the polyline to a straight line with corresponding distances
 void ViewerFibula::setDistances(const std::vector<double> &distances){
-    /*std::vector<Vec> directions;
-    poly.getDirections(directions);*/
-    //for(unsigned int i=0; i<distances.size(); i++) directions.push_back(Vec(1,0,0));
     Vec direction(1,0,0);
 
     std::vector<Vec> newPoints;
@@ -40,7 +37,7 @@ void ViewerFibula::bendPolylineNormals(std::vector<Vec>& normals, const std::vec
     planeNormals.clear();
     for(unsigned int i=0; i<normals.size(); i++) planeNormals.push_back(normals[i]);
 
-    projectToMesh();
+    projectToMesh(distances);
 
     setPlanesInPolyline(normals);
 }
@@ -115,15 +112,78 @@ void ViewerFibula::toggleIsPolyline(){
 }
 
 // Project the polyline onto the fibula mesh
-void ViewerFibula::projectToMesh(){
-    std::vector<Vec> meshPoints;
+void ViewerFibula::projectToMesh(const std::vector<double>& distances){
+    unsigned int nbU = 100;
+    constructSegmentPoints(nbU);     // construct the new polyline with segments
+
+    std::vector<Vec> outputPoints;
+    mesh.mlsProjection(segmentPoints, outputPoints);
+
+    outTemp = outputPoints;
+
+    std::vector<int> segIndexes;
+    for(unsigned int i=0; i<poly.getNbPoints(); i++) segIndexes.push_back(i*nbU);
+
+     matchDistances(distances, segIndexes, outputPoints);
+
+    for(unsigned int i=0; i<poly.getNbPoints(); i++){
+        bendPolyline(i, outputPoints[segIndexes[i]]);
+    }
+
+    /*std::cout << "Actual end distances : " << std::endl;
+    for(unsigned int i=0; i<poly.getNbPoints()-1; i++) std::cout << i << " : " << euclideanDistance(poly.getMeshPoint(i), poly.getMeshPoint(i+1)) << std::endl;
+*/
+
+    /*std::vector<Vec> meshPoints;
     std::vector<Vec> outputPoints;
     for(unsigned int i=0; i<poly.getNbPoints(); i++) meshPoints.push_back(poly.getMeshPoint(i));
     mesh.mlsProjection(meshPoints, outputPoints);
 
     for(unsigned int i=0; i<poly.getNbPoints(); i++){
         bendPolyline(i, outputPoints[i]);
+    }*/
+}
+
+
+// Check if the projected distances match the actual distance. If not, modify it
+void ViewerFibula::matchDistances(const std::vector<double> &distances, std::vector<int> &segIndexes, std::vector<Vec> &outputPoints){
+    /*std::cout << "Target distances : " << std::endl;
+    for(unsigned int i=0; i<distances.size(); i++) std::cout << i << " : " << distances[i] << std::endl;
+
+    std::cout << "Actual distances : " << std::endl;
+    for(unsigned int i=0; i<poly.getNbPoints()-1; i++) std::cout << i << " : " << euclideanDistance(outputPoints[segIndexes[i]], outputPoints[segIndexes[i+1]]) << std::endl;*/
+
+    double epsilon = 0.05;
+    for(unsigned int i=1; i<poly.getNbPoints()-2; i++){     // we don't care about the two end segments
+        const double &targetD = distances[i];
+        unsigned int maxIterations = 50;
+        for(unsigned int j=0; j<maxIterations; j++){
+            double d = euclideanDistance(outputPoints[segIndexes[i]], outputPoints[segIndexes[i+1]]);      // the abs difference between the segment length and the target length
+            //std::cout << i << " : " << d << std::endl;
+            if(abs(d) < epsilon) break;
+            if(d > targetD) segIndexes[i+1]--;
+            else segIndexes[i+1]++;
+        }
     }
+
+    // for each segment
+    /*for(unsigned int i=1; i<poly.getNbPoints()-2; i++){     // we don't care about the two end segments
+        const double &targetD = distances[i];
+        std::cout << "i : " << i << std::endl;
+        unsigned int maxIterations = 10;
+        for(unsigned int j=0; j<maxIterations; j++){
+            double d = abs(euclideanDistance(outputPoints[segIndexes[i]], outputPoints[segIndexes[i+1]]) - targetD);      // the abs difference between the segment length and the target length
+            double prevD = abs(euclideanDistance(outputPoints[segIndexes[i]], outputPoints[segIndexes[i+1]-1]) - targetD);
+            double nextD = abs(euclideanDistance(outputPoints[segIndexes[i]], outputPoints[segIndexes[i+1]+1]) - targetD);
+             std::cout << "ds : " << prevD << "," << d << "," << nextD << std::endl;
+            if(d<prevD && d<nextD) break;       // TODO can this be caught in a local minima?
+            else if(prevD < nextD) segIndexes[i+1] -= 1;     // the previous distance is closer to the target distance
+            else segIndexes[i+1] += 1;
+        }
+    }*/
+
+    //std::cout << "Treated distances : " << std::endl;
+    //for(unsigned int i=0; i<poly.getNbPoints()-1; i++) std::cout << i << " : " << euclideanDistance(outputPoints[segIndexes[i]], outputPoints[segIndexes[i+1]]) << std::endl;
 }
 
 // Position the planes on their corresponding polyline points
@@ -167,4 +227,26 @@ void ViewerFibula::rotatePolylineOnAxisFibula(double r){
     for(unsigned int i=0; i<poly.getNbPoints()-1; i++) poly.rotateBox(i, r);
     //poly.rotateBox(1,r);
     update();
+}
+
+void ViewerFibula::constructSegmentPoints(unsigned int nbU){
+    segmentPoints.clear();
+    std::vector<Vec> directions;
+    poly.getDirections(directions);
+
+    for(unsigned int j=0; j<poly.getNbPoints()-1; j++){  // extend from the previous point
+        double length = (poly.getMeshPoint(j) - poly.getMeshPoint(j+1)).norm();
+        for(unsigned int i=0; i<nbU; i++){
+            double u = static_cast<double>(i)/static_cast<double>(nbU);     // 0 <= u < 1
+            Vec v = poly.getMeshPoint(j) + directions[j]*u*length;
+            segmentPoints.push_back(v);
+        }
+    }
+
+    // add the last control point point
+    segmentPoints.push_back(poly.getMeshPoint(poly.getNbPoints()-1));
+}
+
+double ViewerFibula::euclideanDistance(const Vec &a, const Vec &b){
+    return sqrt(pow(a.x-b.x, 2.) + pow(a.y-b.y, 2.) + pow(a.z-b.z, 2.));
 }

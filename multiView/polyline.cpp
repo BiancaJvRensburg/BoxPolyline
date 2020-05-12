@@ -1,4 +1,5 @@
 #include "polyline.h"
+#include "point3.h"
 
 Polyline::Polyline()
 {
@@ -209,6 +210,18 @@ void Polyline::recalculateBinormal(unsigned int index, const Vec &origin, const 
     segmentBinormals[index].normalize();
 
     recalculateNormal(index, newPosition, origin);
+
+       /*  point3d  Nprev = normal;
+         point3d  Tprev = tangent;
+
+         point3d  T0 = newPosition - origin;        // the polyline tangent
+         point3d  N0 = index == 0 ? T0.getOrthogonal() :
+         point3d::rotateVectorSimilarly( Nprev , Tprev , T0  );
+
+         point3d  B0 = point3d::cross( T0 , N0 );
+
+         segmentNormals[index] = Vec(N0);
+         segmentBinormals[index] = -Vec(B0);*/
  }
 
 Vec Polyline::vectorQuaternionRotation(double theta, const Vec &axis, const Vec &vectorToRotate){
@@ -327,8 +340,10 @@ void Polyline::getRelativePlane(Plane &p, std::vector<Vec> &norms){
     }
 }
 
-// Get the vector direction of each segment of the polyline
+// Get the vector direction of each segment of the polyline (in terms of the world)
 void Polyline::getDirections(std::vector<Vec> &directions){
     directions.clear();
-    for(unsigned int i=0; i<boxes.size(); i++) directions.push_back(boxes[i].worldTangent());
+    for(unsigned int i=0; i<boxes.size(); i++) directions.push_back(getWorldTransform(boxes[i].worldTangent()));
 }
+
+

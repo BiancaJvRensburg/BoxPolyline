@@ -36,6 +36,27 @@ void Viewer::draw() {
 
     if(isCut) poly.draw();
 
+    glPointSize(5.);
+    glColor3b(1., 0, 0);
+    /*if(outTemp.size()>0){
+        for(unsigned int i=0; i<outTemp.size()-1; i++){
+            glBegin(GL_LINES);
+                glVertex3d(outTemp[i].x, outTemp[i].y, outTemp[i].z);
+                glVertex3d(outTemp[i+1].x, outTemp[i+1].y, outTemp[i+1].z);
+            glEnd();
+        }
+    }*/
+
+     glBegin(GL_POINTS);
+    for(unsigned int i=0; i<outTemp.size(); i++){
+            glVertex3d(outTemp[i].x, outTemp[i].y, outTemp[i].z);
+    }
+    for(unsigned int i=0; i<segmentPoints.size(); i++){
+            glVertex3d(segmentPoints[i].x, segmentPoints[i].y, segmentPoints[i].z);
+    }
+     glEnd();
+
+
     glPopMatrix();
 }
 

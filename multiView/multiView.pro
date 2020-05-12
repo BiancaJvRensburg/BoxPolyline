@@ -10,6 +10,7 @@ HEADERS  = \
     mesh.h \
     meshreader.h \
     plane.h \
+    point3.h \
     polyline.h \
     standardcamera.h \
     triangle.h \

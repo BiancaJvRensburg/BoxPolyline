@@ -23,7 +23,6 @@ public Q_SLOTS:
     void movePlanes(double);
     void updatePlaneOrientations(std::vector<Vec>&);
     void rotatePolylineOnAxisFibula(double);
-    void projectToMesh();
 
 Q_SIGNALS:
     void okToPlacePlanes(const std::vector<Vec>&);
@@ -33,6 +32,10 @@ private:
     void setPlanesInPolyline(std::vector<Vec> &normals);
     void setPlaneOrientations(std::vector<Vec> &normals);
     void setDistances(const std::vector<double> &distances);
+    void constructSegmentPoints(unsigned int nbU);
+    void projectToMesh(const std::vector<double>& distances);
+    void matchDistances(const std::vector<double>& distances, std::vector<int> &segIndexes, std::vector<Vec> &outputPoints);
+    double euclideanDistance(const Vec &a, const Vec &b);
     std::vector<Vec> planeNormals;
 };
 

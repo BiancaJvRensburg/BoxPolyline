@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <float.h>
 
-
 void Mesh::init(){
     collectOneRing(oneRing);
     collectTriangleOneRing(oneTriangleRing);
@@ -736,14 +735,9 @@ Eigen::MatrixXd Mesh::pointsToMatrix(const std::vector<Vec3Df> &basePoints, cons
 
 
 // HPSS of one point
-void Mesh::HPSS(Vec inputPoint, Vec &outputPoint, Vec &outputNormal, double radius, unsigned int nbIterations, const unsigned int knn, double s){
+void Mesh::HPSS(KDTree &tree, const int dimension, Vec inputPoint, Vec &outputPoint, Vec &outputNormal, double radius, unsigned int nbIterations, const unsigned int knn, double s){
 
     Vec newPoint = inputPoint;
-
-    // define the kd-tree from the matrix
-    const int dimension = 3;
-    KDTree tree(dimension, mat, 10);
-    tree.index->buildIndex();       // build the tree
 
     for(unsigned int it=0; it<nbIterations; it++){
         std::vector<double> queryPoint(dimension);      // the result will be a 3D point
@@ -790,8 +784,13 @@ void Mesh::mlsProjection(const std::vector<Vec> &inputPoints, std::vector<Vec> &
     Vec outputNormal;
     outputPoints.resize(inputPoints.size());
 
+    // define the kd-tree from the matrix
+    const int dimension = 3;
+    KDTree tree(dimension, mat, 10);
+    tree.index->buildIndex();       // build the tree
+
     for(unsigned int i=0; i<inputPoints.size(); i++){
-        HPSS(inputPoints[i], outputPoints[i], outputNormal, 1, 100.);
+        HPSS(tree, dimension, inputPoints[i], outputPoints[i], outputNormal, 1, 100.);
     }
 
 }

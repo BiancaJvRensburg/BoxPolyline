@@ -92,11 +92,15 @@ protected:
 
     int polyRotation;
 
+    std::vector<Vec> outTemp;
+    std::vector<Vec> segmentPoints;
+
 private:
     void constructPolyline(const std::vector<Vec>& polyPoints);
     void movePlane(Plane *p, unsigned int curveIndex);
     void setPlaneOrientation(Plane& p, std::vector<Vec>& norms, std::vector<Vec>& binorms);
     void setPlaneOrientations(std::vector<Vec>& norms, std::vector<Vec>& binorms);
+
 };
 
 #endif // VIEWER_H
