@@ -26,7 +26,7 @@ void ViewerFibula::setDistances(const std::vector<double> &distances){
     newPoints.push_back(Vec(0,0,0));
     for(unsigned int i=0; i<distances.size(); i++) newPoints.push_back(newPoints[i] + distances[i]*direction);
     updatePolyline(newPoints);
-    poly.resetBoxes();
+    //poly.resetBoxes();
 }
 
 // This is activated by the mandible
@@ -113,7 +113,7 @@ void ViewerFibula::toggleIsPolyline(){
 
 // Project the polyline onto the fibula mesh
 void ViewerFibula::projectToMesh(const std::vector<double>& distances){
-    unsigned int nbU = 50;
+    unsigned int nbU = 20;
     constructSegmentPoints(nbU);     // construct the new polyline with segments
 
     std::vector<Vec> outputPoints;

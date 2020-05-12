@@ -38,15 +38,6 @@ void Viewer::draw() {
 
     glPointSize(5.);
     glColor3b(1., 0, 0);
-    /*if(outTemp.size()>0){
-        for(unsigned int i=0; i<outTemp.size()-1; i++){
-            glBegin(GL_LINES);
-                glVertex3d(outTemp[i].x, outTemp[i].y, outTemp[i].z);
-                glVertex3d(outTemp[i+1].x, outTemp[i+1].y, outTemp[i+1].z);
-            glEnd();
-        }
-    }*/
-
      glBegin(GL_POINTS);
     for(unsigned int i=0; i<outTemp.size(); i++){
             glVertex3d(outTemp[i].x, outTemp[i].y, outTemp[i].z);
@@ -153,6 +144,15 @@ void Viewer::toggleIsPolyline(){
         poly.lowerPoint(i+2, ghostPlanes[i]->getMeshVectorFromLocal(direction)*leftPlane->getSize());
     }
 
+    if(leftPlane->getIsPoly()){     // if the polyline now exits, project it onto the mesh
+        std::vector<Vec> outputPoints;
+        std::vector<Vec> inputPoints;
+        for(unsigned int i=0; i<poly.getNbPoints(); i++) inputPoints.push_back(poly.getMeshPoint(i));
+        mesh.mlsProjection(inputPoints, outputPoints);
+        updatePolyline(outputPoints);
+        outTemp = outputPoints;
+    }
+
     repositionPlanesOnPolyline();
 }
 
@@ -226,7 +226,7 @@ double Viewer::segmentLength(const Vec a, const Vec b){
 
 void Viewer::updatePolyline(const std::vector<Vec> &newPoints){
     poly.updatePoints(newPoints);
-    //poly.resetBoxes();
+    poly.resetBoxes();
 }
 
 
