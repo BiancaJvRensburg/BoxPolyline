@@ -24,7 +24,11 @@ public:
     Vec localTransform(Vec v){ return f.localTransformOf(v); }
     Vec worldTransform(Vec v){ return f.localInverseTransformOf(v); }
     Vec worldTangent(){ return worldTransform(tangent); }
+    Vec worldBinormal(){ return worldTransform(binormal); }
+    Vec worldNormal(){ return worldTransform(normal); }
     Vec getLocation();
+    const Vec& getNormal(){ return normal; }
+    const Vec& getBinormal(){ return binormal; }
     void restoreRotation();
 
 private:

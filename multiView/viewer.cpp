@@ -20,7 +20,7 @@ void Viewer::draw() {
 
     if(isDrawMesh) mesh.draw();
 
-    curve.draw();
+    //curve.draw();
 
     glPointSize(5.);
     glColor3b(1., 0, 0);
@@ -80,7 +80,7 @@ void Viewer::init() {
 void Viewer::initCurvePlanes(Movable s){
     curveIndexR = nbU - 1;
     curveIndexL = 0;
-    float size = 30.0;
+    float size = 50.0;
 
     leftPlane = new Plane(static_cast<double>(size), s, 0.5, 0);
     rightPlane = new Plane(static_cast<double>(size), s, 0.5, 1);

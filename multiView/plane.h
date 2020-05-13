@@ -65,6 +65,7 @@ public:
 
 private:
     void initBasePlane();
+
     AxisPlaneConstraint constraint;
     AxisPlaneConstraint constraintFree;
     Vec points[4];

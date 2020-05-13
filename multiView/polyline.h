@@ -60,6 +60,7 @@ private:
     void getCuttingAngles(std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
     double euclideanDistance(const Vec &a, const Vec &b);
     void resetBox(unsigned int index);
+    void getMidBoxVectors(unsigned int b0, unsigned int b1, Vec &boxNormal, Vec &boxBinormal);
 
     ManipulatedFrame frame;
     const Vec tangent = Vec(1,0,0);
@@ -71,6 +72,9 @@ private:
     std::vector<Vec> originalCuttingLines;
     std::vector<Vec> cuttingLines;
     std::vector<Vec> cuttingBinormals;
+    std::vector<Vec> testNorms;
+    std::vector<Vec> testBinorms;
+    std::vector<Vec> cuttingTangents;
     float boxTransparency = 1.f;
     std::vector<Box> boxes;
     bool isWireframe = true;
