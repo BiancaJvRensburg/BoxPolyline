@@ -14,19 +14,19 @@ void ViewerFibula::updateFibPolyline(const Vec& firstPoint, const std::vector<do
 // Reset distances and place the planes on the updated polyline. Note: this is the end of the initial cut procedure
 void ViewerFibula::updateDistances(const std::vector<double>& distances){
     setDistances(distances);
+    projectToMesh(distances);
     repositionPlanesOnPolyline();
 }
 
-// Re-initialise the polyline to a straight line with corresponding distances. TODO don't reset it in a straight line but along the current tragectory
+// Re-initialise the polyline to a straight line with corresponding distances
 void ViewerFibula::setDistances(const std::vector<double> &distances){
-    std::vector<Vec> directions;
-    poly.getDirections(directions);
-    //for(unsigned int i=0; i<distances.size(); i++) directions.push_back(Vec(1,0,0));
+    Vec direction(1,0,0);
 
     std::vector<Vec> newPoints;
     newPoints.push_back(Vec(0,0,0));
-    for(unsigned int i=0; i<distances.size(); i++) newPoints.push_back(newPoints[i] + distances[i]*directions[i]);
+    for(unsigned int i=0; i<distances.size(); i++) newPoints.push_back(newPoints[i] + distances[i]*direction);
     updatePolyline(newPoints);
+    //poly.resetBoxes();
 }
 
 // This is activated by the mandible
@@ -37,18 +37,14 @@ void ViewerFibula::bendPolylineNormals(std::vector<Vec>& normals, const std::vec
     planeNormals.clear();
     for(unsigned int i=0; i<normals.size(); i++) planeNormals.push_back(normals[i]);
 
+    projectToMesh(distances);
+
     setPlanesInPolyline(normals);
 }
 
-// This is activated when a plane in the fibula is moved by hand
+// This is activated when a plane in the fibula is bent (so when its projected onto the mesh)
 void ViewerFibula::bendPolyline(unsigned int id, Vec v){
     poly.bendFibula(id, v);     // Bend the polyline
-
-    // Get the normals
-    std::vector<Vec> normals;
-    for(unsigned int i=0; i<planeNormals.size(); i++) normals.push_back(planeNormals[i]);
-
-    setPlanesInPolyline(normals);       // Set the planes
 }
 
 // Match the planes with the polyline
@@ -69,8 +65,9 @@ void ViewerFibula::setPlaneOrientations(std::vector<Vec> &normals){
 
 // Update the relationship between the planes and the boxes when the mandible boxes are rotated
 void ViewerFibula::updatePlaneOrientations(std::vector<Vec> &normals){
-    planeNormals.clear();
-    for(unsigned int i=0; i<normals.size(); i++) planeNormals.push_back(normals[i]);
+    //planeNormals.clear();
+    //for(unsigned int i=0; i<normals.size(); i++) planeNormals.push_back(normals[i]);
+    setPlanesInPolyline(normals);
 }
 
 void ViewerFibula::initGhostPlanes(Movable s){
@@ -79,14 +76,15 @@ void ViewerFibula::initGhostPlanes(Movable s){
     for(unsigned int i=0; i<(poly.getNbPoints()-4)*2; i++){     // -2 for total nb of planes, another -2 for nb of ghost planes
         Plane *p1 = new Plane(size, s, .5f, i/2+2);
         ghostPlanes.push_back(p1);
-        ghostPlanes[i]->setPosition(poly.getMeshPoint((i+2)/2));
+        //ghostPlanes[i]->setPosition(poly.getMeshPoint((i+2)/2));
+        ghostPlanes[i]->setPosition(poly.getMeshBoxPoint((i+2)/2));
         ghostPlanes[i]->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
     }
 
     // Connect the planes' movement. If bend the polyline if a plane is moved by hand.
-    connect(&(leftPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);
-    connect(&(rightPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) connect(&(ghostPlanes[i]->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);        // connnect the ghost planes
+    /*connect(&(leftPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);
+    connect(&(rightPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);*/
+    // for(unsigned int i=0; i<ghostPlanes.size(); i++) connect(&(ghostPlanes[i]->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);        // connnect the ghost planes
 }
 
 void ViewerFibula::constructCurve(){
@@ -113,11 +111,69 @@ void ViewerFibula::toggleIsPolyline(){
     repositionPlanesOnPolyline();       // The planes have to be reset to their new polyline positions
 }
 
+// Project the polyline onto the fibula mesh
+void ViewerFibula::projectToMesh(const std::vector<double>& distances){
+    unsigned int nbU = 20;
+    constructSegmentPoints(nbU);     // construct the new polyline with segments
+
+    std::vector<Vec> outputPoints;
+    mesh.mlsProjection(segmentPoints, outputPoints);
+
+    outTemp = outputPoints;
+
+    std::vector<unsigned int> segIndexes;
+    for(unsigned int i=0; i<poly.getNbPoints(); i++) segIndexes.push_back(i*nbU);
+
+    double epsilon = 0.05;
+    unsigned int maxIterations = 10;
+    matchDistances(distances, segIndexes, outputPoints, epsilon, maxIterations);
+
+    for(unsigned int i=0; i<poly.getNbPoints(); i++){
+        bendPolyline(i, outputPoints[segIndexes[i]]);
+    }
+
+    /*std::cout << "Actual end distances : " << std::endl;
+    for(unsigned int i=0; i<poly.getNbPoints()-1; i++) std::cout << i << " : " << euclideanDistance(poly.getMeshPoint(i), poly.getMeshPoint(i+1)) << std::endl;
+*/
+
+}
+
+// Check if the projected distances match the actual distance. If not, modify it
+void ViewerFibula::matchDistances(const std::vector<double> &distances, std::vector<unsigned int> &segIndexes, std::vector<Vec> &outputPoints, double epsilon, const unsigned int &searchRadius){
+    /*std::cout << "Target distances : " << std::endl;
+    for(unsigned int i=0; i<distances.size(); i++) std::cout << i << " : " << distances[i] << std::endl;
+
+    std::cout << "Actual distances : " << std::endl;
+    for(unsigned int i=0; i<poly.getNbPoints()-1; i++) std::cout << i << " : " << euclideanDistance(outputPoints[segIndexes[i]], outputPoints[segIndexes[i+1]]) << std::endl;
+*/
+    for(unsigned int i=1; i<poly.getNbPoints()-2; i++){
+        segIndexes[i+1] = getClosestDistance(i, distances[i], segIndexes, outputPoints, searchRadius);
+    }
+}
+
+// Get the closest index to the target distance. Search within an index radius
+unsigned int ViewerFibula::getClosestDistance(unsigned int index, const double &targetDistance, std::vector<unsigned int> &segIndexes, std::vector<Vec> &outputPoints, unsigned int searchRadius){
+    double minDist = DBL_MAX;
+    unsigned int minIndex = segIndexes[index+1];
+    unsigned int indexDist = segIndexes[index+1] - segIndexes[index];
+    if(indexDist < searchRadius) searchRadius = indexDist;      // if the search radius is too large
+
+    for(unsigned int i=segIndexes[index+1]-searchRadius; i<segIndexes[index+1]+searchRadius; i++){
+        double d = abs(euclideanDistance(outputPoints[segIndexes[index]], outputPoints[i]) - targetDistance);
+        if(minDist > d){
+            minDist = d;
+            minIndex = i;
+        }
+    }
+
+    return minIndex;
+}
+
 // Position the planes on their corresponding polyline points
 void ViewerFibula::repositionPlanesOnPolyline(){
-    leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setPosition(poly.getMeshPoint(ghostPlanes[i]->getID())); //ghostPlanes[i]->setPosition(poly.getMeshPoint((ghostPlanes[i]->getID()-1)/2+2));
-    rightPlane->setPosition(poly.getMeshPoint(rightPlane->getID()));
+    leftPlane->setPosition(poly.getMeshBoxPoint(leftPlane->getID()));
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setPosition(poly.getMeshBoxPoint(ghostPlanes[i]->getID()));
+    rightPlane->setPosition(poly.getMeshBoxPoint(rightPlane->getID()));
 }
 
 void ViewerFibula::constructPolyline(const std::vector<double>& distances, const std::vector<Vec>& newPoints){
@@ -152,5 +208,28 @@ void ViewerFibula::rotatePolyline(){
 // Rotate the boxes
 void ViewerFibula::rotatePolylineOnAxisFibula(double r){
     for(unsigned int i=0; i<poly.getNbPoints()-1; i++) poly.rotateBox(i, r);
+    //poly.rotateBox(1,r);
     update();
+}
+
+void ViewerFibula::constructSegmentPoints(unsigned int nbU){
+    segmentPoints.clear();
+    std::vector<Vec> directions;
+    poly.getDirections(directions);
+
+    for(unsigned int j=0; j<poly.getNbPoints()-1; j++){  // extend from the previous point
+        double length = (poly.getMeshPoint(j) - poly.getMeshPoint(j+1)).norm();
+        for(unsigned int i=0; i<nbU; i++){
+            double u = static_cast<double>(i)/static_cast<double>(nbU);     // 0 <= u < 1
+            Vec v = poly.getMeshPoint(j) + directions[j]*u*length;
+            segmentPoints.push_back(v);
+        }
+    }
+
+    // add the last control point point
+    segmentPoints.push_back(poly.getMeshPoint(poly.getNbPoints()-1));
+}
+
+double ViewerFibula::euclideanDistance(const Vec &a, const Vec &b){
+    return sqrt(pow(a.x-b.x, 2.) + pow(a.y-b.y, 2.) + pow(a.z-b.z, 2.));
 }

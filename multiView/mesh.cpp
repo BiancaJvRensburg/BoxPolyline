@@ -5,6 +5,7 @@
 void Mesh::init(){
     collectOneRing(oneRing);
     collectTriangleOneRing(oneTriangleRing);
+    mat = pointsToMatrix(vertices, 3);
     update();
 }
 
@@ -107,6 +108,7 @@ void Mesh::glTriangle(unsigned int i){
     }
 
     glColor4f(1.0, 1.0, 1.0, alphaTransparency);
+    //glColor3f(1.0, 1.0, 1.0);
 }
 
 void Mesh::glTriangleSmooth(unsigned int i, std::vector <int> &coloursIndicies){
@@ -119,6 +121,7 @@ void Mesh::glTriangleSmooth(unsigned int i, std::vector <int> &coloursIndicies){
     }
 
     glColor4f(1.0, 1.0, 1.0, alphaTransparency);
+   // glColor3f(1.0, 1.0, 1.0);
 }
 
 void Mesh::glTriangleFibInMand(unsigned int i, std::vector <int> &coloursIndicies){
@@ -131,6 +134,7 @@ void Mesh::glTriangleFibInMand(unsigned int i, std::vector <int> &coloursIndicie
     }
 
     glColor4f(1.0, 1.0, 1.0, alphaTransparency);
+   // glColor3f(1.0, 1.0, 1.0);
 }
 
 void Mesh::getColour(unsigned int vertex, std::vector <int> &coloursIndicies){
@@ -158,7 +162,8 @@ void Mesh::getColour(unsigned int vertex, std::vector <int> &coloursIndicies){
         while(g>1.f) g -= 1.f;
         while(b>1.f) b -= 1.f;
 
-        glColor4f(r,g,b, alphaTransparency);
+        //glColor4f(r,g,b, alphaTransparency);
+        glColor3f(r,g,b);
     }
     else glColor4f(1.0, 1.0, 1.0, alphaTransparency);
 }
@@ -689,4 +694,107 @@ std::vector<unsigned int> Mesh::getVerticesOnPlane(unsigned int planeNb, Plane *
         }
     }
     return v;
+}
+
+/**************************************************************************************************/
+
+Vec planeProjection(Vec a, Vec pOrigin, Vec pNorm){
+    Vec proj = a - ((a - pOrigin)* (pNorm))*pNorm;
+    return proj;
+}
+
+// Get the weight for each nearest neighbour of x
+void Mesh::weightGauss(Vec x, std::vector<double> &weights, unsigned int knn, std::vector<size_t> const &id_nearest_neighbors, std::vector<double> const &square_distances_to_neighbors, double h){
+  weights.clear();
+
+    // Get the max distance between x and a point
+    h = square_distances_to_neighbors[0];
+    for(unsigned int i=0; i<knn; i++){
+        double dist = square_distances_to_neighbors[i];
+        if(dist > h) h = dist;
+    }
+
+    h = sqrt(h);
+
+    for(unsigned int i=0; i<knn; i++){
+        Vec v = Vec(vertices[id_nearest_neighbors[i]]);
+        double r = (x - v).norm();       // the length of a vector
+        double gauss = exp(-(r*r)/(h*h));
+        weights.push_back(gauss);
+    }
+}
+
+Eigen::MatrixXd Mesh::pointsToMatrix(const std::vector<Vec3Df> &basePoints, const int dimension){
+    unsigned long long size = basePoints.size();
+    Eigen::MatrixXd mat(size, dimension);
+
+    for(unsigned int i=0; i<size; i++){
+        for(int j=0; j<dimension; j++){
+            mat(i,j) = static_cast<double>(basePoints[i][j]);
+        }
+    }
+
+    return mat;
+}
+
+
+// HPSS of one point
+void Mesh::HPSS(KDTree &tree, const int dimension, Vec inputPoint, Vec &outputPoint, Vec &outputNormal, double radius, unsigned int nbIterations, const unsigned int knn, double s){
+
+    Vec newPoint = inputPoint;
+
+    for(unsigned int it=0; it<nbIterations; it++){
+        std::vector<double> queryPoint(dimension);      // the result will be a 3D point
+        for(unsigned int j=0; j<dimension; j++) queryPoint[j] = static_cast<double>(newPoint[static_cast<int>(j)]);       // the query point is the input point
+
+        // Get the nearest neigbour
+        std::vector<size_t> closest_indicies(knn);      // the index of the closest point
+        std::vector<double> distances(knn);
+
+        nanoflann::KNNResultSet<double> resultSet(knn);
+        resultSet.init(&closest_indicies[0], &distances[0]);
+
+        tree.index->findNeighbors(resultSet, &queryPoint[0], nanoflann::SearchParams(10));
+
+        // Get the projection for each closest neighbour
+        Vec sum = Vec(0.,0.,0.);
+        outputNormal = Vec(0., 0.,0.);
+        double sumWeights = 0.;
+
+        std::vector<double> weights;
+        weightGauss(newPoint, weights, knn, closest_indicies, distances, radius);
+
+        for(unsigned int i=0; i<knn; i++){
+            unsigned long long id = closest_indicies[i];
+            Vec v = Vec(vertices[id]);
+            Vec n = Vec(verticesNormals[id]);
+            Vec project = planeProjection(newPoint, v, n);
+            project = s*project + (1.0-s)*v;
+            sum += weights[i] * project;
+            outputNormal += weights[i] * n;
+            sumWeights += weights[i];
+        }
+
+        sum /= sumWeights;
+        outputNormal /= sumWeights;
+
+        newPoint = planeProjection(newPoint, sum, outputNormal);
+    }
+
+    outputPoint = newPoint;
+}
+
+void Mesh::mlsProjection(const std::vector<Vec> &inputPoints, std::vector<Vec> &outputPoints){
+    Vec outputNormal;
+    outputPoints.resize(inputPoints.size());
+
+    // define the kd-tree from the matrix
+    const int dimension = 3;
+    KDTree tree(dimension, mat, 10);
+    tree.index->buildIndex();       // build the tree
+
+    for(unsigned int i=0; i<inputPoints.size(); i++){
+        HPSS(tree, dimension, inputPoints[i], outputPoints[i], outputNormal, 1, 100.);
+    }
+
 }

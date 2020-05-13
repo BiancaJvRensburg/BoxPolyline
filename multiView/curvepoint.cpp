@@ -1,5 +1,6 @@
 #include "curvepoint.h"
 
+// A sub class of Control point. This is a point placed on the curve
 CurvePoint::CurvePoint(const unsigned int &id) : ControlPoint ()
 {
     this->mf = ManipulatedFrame();
@@ -8,8 +9,6 @@ CurvePoint::CurvePoint(const unsigned int &id) : ControlPoint ()
 }
 
 void CurvePoint::draw(){
-
-    //if((static_cast<ManipulatedFrame&>(mf)).grabsMouse()) glColor3f(0, 1, 1);
     if(mf.grabsMouse()) glColor3f(0, 1, 1);
     else glColor3f(0.6f, 0, 0.4f);
 
@@ -20,9 +19,9 @@ void CurvePoint::draw(){
 
     glPointSize(1.0);
     glColor3f(1.0,1.0,1.0);
-
 }
 
+// If a point is moved by hand, update it and send the id of the point and its new position
 void CurvePoint::cntrlMoved(){
     double x,y,z;
 

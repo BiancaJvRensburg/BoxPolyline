@@ -34,6 +34,7 @@ public Q_SLOTS:
     void setMeshAlpha(int);
     void setBoxAlpha(int);
     void cut();
+    void toggleWireframe();
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
@@ -63,6 +64,7 @@ protected:
     void findGhostLocations(unsigned int nbGhostPlanes, std::vector<unsigned int>& ghostLocations);
     void deconstructPolyline();
     void getPlaneBoxOrientations(std::vector<Vec>& norms);
+    void simpleBend(const unsigned int &pointIndex, Vec v, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
 
 
     double angle(Vec a, Vec b);
@@ -91,11 +93,15 @@ protected:
 
     int polyRotation;
 
+    std::vector<Vec> outTemp;
+    std::vector<Vec> segmentPoints;
+
 private:
     void constructPolyline(const std::vector<Vec>& polyPoints);
     void movePlane(Plane *p, unsigned int curveIndex);
     void setPlaneOrientation(Plane& p, std::vector<Vec>& norms, std::vector<Vec>& binorms);
     void setPlaneOrientations(std::vector<Vec>& norms, std::vector<Vec>& binorms);
+
 };
 
 #endif // VIEWER_H

@@ -20,6 +20,7 @@ public:
 
     Vec& getPoint(unsigned int i){return points[i];}
     Vec getMeshPoint(unsigned int i){ return getWorldCoordinates(points[i]); }
+    Vec getMeshBoxPoint(unsigned int i){ return getWorldCoordinates(boxes[i].getLocation()); }
     Vec getWorldCoordinates(const Vec& v){ return frame.localInverseCoordinatesOf(v);}
     Vec getLocalCoordinates(const Vec& v){ return frame.localCoordinatesOf(v);}
     Vec getWorldTransform(const Vec& v){ return frame.localInverseTransformOf(v);}
@@ -47,6 +48,8 @@ public:
     void restoreBoxRotations();
     void getDirections(std::vector<Vec>& directions);
 
+    void toggleIsWireframe(){ isWireframe = !isWireframe; }
+
 private:
     Vec projection(Vec &a, Vec &planeNormal);
     double angle(const Vec &a, const Vec &b);
@@ -65,11 +68,11 @@ private:
     std::vector<Vec> points;
     std::vector<Vec> segmentNormals;
     std::vector<Vec> segmentBinormals;
-    std::vector<Vec> originalCuttingLines;
     std::vector<Vec> cuttingLines;
     std::vector<Vec> cuttingBinormals;
     float boxTransparency = 1.f;
     std::vector<Box> boxes;
+    bool isWireframe = true;
 };
 
 #endif // POLYLINE_H

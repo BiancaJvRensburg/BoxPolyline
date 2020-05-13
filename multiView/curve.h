@@ -27,7 +27,7 @@ public:
 
     void draw();
     void drawControl();
-    void drawTangent(unsigned int index);
+    void drawFrame(unsigned int index);
 
     double discreteLength(unsigned int indexS, unsigned int indexE);      // Returns the discrete length between 2 points (Straight line distance)
     double discreteChordLength(unsigned int indexS, unsigned int indexE); // To use for the initial visualisation

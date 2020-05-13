@@ -1,11 +1,3 @@
-# A multi-view application, with constrained camera displacements.
-
-# Four viewers are created, each displaying the same scene. The camera displacements are constrained
-# for three of the viewers to create the classical top, front, side views. The last viewer is a
-# classical 3D viewer.
-
-# Note that the four viewers share the same OpenGL context.
-
 TEMPLATE = app
 TARGET   = multiView
 
@@ -18,6 +10,7 @@ HEADERS  = \
     mesh.h \
     meshreader.h \
     plane.h \
+    point3.h \
     polyline.h \
     standardcamera.h \
     triangle.h \
@@ -38,3 +31,5 @@ SOURCES  = main.cpp \
     viewerfibula.cpp
 
 include( ../baseInclude.pri )
+INCLUDEPATH += "..\eigen-3.3.7\Eigen"
+INCLUDEPATH += "..\nanoflann\include"

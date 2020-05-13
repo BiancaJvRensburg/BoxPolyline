@@ -23,6 +23,7 @@ ControlPoint::ControlPoint(double x, double y, double z)
     initialise();
 }
 
+// Set the manipulated frame (may be activated at a later stage)
 void ControlPoint::initialise(){
     mf = ManipulatedFrame();
     mf.setPosition(this->p.x, this->p.y, this->p.z);
@@ -51,6 +52,7 @@ void ControlPoint::draw(){
     if(isSwitchFrames) glPopMatrix();
 }
 
+// The function called when the control point is moved by hand (maybe useless)
 void ControlPoint::cntrlMoved(){
     double x,y,z;
     mf.getPosition(x,y,z);

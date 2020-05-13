@@ -18,23 +18,35 @@ void Viewer::draw() {
     glPushMatrix();
     glMultMatrixd(viewerFrame->matrix());
 
+    if(isDrawMesh) mesh.draw();
+
+    //curve.draw();
+
+    glPointSize(5.);
+    glColor3b(1., 0, 0);
+     glBegin(GL_POINTS);
+    for(unsigned int i=0; i<outTemp.size(); i++){
+            glVertex3d(outTemp[i].x, outTemp[i].y, outTemp[i].z);
+    }
+    for(unsigned int i=0; i<segmentPoints.size(); i++){
+            glVertex3d(segmentPoints[i].x, segmentPoints[i].y, segmentPoints[i].z);
+    }
+     glEnd();
+
+     if(isCurve){
+         glColor4f(0., 1., 0., leftPlane->getAlpha());
+         leftPlane->draw();
+         glColor4f(1., 0, 0., leftPlane->getAlpha());
+         rightPlane->draw();
+
+         for(unsigned int i=0; i<ghostPlanes.size(); i++){
+             glColor4f(0., 1., 1., ghostPlanes[i]->getAlpha());
+             ghostPlanes[i]->draw();
+         }
+     }
+
     if(isCut) poly.draw();
 
-    if(isCurve){
-        glColor4f(0., 1., 0., leftPlane->getAlpha());
-        leftPlane->draw();
-        glColor4f(1., 0, 0., leftPlane->getAlpha());
-        rightPlane->draw();
-
-        for(unsigned int i=0; i<ghostPlanes.size(); i++){
-            glColor4f(0., 1., 1., ghostPlanes[i]->getAlpha());
-            ghostPlanes[i]->draw();
-        }
-    }
-
-    curve.draw();
-
-    if(isDrawMesh) mesh.draw();
 
     glPopMatrix();
 }
@@ -65,10 +77,11 @@ void Viewer::init() {
   glEnable(GL_BLEND);
 }
 
+// Initialise the planes on the curve
 void Viewer::initCurvePlanes(Movable s){
     curveIndexR = nbU - 1;
     curveIndexL = 0;
-    float size = 30.0;
+    float size = 25.0;
 
     leftPlane = new Plane(static_cast<double>(size), s, 0.5, 0);
     rightPlane = new Plane(static_cast<double>(size), s, 0.5, 1);
@@ -85,11 +98,13 @@ void Viewer::initCurvePlanes(Movable s){
     repositionPlane(endRight, nbU-1);
 }
 
+// Position the plane on the curve (before the mesh is cut)
 void Viewer::repositionPlane(Plane *p, unsigned int index){
     p->setPosition(curve.getPoint(index));
     matchPlaneToFrenet(p, index);
 }
 
+// Orientate the plane on the curve (before the mesh is cut)
 void Viewer::matchPlaneToFrenet(Plane *p, unsigned int index){
     Vec x, y, z;
     curve.getFrame(index,z,x,y);
@@ -130,6 +145,15 @@ void Viewer::toggleIsPolyline(){
     for(unsigned int i=0; i<ghostPlanes.size(); i++) {
         ghostPlanes[i]->toggleIsPoly();
         poly.lowerPoint(i+2, ghostPlanes[i]->getMeshVectorFromLocal(direction)*leftPlane->getSize());
+    }
+
+    if(leftPlane->getIsPoly()){     // if the polyline now exits, project it onto the mesh
+        std::vector<Vec> outputPoints;
+        std::vector<Vec> inputPoints;
+        for(unsigned int i=0; i<poly.getNbPoints(); i++) inputPoints.push_back(poly.getMeshPoint(i));
+        mesh.mlsProjection(inputPoints, outputPoints);
+        updatePolyline(outputPoints);
+        outTemp = outputPoints;
     }
 
     repositionPlanesOnPolyline();
@@ -188,7 +212,9 @@ void Viewer::deconstructPolyline(){
 */
 void Viewer::placePlanes(const std::vector<Vec> &polyPoints){
     initPolyPlanes(Movable::DYNAMIC);       // Create the planes
-    for(unsigned int i=0; i<poly.getNbPoints(); i++) bendPolyline(i, polyPoints[i]);        // Bend the polyline point by point
+    std::vector<Vec> norms, binorms;
+    for(unsigned int i=0; i<poly.getNbPoints()-1; i++) simpleBend(i, polyPoints[i], norms, binorms);        // Bend the polyline point by point WITHOUT updating rest
+    bendPolyline(poly.getNbPoints()-1, polyPoints[poly.getNbPoints()-1]);       // update the fibula and set the planes for all points on the last point
     toggleIsPolyline();     // Change the polyline from going through the centre of the planes to going through the corner
     std::vector<double> distances;
     poly.getDistances(distances);
@@ -203,6 +229,7 @@ double Viewer::segmentLength(const Vec a, const Vec b){
 
 void Viewer::updatePolyline(const std::vector<Vec> &newPoints){
     poly.updatePoints(newPoints);
+    poly.resetBoxes();
 }
 
 
@@ -214,7 +241,7 @@ void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
     std::vector<Vec> planeNormals;
     std::vector<Vec> planeBinormals;
 
-    poly.bend(pointIndex, v, planeNormals, planeBinormals);     // Bend the polyline and get the planeNormals and planeBinormals which will be used to set the planes' orientations
+    simpleBend(pointIndex, v, planeNormals, planeBinormals);
 
     // Update the planes
     repositionPlanesOnPolyline();
@@ -230,6 +257,13 @@ void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
 
     Q_EMIT polylineBent(relativeNorms, distances);      // Send the new normals and distances to the fibula TODO only send over the info for the corresponding point
 }
+
+// Bend the polyline without updating everything else
+void Viewer::simpleBend(const unsigned int &pointIndex, Vec v,std::vector<Vec> &planeNormals, std::vector<Vec> &planeBinormals){
+    poly.bend(pointIndex, v, planeNormals, planeBinormals);     // Bend the polyline and get the planeNormals and planeBinormals which will be used to set the planes' orientations
+}
+
+/* Plane orientations */
 
 void Viewer::setPlaneOrientation(Plane &p, std::vector<Vec> &norms, std::vector<Vec> &binorms){
     p.setFrameFromBasis(norms[p.getID()], binorms[p.getID()], cross(norms[p.getID()], binorms[p.getID()]));
@@ -264,6 +298,7 @@ void Viewer::getPlaneBoxOrientations(std::vector<Vec> &relativeNorms){
     relativeNorms.push_back(norms[1]);
 }
 
+// Create the curve from the coordinates given in the JSON
 void Viewer::constructCurve(){
     curve.init(control.size(), control);
     nbU = 100;
@@ -288,6 +323,7 @@ void Viewer::readJSON(const QJsonArray &controlArray){
     constructCurve();
 }
 
+// Open a .OFF file
 void Viewer::openOFF(QString filename) {
     std::vector<Vec3Df> &vertices = mesh.getVertices();
     std::vector<Triangle> &triangles = mesh.getTriangles();
@@ -338,6 +374,8 @@ void Viewer::uncutMesh(){
 }
 
 void Viewer::moveLeftPlane(int position){
+    if(isCut) return;       // disable the ability to move the planes once the mesh is cut
+
     double percentage = static_cast<double>(position) / static_cast<double>(sliderMax);
     unsigned int index = static_cast<unsigned int>(percentage * static_cast<double>(nbU) );
 
@@ -354,6 +392,8 @@ void Viewer::moveLeftPlane(int position){
 }
 
 void Viewer::moveRightPlane(int position){
+    if(isCut) return;
+
     double percentage = static_cast<double>(position) / static_cast<double>(sliderMax);
     unsigned int index = nbU - 1 - static_cast<unsigned int>(percentage * static_cast<double>(nbU) );
 
@@ -370,15 +410,15 @@ void Viewer::moveRightPlane(int position){
 void Viewer::movePlane(Plane *p, unsigned int curveIndex){
     repositionPlane(p, curveIndex);
 
-    if(isCut){
+    /*if(isCut){
         toggleIsPolyline();
         bendPolyline(p->getID(), curve.getPoint(curveIndex));
         toggleIsPolyline();
     }
-    else{
+    else{*/
         double distance = curve.discreteChordLength(curveIndexL, curveIndexR);
         Q_EMIT planeMoved(distance);
-    }
+    //}
 
     update();
 }
@@ -414,6 +454,7 @@ void Viewer::quicksort(std::vector<unsigned int>& sorted, int start, int end){
     }
 }
 
+// Find where the ghost planes should be placed
 void Viewer::findGhostLocations(unsigned int nbGhostPlanes, std::vector<unsigned int>& ghostLocation){
     unsigned int finalNb = nbGhostPlanes;        // the number we can actually fit in
     std::vector<unsigned int> maxIndicies(nbGhostPlanes);
@@ -478,7 +519,7 @@ double Viewer::angle(Vec a, Vec b){
 
 void Viewer::rotatePolylineOnAxis(int position){
     double r = (position/360.*2.*M_PI);
-    for(unsigned int i=0; i<poly.getNbPoints()-1; i++) poly.rotateBox(i, r);
+    //for(unsigned int i=0; i<poly.getNbPoints()-1; i++) poly.rotateBox(i, r);
 
     // send over the new norms
     std::vector<Vec> norms;
@@ -488,8 +529,15 @@ void Viewer::rotatePolylineOnAxis(int position){
     update();
 }
 
+/* Display settings */
+
 void Viewer::toggleDrawMesh(){
     isDrawMesh = !isDrawMesh;
+    update();
+}
+
+void Viewer::toggleWireframe(){
+    poly.toggleIsWireframe();
     update();
 }
 

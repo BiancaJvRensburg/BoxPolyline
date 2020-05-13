@@ -17,19 +17,21 @@ Plane::Plane(double s, Movable status, float alpha, unsigned int id) : cp(id)
     initBasePlane();
 }
 
+// Toggle how the plane is placed in terms of the polyline
 void Plane::toggleIsPoly(){
     isPoly = !isPoly;
     initBasePlane();
 }
 
+// Initialise the plane points
 void Plane::initBasePlane(){
-    if(isPoly){
+    if(isPoly){     // If the polyline exits, put the curve point on the edge of the plane
         points[0] = Vec(cp.getPoint().x, cp.getPoint().y, cp.getPoint().z);
         points[1] = Vec(cp.getPoint().x, cp.getPoint().y + 2.*size, cp.getPoint().z);
         points[2] = Vec(cp.getPoint().x + 2.*size, cp.getPoint().y + 2.*size, cp.getPoint().z);
         points[3] = Vec(cp.getPoint().x + 2.*size, cp.getPoint().y, cp.getPoint().z);
     }
-    else{
+    else{       // Put it in the middle of the plane
         points[0] = Vec(cp.getPoint().x - size, cp.getPoint().y - size, cp.getPoint().z);
         points[1] = Vec(cp.getPoint().x - size, cp.getPoint().y + size, cp.getPoint().z);
         points[2] = Vec(cp.getPoint().x + size, cp.getPoint().y + size, cp.getPoint().z);
@@ -37,6 +39,7 @@ void Plane::initBasePlane(){
     }
 }
 
+// Gets the four corner points of the plane in the world coordinates
 void Plane::getCorners(Vec &v0, Vec &v1, Vec &v2, Vec &v3){
     v0 = getMeshCoordinatesFromLocal(points[0]);
     v1 = getMeshCoordinatesFromLocal(points[1]);
@@ -64,7 +67,7 @@ void Plane::draw(){
     }
 
     glColor3f(1,1,1);
-    //QGLViewer::drawAxis(size/2.);
+    QGLViewer::drawAxis(size/2.);
 
     if(status==Movable::DYNAMIC){
         cp.toggleSwitchFrames();
@@ -149,11 +152,13 @@ bool Plane::isIntersection(Vec v0, Vec v1, Vec v2){
     return false;   // if we haven't found a line that meets the criteria
 }
 
+// On which sign of the plane is the point located
 double Plane::getSign(Vec v){
     const Vec &tr0 = cp.getFrame().localCoordinatesOf(v);
     return tr0.z/(abs(tr0.z));
 }
 
+// Project coordinates onto the plane (coordinates in terms of the world)
 Vec Plane::getProjection(Vec p){
     const Vec &localP = cp.getFrame().localCoordinatesOf(p);       // convert into local coordinates
     double alpha = (localP * normal);
@@ -161,10 +166,12 @@ Vec Plane::getProjection(Vec p){
     return cp.getFrame().localInverseCoordinatesOf(newP);   // convert back into original coordinate system
 }
 
+// Project coordinates onto the plane (coordinates in terms of the plane)
 Vec Plane::getLocalProjection(Vec localP){
     return localP - normal * (localP * normal);             // don't convert between coordinate systems
 }
 
+// Do two planes intersect? (may obsolete now)
 bool Plane::isIntersectionPlane(Vec &v0, Vec &v1, Vec &v2, Vec &v3){
 
     // Put it all into local coordinates

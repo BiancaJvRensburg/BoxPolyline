@@ -88,7 +88,7 @@ void MainWindow::initDisplayDockWidgets(){
 
     QSlider *rotatePolylineMandible = new QSlider(Qt::Horizontal);
     rotatePolylineMandible->setMaximum(360);
-    contentLayoutMand->addRow("Rotate planes (mandible)", rotatePolylineMandible);
+    contentLayoutMand->addRow("Rotate planes", rotatePolylineMandible);
 
     /*QSlider *rotatePolylineFibula = new QSlider(Qt::Horizontal);
     rotatePolylineFibula->setMaximum(360);
@@ -163,13 +163,23 @@ void MainWindow::initFileActions(){
     connect(drawPlanesAction, &QAction::triggered, skullViewer, &Viewer::toggleDrawPlane);
     connect(drawPlanesAction, &QAction::triggered, fibulaViewer, &ViewerFibula::toggleDrawPlane);
 
+    QAction *wireframeAction = new QAction("Box wireframe", this);
+    connect(wireframeAction, &QAction::triggered, skullViewer, &Viewer::toggleWireframe);
+    connect(wireframeAction, &QAction::triggered, fibulaViewer, &ViewerFibula::toggleWireframe);
+
+   /* QAction *projectionAction = new QAction("Projection", this);
+    connect(projectionAction, &QAction::triggered, fibulaViewer, &ViewerFibula::projectToMesh);*/
+
+
     fileActionGroup->addAction(openJsonFileAction);
     fileActionGroup->addAction(openJsonFibFileAction);
     fileActionGroup->addAction(cutMeshAction);
+    //fileActionGroup->addAction(projectionAction);
     //fileActionGroup->addAction(cutAction);
     fileActionGroup->addAction(uncutMeshAction);
     fileActionGroup->addAction(drawMeshAction);
     fileActionGroup->addAction(drawPlanesAction);
+    fileActionGroup->addAction(wireframeAction);
 
     connect(skullViewer, &Viewer::constructPoly, fibulaViewer, &ViewerFibula::constructPolyline);
     connect(fibulaViewer, &ViewerFibula::okToPlacePlanes, skullViewer, &Viewer::placePlanes);

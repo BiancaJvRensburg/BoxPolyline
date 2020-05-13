@@ -6,6 +6,7 @@ Curve::Curve(){
     this->nbU = 0;
 }
 
+// Initialise the curve: set the control points / nb of control points
 void Curve::init(unsigned int nbCP, std::vector<Vec>& cntrlPoints){
     nbControlPoint = nbCP;
 
@@ -16,24 +17,27 @@ void Curve::init(unsigned int nbCP, std::vector<Vec>& cntrlPoints){
     initConnections();
 }
 
+// If a control point is moved, reinitialise the curve
 void Curve::initConnections(){
     for(unsigned int i=0; i<nbControlPoint; i++){
         connect(TabControlPoint[i], &ControlPoint::cntrlPointTranslated, this, &Curve::reintialiseCurve);
     }
 }
 
+// Catmul-Rom generation process (this is the only public creation method)
 void Curve::generateCatmull(unsigned int& n){
     unsigned int nbSeg = nbControlPoint-3;
 
-    this->nbU = n - n%nbSeg;
+    this->nbU = n - n%nbSeg;        // make sure the nbU can be divided up evenly between each segment
     n = nbU;    // update the nbU in viewer
     this->knotIndex = 0;
     this->degree = 3;
 
-    generateCatmullKnotVector(0.3, this->knotVector);
-    catmullrom();
+    generateCatmullKnotVector(0.3, this->knotVector);       // Generate the knot vector for the catmull rom
+    catmullrom();       // Create the catmull rom
 }
 
+// Re-calculate the catmull rom and send a notification signal
 void Curve::reintialiseCurve(){
     catmullrom();
     Q_EMIT curveReinitialised();
@@ -50,7 +54,9 @@ void Curve::generateCatmullKnotVector(double alpha, std::vector<double>& kv){
     }
 }
 
-// Catmull rom
+/* Catmull rom */
+
+// Get a point in the catmull rom
 void Curve::calculateCatmullPoints(Vec& c, Vec& cp, Vec& cpp, double t){
     Vec p[4] = {TabControlPoint[knotIndex-1]->getPoint(), TabControlPoint[knotIndex]->getPoint(), TabControlPoint[knotIndex+1]->getPoint(), TabControlPoint[knotIndex+2]->getPoint()};
 
@@ -76,15 +82,17 @@ void Curve::calculateCatmullPoints(Vec& c, Vec& cp, Vec& cpp, double t){
     Vec b1pp = 1.0/(t2-t0)*(a2p-a1p);
     Vec b2pp = 1.0/(t3-t1)*(a3p-a2p);
 
-    c = (t2-t)/(t2-t1)*b1 + (t-t1)/(t2-t1)*b2;
-    cp = 1.0/(t2-t1)*(b2-b1) + (t2-t)/(t2-t1)*b1p + (t-t1)/(t2-t1)*b2p;
-    cpp = 1.0/(t2-t1)*(b2p-b1p) + (t2-t)/(t2-t1)*b1pp + (t-t1)/(t2-t1)*b2pp;
+    c = (t2-t)/(t2-t1)*b1 + (t-t1)/(t2-t1)*b2;      // Catmull rom
+    cp = 1.0/(t2-t1)*(b2-b1) + (t2-t)/(t2-t1)*b1p + (t-t1)/(t2-t1)*b2p;     // First derivative
+    cpp = 1.0/(t2-t1)*(b2p-b1p) + (t2-t)/(t2-t1)*b1pp + (t-t1)/(t2-t1)*b2pp;        // Second derivative
 }
 
+// Get the catmull rom
 void Curve::catmullrom(){
     unsigned int nbSeg = nbControlPoint-3;
-    unsigned int uPerSeg = nbU/nbSeg;
+    unsigned int uPerSeg = nbU/nbSeg;       // the nbU per segment
 
+    // Reset the curve vectors (curve, first and second derivative)
     curve.clear();
     curve.resize(nbU);
     dt.clear();
@@ -92,10 +100,12 @@ void Curve::catmullrom(){
     d2t.clear();
     d2t.resize(nbU);
 
+    // For each knot
     for(unsigned int j=1; j<=nbSeg; j++){
         unsigned int it=0;
         knotIndex = j;
 
+        // Generate the segment
         for(double i=knotVector[j]; i<knotVector[j+1]; i+=((knotVector[j+1]-knotVector[j])/static_cast<double>(uPerSeg))){
             if((j-1)*uPerSeg+it >= nbU) return;
             curve[(j-1)*uPerSeg+it] = Vec();
@@ -108,7 +118,7 @@ void Curve::catmullrom(){
     }
 }
 
-// Length as the crow flies
+// Euclidean distance between two points
 double Curve::discreteLength(unsigned int indexS, unsigned int indexE){
     return sqrt( pow((curve[indexE].x - curve[indexS].x), 2.0) + pow((curve[indexE].y - curve[indexS].y), 2.0) + pow((curve[indexE].z - curve[indexS].z), 2.0));
 }
@@ -124,6 +134,7 @@ double Curve::discreteChordLength(unsigned int indexS, unsigned int indexE){
     return sum;
 }
 
+// Check which index is closest to the target distance from indexS
 unsigned int Curve::getClosestDistance(double target, unsigned int indexS, unsigned int a, unsigned int b){
     double aDist = discreteLength(indexS, indexS+a);
     double bDist = discreteLength(indexS, indexS+b);
@@ -134,7 +145,7 @@ unsigned int Curve::getClosestDistance(double target, unsigned int indexS, unsig
     return b;
 }
 
-// Returns the index which is length away from indexS
+// Returns the index which is length away from indexS   (TODO optimise)
 unsigned int Curve::indexForLength(unsigned int indexS, double length){
     unsigned int i=0;
 
@@ -168,6 +179,7 @@ void Curve::draw(){
       glDisable(GL_DEPTH_TEST);
 }
 
+// Draw the control points
 void Curve::drawControl(){
       glBegin(GL_LINE_STRIP);
       glColor3f(0.0, 0.0, 1.0);
@@ -209,7 +221,7 @@ void Curve::getFrame(unsigned int index, Vec &t, Vec &n, Vec &b){
     n = cross(b, t);
 }
 
-void Curve::drawTangent(unsigned int index){
+void Curve::drawFrame(unsigned int index){
     Vec t,n,b;
 
     getFrame(index,t,n,b);
