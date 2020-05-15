@@ -33,7 +33,7 @@ public Q_SLOTS:
     void setPlaneAlpha(int);
     void setMeshAlpha(int);
     void setBoxAlpha(int);
-    void cut();
+    //void cut();
     void toggleWireframe();
 
 Q_SIGNALS:

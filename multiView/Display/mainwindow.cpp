@@ -149,7 +149,7 @@ void MainWindow::initFileActions(){
     connect(cutMeshAction, &QAction::triggered, skullViewer, &Viewer::cutMesh);
 
     QAction *cutAction = new QAction("Cut mesh", this);
-    connect(cutAction, &QAction::triggered, skullViewer, &Viewer::cut);
+    connect(cutAction, &QAction::triggered, fibulaViewer, &ViewerFibula::cut);
 
     QAction *uncutMeshAction = new QAction("Undo cut", this);
     connect(uncutMeshAction, &QAction::triggered, skullViewer, &Viewer::uncutMesh);
@@ -175,7 +175,7 @@ void MainWindow::initFileActions(){
     fileActionGroup->addAction(openJsonFibFileAction);
     fileActionGroup->addAction(cutMeshAction);
     //fileActionGroup->addAction(projectionAction);
-    //fileActionGroup->addAction(cutAction);
+    fileActionGroup->addAction(cutAction);
     fileActionGroup->addAction(uncutMeshAction);
     fileActionGroup->addAction(drawMeshAction);
     fileActionGroup->addAction(drawPlanesAction);

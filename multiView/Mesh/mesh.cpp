@@ -103,6 +103,26 @@ void Mesh::glTriangle(unsigned int i){
     const Triangle &t = triangles[i];
 
     for(unsigned int j = 0 ; j < 3 ; j++ ){
+        if(flooding.size()!=0){
+            /*if(flooding[t.getVertex(j)]!=-1) glColor4f(1.0, 0, 1.0, alphaTransparency);
+            else glColor4f(0, 1., 0, alphaTransparency);*/
+
+                if(flooding[t.getVertex(j)]==0) glColor4f(1.0, 0, 1.0, alphaTransparency);
+                else if(flooding[t.getVertex(j)]==1) glColor4f(0, 0, 1.0, alphaTransparency);
+                else if(flooding[t.getVertex(j)]==2) glColor4f(1, 0, 0, alphaTransparency);
+                else if(flooding[t.getVertex(j)]==3) glColor4f(1.0, 1.0, 0, alphaTransparency);
+                else if(flooding[t.getVertex(j)]==4) glColor4f(0, 1.0, 0.0, alphaTransparency);
+                else if(flooding[t.getVertex(j)]==5) glColor4f(0, 1.0, 1.0, alphaTransparency);
+                else if(flooding[t.getVertex(j)]==6) glColor4f(0.5, 0, 2.0, alphaTransparency);
+                else if(flooding[t.getVertex(j)]==7) glColor4f(0, .75, 1.0, alphaTransparency);
+                else if(flooding[t.getVertex(j)]==8) glColor4f(.25, 0.5, 1., alphaTransparency);
+                else if(flooding[t.getVertex(j)]==9) glColor4f(1.0, 0.5, 1.0, alphaTransparency);
+                else if(flooding[t.getVertex(j)]==10) glColor4f(1.0, 0, .5, alphaTransparency);
+                else if(flooding[t.getVertex(j)]==11) glColor4f(1.0, 2., .5, alphaTransparency);
+                else glColor4f(0, 0., 0, alphaTransparency);
+
+        }
+
         glNormal(verticesNormals[t.getVertex(j)]*normalDirection);
         glVertex(vertices[t.getVertex(j)]);
     }
@@ -117,7 +137,8 @@ void Mesh::glTriangleSmooth(unsigned int i, std::vector <int> &coloursIndicies){
     for(unsigned int j = 0 ; j < 3 ; j++ ){
         if(cuttingSide==Side::EXTERIOR) getColour(t.getVertex(j), coloursIndicies);
         glNormal(verticesNormals[t.getVertex(j)]*normalDirection);
-        glVertex(smoothedVerticies[t.getVertex(j)]);
+        //glVertex(smoothedVerticies[t.getVertex(j)]);
+        glVertex(vertices[t.getVertex(j)]);
     }
 
     glColor4f(1.0, 1.0, 1.0, alphaTransparency);
@@ -204,7 +225,7 @@ void Mesh::updatePlaneIntersections(){
         }
 
         mergeFlood(planeNeighbours);
-        cutMesh(intersectionTriangles, planeNeighbours);
+        //cutMesh(intersectionTriangles, planeNeighbours);
     }
 }
 
@@ -224,19 +245,19 @@ void Mesh::cutMesh(std::vector<std::vector<unsigned int>> &intersectionTriangles
         break;
     }
 
-    trianglesExtracted.clear();     // Store the rest of the triangles
+    /*trianglesExtracted.clear();     // Store the rest of the triangles
     for(unsigned int i=0; i<triangles.size(); i++){
         if(!truthTriangles[i]) trianglesExtracted.push_back(i);
-    }
+    }*/
 
     // ! Conserve this order
-    createSmoothedTriangles(intersectionTriangles, planeNeighbours);
+    //createSmoothedTriangles(intersectionTriangles, planeNeighbours);
 
-    if(cuttingSide == Side::EXTERIOR){      // send the segments to the mandible
+   /* if(cuttingSide == Side::EXTERIOR){      // send the segments to the mandible
         if(isTransfer){
             sendToMandible();
         }
-    }
+    }*/
 }
 
 void Mesh::cutMandible(bool* truthTriangles, const std::vector<int> &planeNeighbours){
@@ -627,11 +648,11 @@ void Mesh::draw()
 
     glBegin (GL_TRIANGLES);
 
-    if(!isCut){
+    //if(!isCut){
         for(unsigned int i=0; i<triangles.size(); i++){
             glTriangle(i);
         }
-    }
+    /*}
     else{
         std::vector<int> coloursIndicies;
         fillColours(coloursIndicies, planes.size()*2);
@@ -642,7 +663,7 @@ void Mesh::draw()
         for(unsigned int i=0; i<fibInMandTriangles.size(); i++){
             glTriangleFibInMand(i, coloursIndicies);
         }
-    }
+    }*/
 
     glEnd();
 

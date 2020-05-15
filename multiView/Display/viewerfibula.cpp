@@ -131,7 +131,7 @@ void ViewerFibula::projectToMesh(const std::vector<double>& distances){
     }
 
     // lower the entire polyline by 5mm
-    poly.lowerPolyline(Vec(0,-1,-1), 5.);
+    poly.lowerPolyline(Vec(0,-1,-1), 10.);
 }
 
 // Check if the projected distances match the actual distance. If not, modify it
@@ -222,4 +222,12 @@ void ViewerFibula::constructSegmentPoints(unsigned int nbU){
 
 double ViewerFibula::euclideanDistance(const Vec &a, const Vec &b){
     return sqrt(pow(a.x-b.x, 2.) + pow(a.y-b.y, 2.) + pow(a.z-b.z, 2.));
+}
+
+void ViewerFibula::cut(){
+    for(unsigned int i=0; i<ghostPlanes.size(); i++){
+        mesh.addPlane(ghostPlanes[i]);
+    }
+
+    mesh.setIsCut(Side::EXTERIOR, true, true);    // call the update if an exterior plane isn't going to
 }

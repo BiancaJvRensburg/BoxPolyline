@@ -560,8 +560,8 @@ void Viewer::setPlaneAlpha(int position){
     update();
 }
 
-void Viewer::cut(){
+//void Viewer::cut(){
     /*mesh.setIsCut(Side::INTERIOR, true, true);
 
     update();*/
-}
+//}
