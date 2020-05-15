@@ -1,5 +1,5 @@
 #include "viewer.h"
-#include "meshreader.h"
+#include "Mesh/meshreader.h"
 #include <QGLViewer/manipulatedFrame.h>
 
 Viewer::Viewer(QWidget *parent, StandardCamera *cam, int sliderMax) : QGLViewer(parent) {
@@ -22,16 +22,14 @@ void Viewer::draw() {
 
     //curve.draw();
 
-    glPointSize(5.);
+    /*glPointSize(5.);
     glColor3b(1., 0, 0);
      glBegin(GL_POINTS);
-    for(unsigned int i=0; i<outTemp.size(); i++){
-            glVertex3d(outTemp[i].x, outTemp[i].y, outTemp[i].z);
-    }
+
     for(unsigned int i=0; i<segmentPoints.size(); i++){
             glVertex3d(segmentPoints[i].x, segmentPoints[i].y, segmentPoints[i].z);
     }
-     glEnd();
+     glEnd();*/
 
      if(isCurve){
          glColor4f(0., 1., 0., leftPlane->getAlpha());
@@ -81,7 +79,7 @@ void Viewer::init() {
 void Viewer::initCurvePlanes(Movable s){
     curveIndexR = nbU - 1;
     curveIndexL = 0;
-    float size = 25.0;
+    float size = 20.0;
 
     leftPlane = new Plane(static_cast<double>(size), s, 0.5, 0);
     rightPlane = new Plane(static_cast<double>(size), s, 0.5, 1);
@@ -130,22 +128,17 @@ void Viewer::toggleIsPolyline(){
     Vec direction = Vec(1,1,0);
 
     if(!leftPlane->getIsPoly()){
-        direction = -Vec(1,1,0);
+        direction = -direction;
     }
 
     endLeft->toggleIsPoly();
-    poly.lowerPoint(endLeft->getID(), endLeft->getMeshVectorFromLocal(direction)*leftPlane->getSize());
     endRight->toggleIsPoly();
-    poly.lowerPoint(endRight->getID(), endRight->getMeshVectorFromLocal(direction)*leftPlane->getSize());
 
     leftPlane->toggleIsPoly();
-    poly.lowerPoint(leftPlane->getID(), leftPlane->getMeshVectorFromLocal(direction)*leftPlane->getSize());
     rightPlane->toggleIsPoly();
-    poly.lowerPoint(rightPlane->getID(), rightPlane->getMeshVectorFromLocal(direction)*leftPlane->getSize());
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) {
-        ghostPlanes[i]->toggleIsPoly();
-        poly.lowerPoint(i+2, ghostPlanes[i]->getMeshVectorFromLocal(direction)*leftPlane->getSize());
-    }
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->toggleIsPoly();
+
+    lowerPoints(leftPlane->getSize(), direction);
 
     if(leftPlane->getIsPoly()){     // if the polyline now exits, project it onto the mesh
         std::vector<Vec> outputPoints;
@@ -153,10 +146,19 @@ void Viewer::toggleIsPolyline(){
         for(unsigned int i=0; i<poly.getNbPoints(); i++) inputPoints.push_back(poly.getMeshPoint(i));
         mesh.mlsProjection(inputPoints, outputPoints);
         updatePolyline(outputPoints);
-        outTemp = outputPoints;
+        lowerPoints(5., direction);     // move the plane position 5mm from the mesh
     }
 
     repositionPlanesOnPolyline();
+}
+
+void Viewer::lowerPoints(double size, Vec localDirection){
+    poly.lowerPoint(endLeft->getID(), endLeft->getMeshVectorFromLocal(localDirection)*size);
+    poly.lowerPoint(endRight->getID(), endRight->getMeshVectorFromLocal(localDirection)*size);
+
+    poly.lowerPoint(leftPlane->getID(), leftPlane->getMeshVectorFromLocal(localDirection)*size);
+    poly.lowerPoint(rightPlane->getID(), rightPlane->getMeshVectorFromLocal(localDirection)*size);
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) poly.lowerPoint(i+2, ghostPlanes[i]->getMeshVectorFromLocal(localDirection)*size);
 }
 
 void Viewer::repositionPlanesOnPolyline(){

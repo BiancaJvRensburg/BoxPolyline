@@ -1,5 +1,5 @@
 #include "polyline.h"
-#include "point3.h"
+#include "Tools/point3.h"
 
 Polyline::Polyline()
 {
@@ -277,7 +277,7 @@ void Polyline::recalculateNormal(unsigned int index, const Vec &origin, const Ve
 }
 
 void Polyline::recalculateBinormal(unsigned int index, const Vec &origin, const Vec &newPosition){
-    Vec pos = newPosition - origin;     // Calculate an orthogonal vector on the plane
+    /*Vec pos = newPosition - origin;     // Calculate an orthogonal vector on the plane
     pos.normalize();
     pos.z = 0;        // The new polyline projected in the z plane
 
@@ -290,19 +290,21 @@ void Polyline::recalculateBinormal(unsigned int index, const Vec &origin, const 
     segmentBinormals[index] = Vec(x,y,0);
     segmentBinormals[index].normalize();
 
-    recalculateNormal(index, newPosition, origin);
+    recalculateNormal(index, newPosition, origin);*/
 
-        /* point3d  Nprev = normal;
+         point3d  Nprev = normal;
          point3d  Tprev = tangent;
 
          point3d  T0 = newPosition - origin;        // the polyline tangent
-         point3d  N0 = index == 0 ? T0.getOrthogonal() :
+         point3d  N0 = T0.getOrthogonal(); //index == 0 ? T0.getOrthogonal() :
          point3d::rotateVectorSimilarly( Nprev , Tprev , T0  );
 
          point3d  B0 = point3d::cross( T0 , N0 );
 
-         segmentNormals[index] = Vec(N0);
-         segmentBinormals[index] = -Vec(B0);*/
+         segmentNormals[index] = - Vec(B0);
+         segmentBinormals[index] = - Vec(N0);
+         segmentNormals[index].normalize();
+         segmentBinormals[index].normalize();
  }
 
 Vec Polyline::vectorQuaternionRotation(double theta, const Vec &axis, const Vec &vectorToRotate){
@@ -425,4 +427,12 @@ void Polyline::getRelativePlane(Plane &p, std::vector<Vec> &norms){
 void Polyline::getDirections(std::vector<Vec> &directions){
     directions.clear();
     for(unsigned int i=0; i<boxes.size(); i++) directions.push_back(getWorldTransform(boxes[i].worldTangent()));
+}
+
+
+// Move the entire polyline
+void Polyline::lowerPolyline(Vec localDirection, double distance){
+    Vec p = frame.position();
+    Vec worldDirection = getWorldTransform(localDirection);     // convert to world coordinates
+    frame.setPosition(p+worldDirection*distance);
 }

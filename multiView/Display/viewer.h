@@ -2,11 +2,11 @@
 #define VIEWER_H
 
 #include <QGLViewer/qglviewer.h>
-#include "standardcamera.h"
-#include "plane.h"
-#include "curve.h"
-#include "polyline.h"
-#include "mesh.h"
+#include "Tools/standardcamera.h"
+#include "Planes/plane.h"
+#include "Curve/curve.h"
+#include "Polyline/polyline.h"
+#include "Mesh/mesh.h"
 
 using namespace qglviewer;
 
@@ -65,6 +65,7 @@ protected:
     void deconstructPolyline();
     void getPlaneBoxOrientations(std::vector<Vec>& norms);
     void simpleBend(const unsigned int &pointIndex, Vec v, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
+    void lowerPoints(double size, Vec localDirection);
 
 
     double angle(Vec a, Vec b);
@@ -93,7 +94,6 @@ protected:
 
     int polyRotation;
 
-    std::vector<Vec> outTemp;
     std::vector<Vec> segmentPoints;
 
 private:

@@ -1,9 +1,9 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include "vec3D.h"
-#include "triangle.h"
-#include "plane.h"
+#include "Tools/vec3D.h"
+#include "Tools/triangle.h"
+#include "Planes/plane.h"
 #include <queue>
 #include <Eigenvalues>
 #include <nanoflann.hpp>

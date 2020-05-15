@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 #include <QActionGroup>
-#include "viewerfibula.h"
+#include "Display/viewerfibula.h"
 
 class MainWindow : public QMainWindow
 {

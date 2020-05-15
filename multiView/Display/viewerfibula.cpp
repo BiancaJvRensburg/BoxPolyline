@@ -119,8 +119,6 @@ void ViewerFibula::projectToMesh(const std::vector<double>& distances){
     std::vector<Vec> outputPoints;
     mesh.mlsProjection(segmentPoints, outputPoints);
 
-    outTemp = outputPoints;
-
     std::vector<unsigned int> segIndexes;
     for(unsigned int i=0; i<poly.getNbPoints(); i++) segIndexes.push_back(i*nbU);
 
@@ -131,6 +129,9 @@ void ViewerFibula::projectToMesh(const std::vector<double>& distances){
     for(unsigned int i=0; i<poly.getNbPoints(); i++){
         bendPolyline(i, outputPoints[segIndexes[i]]);
     }
+
+    // lower the entire polyline by 5mm
+    poly.lowerPolyline(Vec(0,-1,-1), 5.);
 
     /*std::cout << "Actual end distances : " << std::endl;
     for(unsigned int i=0; i<poly.getNbPoints()-1; i++) std::cout << i << " : " << euclideanDistance(poly.getMeshPoint(i), poly.getMeshPoint(i+1)) << std::endl;
@@ -185,7 +186,7 @@ void ViewerFibula::constructPolyline(const std::vector<double>& distances, const
 
     initPolyPlanes(Movable::DYNAMIC);       // Set the planes on the polyline
 
-    toggleIsPolyline();     // The polyline is currently going through the centre of the planes, change it to the corner
+   toggleIsPolyline();     // The polyline is currently going through the centre of the planes, change it to the corner
 
     Q_EMIT okToPlacePlanes(newPoints);      // Tell the mandible it can now place its planes on the polyline. (Send its points back).
 }

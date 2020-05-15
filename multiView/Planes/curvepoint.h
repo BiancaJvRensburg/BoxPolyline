@@ -1,7 +1,7 @@
 #ifndef CURVEPOINT_H
 #define CURVEPOINT_H
 
-#include "controlpoint.h"
+#include "Curve/controlpoint.h"
 
 class CurvePoint : public ControlPoint
 {

@@ -1,9 +1,9 @@
 #ifndef POLYLINE_H
 #define POLYLINE_H
 
-#include "curvepoint.h"
+#include "Planes/curvepoint.h"
 #include "box.h"
-#include "plane.h"
+#include "Planes/plane.h"
 
 class Polyline
 {
@@ -31,6 +31,7 @@ public:
     void getDistances(std::vector<double>& distances);
     void lowerPoint(unsigned int index, const Vec &toLower);
     const std::vector<Vec>& getPoints(){ return points; }
+    void lowerPolyline(Vec localDirection, double distance);
 
     const Vec& getNormal(){ return normal; }
     const Vec& getBinormal(){ return binormal; }
