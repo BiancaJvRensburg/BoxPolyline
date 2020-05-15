@@ -26,7 +26,7 @@ void Box::setFrameFromBasis(Vec x, Vec y, Vec z){
     f.setOrientation(q);
 }
 
-void Box::draw(){
+void Box::draw(double offset){
     glPushMatrix();
     glMultMatrixd(f.matrix());
 
@@ -36,14 +36,16 @@ void Box::draw(){
     const double& width = getWidth();
     const double& height = getHeight();
 
-    const Vec& p0 = Vec(0,0,0);
-    const Vec& p1 = p0 + length*tangent;
-    Vec p2 = p0 + binormal*width;
-    Vec p3 = p1 + binormal*width;
-    Vec p4 = p0 + normal*height;
-    Vec p5 = p1 + normal*height;
-    Vec p6 = p0 + normal*height +  binormal*width;
-    Vec p7 = p1 + normal*height +  binormal*width;
+    const Vec& p0base = Vec(0,0,0);
+    const Vec& p1base = p0base + length*tangent;
+    Vec p0 = p0base - (normal+binormal)*offset;
+    Vec p1 = p1base - (normal+binormal)*offset;
+    Vec p2 = p0base + binormal*(width+offset) - normal*offset;
+    Vec p3 = p1base + binormal*(width+offset) - normal*offset;
+    Vec p4 = p0base + normal*(height+offset)  - binormal*offset;
+    Vec p5 = p1base + normal*(height+offset)  - binormal*offset;
+    Vec p6 = p0base + normal*height +  binormal*width + (normal+binormal)*offset;
+    Vec p7 = p1base + normal*height +  binormal*width + (normal+binormal)*offset;
 
     glBegin(GL_QUADS);
         glVertex3d(p0.x, p0.y, p0.z);

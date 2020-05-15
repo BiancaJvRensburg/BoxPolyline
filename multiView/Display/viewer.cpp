@@ -20,17 +20,6 @@ void Viewer::draw() {
 
     if(isDrawMesh) mesh.draw();
 
-    //curve.draw();
-
-    /*glPointSize(5.);
-    glColor3b(1., 0, 0);
-     glBegin(GL_POINTS);
-
-    for(unsigned int i=0; i<segmentPoints.size(); i++){
-            glVertex3d(segmentPoints[i].x, segmentPoints[i].y, segmentPoints[i].z);
-    }
-     glEnd();*/
-
      if(isCurve){
          glColor4f(0., 1., 0., leftPlane->getAlpha());
          leftPlane->draw();

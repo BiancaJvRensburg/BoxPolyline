@@ -63,85 +63,19 @@ void Polyline::draw(){
     for(unsigned int i=0; i<points.size(); i++) glVertex3d(points[i].x, points[i].y, points[i].z);
     glEnd();
 
-    if(isWireframe) glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
     for(unsigned int i=0; i<boxes.size(); i++){
-        glColor4f(0,i%2,(i+1)%2, boxTransparency);
-        boxes[i].draw();
+        glColor4f(0,0,0, boxTransparency);
+        boxes[i].draw(0);
     }
     glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 
-    /*glColor3f(1.,.75,0);
-        double size = 40.;
-           glBegin(GL_LINES);
-           for(unsigned int i=0; i<cuttingBinormals.size(); i++){
-               Vec endPoint = points[i+1]+size*cuttingBinormals[i];
-               glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
-               glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-           }
-           for(unsigned int i=0; i<testBinorms.size(); i++){
-               Vec endPoint = points[i+1]+size*testBinorms[i];
-               glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
-               glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-           }
-
-           glColor3f(1.,0,0);
-           for(unsigned int i=0; i<testNorms.size(); i++){
-               Vec endPoint = points[i+1]+size*testNorms[i];
-               glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
-               glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-           }
-           for(unsigned int i=0; i<cuttingLines.size(); i++){
-               Vec endPoint = points[i+1]+size*cuttingLines[i];
-               glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
-               glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-           }*/
-            /*for(unsigned int i=0; i<originalCuttingLines.size(); i++){
-                Vec endPoint = points[i+1]+size*originalCuttingLines[i];
-                glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
-                glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-            }*/
-            /*for(unsigned int i=0; i<cuttingTangents.size(); i++){
-                Vec endPoint = points[i+1]+size*cuttingTangents[i];
-                glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
-                glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-            }*/
-        //glEnd();
-
-
-
-       /* glColor3f(1., 0., 0.);
-        float s = 20.;
-       glBegin(GL_LINES);
-       Vec endPoint = points[0]+s*segmentNormals[0];
-       glVertex3f(points[0].x, points[0].y, points[0].z);
-       glVertex3f(endPoint.x, endPoint.y, endPoint.z);
-       for(unsigned int i=1; i<points.size()-1; i++){
-           for(unsigned int j=0; j<2; j++){
-               endPoint = points[i]+s*segmentNormals[i-j];
-               glVertex3f(points[i].x, points[i].y, points[i].z);
-               glVertex3f(endPoint.x, endPoint.y, endPoint.z);
-           }
-       }
-       endPoint = points.back()+s*segmentNormals.back();
-       glVertex3f(points.back().x, points.back().y, points.back().z);
-       glVertex3f(endPoint.x, endPoint.y, endPoint.z);
-       glEnd();
-    glColor3f(1., 1., 0.);
-        glBegin(GL_LINES);
-        endPoint = points[0]+s*segmentBinormals[0];
-        glVertex3f(points[0].x, points[0].y, points[0].z);
-        glVertex3f(endPoint.x, endPoint.y, endPoint.z);
-        for(unsigned int i=1; i<points.size()-1; i++){
-            for(unsigned int j=0; j<2; j++){
-                endPoint = points[i]+s*segmentBinormals[i-j];
-                glVertex3f(points[i].x, points[i].y, points[i].z);
-                glVertex3f(endPoint.x, endPoint.y, endPoint.z);
-            }
+    if(!isWireframe){
+        for(unsigned int i=0; i<boxes.size(); i++){
+            glColor4f(0,i%2,(i+1)%2, boxTransparency);
+            boxes[i].draw(-0.1);
         }
-        endPoint = points.back()+s*segmentBinormals.back();
-        glVertex3f(points.back().x, points.back().y, points.back().z);
-        glVertex3f(endPoint.x, endPoint.y, endPoint.z);
-        glEnd();*/
+    }
 
     glPopMatrix();
 

@@ -132,21 +132,10 @@ void ViewerFibula::projectToMesh(const std::vector<double>& distances){
 
     // lower the entire polyline by 5mm
     poly.lowerPolyline(Vec(0,-1,-1), 5.);
-
-    /*std::cout << "Actual end distances : " << std::endl;
-    for(unsigned int i=0; i<poly.getNbPoints()-1; i++) std::cout << i << " : " << euclideanDistance(poly.getMeshPoint(i), poly.getMeshPoint(i+1)) << std::endl;
-*/
-
 }
 
 // Check if the projected distances match the actual distance. If not, modify it
 void ViewerFibula::matchDistances(const std::vector<double> &distances, std::vector<unsigned int> &segIndexes, std::vector<Vec> &outputPoints, double epsilon, const unsigned int &searchRadius){
-    /*std::cout << "Target distances : " << std::endl;
-    for(unsigned int i=0; i<distances.size(); i++) std::cout << i << " : " << distances[i] << std::endl;
-
-    std::cout << "Actual distances : " << std::endl;
-    for(unsigned int i=0; i<poly.getNbPoints()-1; i++) std::cout << i << " : " << euclideanDistance(outputPoints[segIndexes[i]], outputPoints[segIndexes[i+1]]) << std::endl;
-*/
     for(unsigned int i=1; i<poly.getNbPoints()-2; i++){
         segIndexes[i+1] = getClosestDistance(i, distances[i], segIndexes, outputPoints, searchRadius);
     }
