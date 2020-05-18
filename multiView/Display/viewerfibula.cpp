@@ -201,8 +201,10 @@ void ViewerFibula::rotatePolyline(){
 
 // Rotate the boxes
 void ViewerFibula::rotatePolylineOnAxisFibula(double r){
+    uncut();
     for(unsigned int i=0; i<poly.getNbPoints()-1; i++) poly.rotateBox(i, r);
     //poly.rotateBox(1,r);
+    cut();
     update();
 }
 
@@ -257,4 +259,10 @@ void ViewerFibula::recieveFromFibulaMesh(std::vector<int> &planes, std::vector<V
     }
 
     Q_EMIT sendToManible(planes, verticies, triangles, colours, normals, nbColours);
+}
+
+void ViewerFibula::uncut(){
+    mesh.setIsCut(Side::EXTERIOR, false, false);
+
+    update();
 }

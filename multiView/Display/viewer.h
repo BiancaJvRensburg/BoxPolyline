@@ -34,6 +34,7 @@ public Q_SLOTS:
     void setMeshAlpha(int);
     void setBoxAlpha(int);
     virtual void cut();
+    virtual void uncut();
     void toggleWireframe();
     void recieveFromFibulaMesh(std::vector<int>&, std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
 

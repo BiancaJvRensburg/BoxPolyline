@@ -568,6 +568,12 @@ void Viewer::cut(){
     update();
 }
 
+void Viewer::uncut(){
+    mesh.setIsCut(Side::INTERIOR, false, false);
+
+    update();
+}
+
 void Viewer::initSignals(){
     connect(this, &Viewer::sendFibulaToMesh, &mesh, &Mesh::recieveInfoFromFibula);
     connect(&mesh, &Mesh::updateViewer, this, &Viewer::toUpdate);

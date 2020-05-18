@@ -152,6 +152,10 @@ void MainWindow::initFileActions(){
     connect(cutAction, &QAction::triggered, skullViewer, &Viewer::cut);
     connect(cutAction, &QAction::triggered, fibulaViewer, &ViewerFibula::cut);
 
+    QAction *uncutAction = new QAction("Uncut mesh", this);
+    connect(uncutAction, &QAction::triggered, skullViewer, &Viewer::uncut);
+    connect(uncutAction, &QAction::triggered, fibulaViewer, &ViewerFibula::uncut);
+
     QAction *uncutMeshAction = new QAction("Undo cut", this);
     connect(uncutMeshAction, &QAction::triggered, skullViewer, &Viewer::uncutMesh);
     connect(uncutMeshAction, &QAction::triggered, fibulaViewer, &Viewer::uncutMesh);
@@ -177,6 +181,7 @@ void MainWindow::initFileActions(){
     fileActionGroup->addAction(cutMeshAction);
     //fileActionGroup->addAction(projectionAction);
     fileActionGroup->addAction(cutAction);
+    fileActionGroup->addAction(uncutAction);
     fileActionGroup->addAction(uncutMeshAction);
     fileActionGroup->addAction(drawMeshAction);
     fileActionGroup->addAction(drawPlanesAction);
