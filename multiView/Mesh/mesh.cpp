@@ -253,11 +253,11 @@ void Mesh::cutMesh(std::vector<std::vector<unsigned int>> &intersectionTriangles
     // ! Conserve this order
     createSmoothedTriangles(intersectionTriangles, planeNeighbours);
 
-   /* if(cuttingSide == Side::EXTERIOR){      // send the segments to the mandible
+    if(cuttingSide == Side::EXTERIOR){      // send the segments to the mandible
         if(isTransfer){
             sendToMandible();
         }
-    }*/
+    }
 }
 
 void Mesh::cutMandible(bool* truthTriangles, const std::vector<int> &planeNeighbours){
@@ -367,6 +367,7 @@ void Mesh::getSegmentsToKeep(const std::vector<int> &planeNeighbours){
     }
 }
 
+// Smooth the ends of the cut segments onto the planes (otherwise we will have a jaggered bone)
 void Mesh::createSmoothedTriangles(std::vector <std::vector <unsigned int>> &intersectionTriangles, const std::vector<int> &planeNeighbours){
     smoothedVerticies.clear();
 
@@ -400,65 +401,25 @@ void Mesh::createSmoothedMandible(std::vector <std::vector <unsigned int>> &inte
 }
 
 void Mesh::createSmoothedFibula(std::vector <std::vector <unsigned int>> &intersectionTriangles, const std::vector<int> &planeNeighbours){
-    /*for(unsigned int i=0; i<planeNeighbours.size(); i++) std::cout << i << " : " << planeNeighbours[i] << std::endl;
-
-    for(unsigned int i=0; i<planes.size(); i++){
-        for(unsigned long long j=0; j<intersectionTriangles[static_cast<unsigned long long>(i)].size(); j++){   // for each which intersects a plane
-            int actualFlooding = -1;    //  Conserve the "real" flooding value (won't stay at -1)
-
-            for(unsigned int k=0; k<3; k++){    // find which verticies are on the otherside of the cut
-                const unsigned int &vertexIndex = triangles[intersectionTriangles[i][j]].getVertex(k);
-
-                bool isOutlier = false;
-                for(unsigned int l=0; l<segmentsConserved.size(); l++){
-                    int flood = flooding[vertexIndex];
-                    //std::cout << "Flood " << flood << std::endl;
-                    if(flood!=-1){
-                        if(flood == segmentsConserved[l]){      // Is the vertex in the conserved segment?
-                            isOutlier = true;
-                        }
-                    }
-
-                }
-
-                if(!isOutlier){
-                    int af = flooding[vertexIndex];
-                    if(af!=-1) actualFlooding = flooding[vertexIndex];
-                }
-
-                if(planeNeighbours[static_cast<unsigned int>(flooding[vertexIndex])]==-1 || isOutlier){        // if we need to change it
-                    Vec newVertex = getPolylineProjectedVertex(i, 0, vertexIndex);
-                    smoothedVerticies[vertexIndex] = Vec3Df(static_cast<float>(newVertex.x), static_cast<float>(newVertex.y), static_cast<float>(newVertex.z)); // get the projection
-                }
-                // else don't change the original
-            }
-
-            for(unsigned int k=0; k<3; k++){
-                const unsigned int &vertexIndex = triangles[intersectionTriangles[i][j]].getVertex(k);
-                flooding[vertexIndex] = actualFlooding;
-            }
-        }
-    }*/
-
-    for(int i=0; i<planes.size(); i++){
+    for(int i=0; i<static_cast<int>(planes.size()); i++){
 
         // Get one of the two flooding values we want for this segment
-        int planeIndex = i + planes.size();
+        int planeIndex = i + static_cast<int>(planes.size());
         int planeOpposite = i;
         for(unsigned int j=0; j<segmentsConserved.size(); j++){
             if(segmentsConserved[j]==i){
                 planeIndex = i;
-                planeOpposite = i + planes.size();
+                planeOpposite = i + static_cast<int>(planes.size());
                 break;
             }
         }
-        int neighbourIndex = planeNeighbours[planeIndex];
+        int neighbourIndex = planeNeighbours[static_cast<unsigned int>(planeIndex)];
 
         for(unsigned long long j=0; j<intersectionTriangles[static_cast<unsigned long long>(i)].size(); j++){   // for each which intersects a plane
             int actualFlooding = -1;    //  Conserve the "real" flooding value (won't stay at -1)
 
             for(unsigned int k=0; k<3; k++){    // find which verticies are on the otherside of the cut
-                const unsigned int &vertexIndex = triangles[intersectionTriangles[i][j]].getVertex(k);
+                const unsigned int &vertexIndex = triangles[intersectionTriangles[static_cast<unsigned int>(i)][j]].getVertex(k);
 
                 bool isOutlier = true;
                 int flood = flooding[vertexIndex];
@@ -467,14 +428,14 @@ void Mesh::createSmoothedFibula(std::vector <std::vector <unsigned int>> &inters
                 if(isOutlier) actualFlooding = planeOpposite;      // if its not in the segment, set the flooding value to the opposite
 
                 if(planeNeighbours[static_cast<unsigned int>(flooding[vertexIndex])]==-1 || !isOutlier){        // if we need to change it
-                    Vec newVertex = getPolylineProjectedVertex(i, 0, vertexIndex);
+                    Vec newVertex = getPolylineProjectedVertex(static_cast<unsigned int>(i), 0, vertexIndex);
                     smoothedVerticies[vertexIndex] = Vec3Df(static_cast<float>(newVertex.x), static_cast<float>(newVertex.y), static_cast<float>(newVertex.z)); // get the projection
                 }
                 // else don't change the original
             }
 
             for(unsigned int k=0; k<3; k++){
-                const unsigned int &vertexIndex = triangles[intersectionTriangles[i][j]].getVertex(k);
+                const unsigned int &vertexIndex = triangles[intersectionTriangles[static_cast<unsigned int>(i)][j]].getVertex(k);
                 flooding[vertexIndex] = actualFlooding;
             }
         }
@@ -498,28 +459,6 @@ void Mesh::updatePlaneIntersections(Plane *p){
 
     updatePlaneIntersections();
 }
-
-/*void Mesh::floodNeighbour(unsigned int index, int id, std::vector<int> &planeNeighbours){
-
-    if(flooding[index] == -1){      // Flood it
-        flooding[index] = id;
-        for(unsigned int i=0; i<oneRing[index].size(); i++){
-            floodNeighbour(oneRing[index][i], id, planeNeighbours);
-        }
-    }
-
-    else if(flooding[index] == id) return;      // stop if the vertex is already flooded with the same value
-
-    else if(flooding[index]==id+static_cast<int>(planes.size()) || id==flooding[index]+static_cast<int>(planes.size())) return;     // stop if we've found our own neg/pos side
-
-    else{       // else it already belongs to a different plane
-        if(planeNeighbours[static_cast<unsigned int>(id)]== -1){       // They're not already neighbours
-            planeNeighbours[static_cast<unsigned int>(id)] = flooding[index];     // equal to the old value
-            planeNeighbours[static_cast<unsigned int>(flooding[index])] = id;
-        }
-        return;     // They're already neighbours
-    }
-}*/
 
 void Mesh::floodNeighbour(unsigned int index, int id, std::vector<int> &planeNeighbours){
     std::queue<unsigned int> toFlood;
@@ -621,7 +560,7 @@ void Mesh::sendToMandible(){
 
             if(tempVerticies[triVert] != -1) newTriangle.push_back(tempVerticies[triVert]);     // If converted already
 
-            else{       // convert to the corresponding plane
+           /* else{       // convert to the corresponding plane
                 int pNb = flooding[triVert];    // Get the plane nb
                 if(pNb >= static_cast<int>(planes.size())) pNb -= planes.size();      // The plane nb is referenced by the smallest side
                 planeNb.push_back(pNb);
@@ -641,6 +580,25 @@ void Mesh::sendToMandible(){
                 newTriangle.push_back(vertexIndex);  // set it to the last index of convertedVerticies
 
                 tempVerticies[triVert] = vertexIndex;       // Store the corresponding index in tempVerticies
+            }*/
+            else{       // convert to the corresponding plane
+                int pNb = flooding[triVert];    // Get the plane nb
+                if(pNb >= static_cast<int>(planes.size())) pNb -= planes.size();      // The plane nb is referenced by the smallest side
+                planeNb.push_back(pNb);
+
+                // Convert the vertex
+                const Vec &unConverted = Vec(static_cast<double>(smoothedVerticies[triVert][0]), static_cast<double>(smoothedVerticies[triVert][1]), static_cast<double>(smoothedVerticies[triVert][2]));
+
+                convertedVerticies.push_back(unConverted);      // add the converted vertex triVert
+                convertedColours.push_back(coloursIndicies[triVert]); // add its corresponding colour and normal
+
+                const Vec &unConvertedNorm = Vec(static_cast<double>(verticesNormals[triVert][0]), static_cast<double>(verticesNormals[triVert][1]), static_cast<double>(verticesNormals[triVert][2]));
+                convertedNormals.push_back(unConvertedNorm);
+
+                const int &vertexIndex = static_cast<int>(convertedVerticies.size()) - 1;
+                newTriangle.push_back(vertexIndex);  // set it to the last index of convertedVerticies
+
+                tempVerticies[triVert] = vertexIndex;       // Store the corresponding index in tempVerticies
             }
         }      
         convertedTriangles.push_back(newTriangle);      // Add the triangle
@@ -649,7 +607,7 @@ void Mesh::sendToMandible(){
     Q_EMIT sendInfoToManible(planeNb, convertedVerticies, convertedTriangles, convertedColours, convertedNormals, (static_cast<int>(planes.size())/2));
 }
 
-void Mesh::recieveInfoFromFibula(const std::vector<Vec> &convertedVerticies, const std::vector<std::vector<int>> &convertedTriangles, const std::vector<int> &convertedColours, const std::vector<Vec> &convertedNormals, int nbColours){
+void Mesh::recieveInfoFromFibula(std::vector<Vec> convertedVerticies, std::vector<std::vector<int>> &convertedTriangles, std::vector<int> &convertedColours, std::vector<Vec> convertedNormals, int nbColours){
     if(cuttingSide != Side::INTERIOR) return;
 
     fibInMandTriangles.clear();
@@ -677,16 +635,11 @@ void Mesh::recieveInfoFromFibula(const std::vector<Vec> &convertedVerticies, con
 
 void Mesh::draw()
 {
-
-
-    glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
     glLineWidth(.5);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_DEPTH);
 
     glBegin (GL_TRIANGLES);
-
-
 
     if(!isCut){
         for(unsigned int i=0; i<triangles.size(); i++){
@@ -698,7 +651,6 @@ void Mesh::draw()
         fillColours(coloursIndicies, planes.size()*2);
         for(unsigned int i=0; i<trianglesCut.size(); i++){
             glTriangleSmooth(trianglesCut[i], coloursIndicies);
-            //glTriangle(trianglesCut[i]);
         }
 
         for(unsigned int i=0; i<fibInMandTriangles.size(); i++){
@@ -710,7 +662,6 @@ void Mesh::draw()
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_DEPTH);
-    glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 }
 
 void Mesh::drawCut(){

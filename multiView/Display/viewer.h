@@ -33,8 +33,9 @@ public Q_SLOTS:
     void setPlaneAlpha(int);
     void setMeshAlpha(int);
     void setBoxAlpha(int);
-    //void cut();
+    virtual void cut();
     void toggleWireframe();
+    void recieveFromFibulaMesh(std::vector<int>&, std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
@@ -44,10 +45,12 @@ Q_SIGNALS:
     void toUpdatePlaneOrientations(std::vector<Vec>&);
     void toRotatePolylineOnAxis(double);
     void planeMoved(double);
+    void sendFibulaToMesh(std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
 
 protected:
     void draw();
     void init();
+    virtual void initSignals();
     virtual void constructCurve();
     virtual void initGhostPlanes(Movable s);
     void initPolyPlanes(Movable s);

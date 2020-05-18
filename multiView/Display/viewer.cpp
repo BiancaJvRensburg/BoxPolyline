@@ -62,13 +62,15 @@ void Viewer::init() {
   glLineWidth (1.0f);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_BLEND);
+
+  initSignals();
 }
 
 // Initialise the planes on the curve
 void Viewer::initCurvePlanes(Movable s){
     curveIndexR = nbU - 1;
     curveIndexL = 0;
-    float size = 20.0;
+    float size = 30.0;
 
     leftPlane = new Plane(static_cast<double>(size), s, 0.5, 0);
     rightPlane = new Plane(static_cast<double>(size), s, 0.5, 1);
@@ -560,8 +562,40 @@ void Viewer::setPlaneAlpha(int position){
     update();
 }
 
-//void Viewer::cut(){
-    /*mesh.setIsCut(Side::INTERIOR, true, true);
+void Viewer::cut(){
+    mesh.setIsCut(Side::INTERIOR, true, true);
 
-    update();*/
-//}
+    update();
+}
+
+void Viewer::initSignals(){
+    connect(this, &Viewer::sendFibulaToMesh, &mesh, &Mesh::recieveInfoFromFibula);
+    connect(&mesh, &Mesh::updateViewer, this, &Viewer::toUpdate);
+}
+
+void Viewer::recieveFromFibulaMesh(std::vector<int> &planes, std::vector<Vec> verticies, std::vector<std::vector<int>> &triangles, std::vector<int> &colours, std::vector<Vec> normals, int nbColours){
+    /*
+     * 0 : left plane
+     * 1 : right plane
+     * n : ghostPlane[n-2]
+    */
+
+    // For each vertex and normal, convert it from the corresponding plane's coordinates to the mesh coordinates
+    for(unsigned int i=0; i<verticies.size(); i++){
+        if(planes[i]==0){
+            normals[i] = leftPlane->getMeshVectorFromLocal(normals[i]);
+            verticies[i] = leftPlane->getMeshCoordinatesFromLocal(verticies[i]);
+        }
+        else if(planes[i]==1){
+            normals[i] = rightPlane->getMeshVectorFromLocal(normals[i]);
+            verticies[i] = rightPlane->getMeshCoordinatesFromLocal(verticies[i]);
+        }
+        else {
+            int mandPlane = (planes[i]+2) / 2 - 2;
+            normals[i] = ghostPlanes[static_cast<unsigned int>(mandPlane)]->getMeshVectorFromLocal(normals[i]);
+            verticies[i] = ghostPlanes[static_cast<unsigned int>(mandPlane)]->getMeshCoordinatesFromLocal(verticies[i]);
+        }
+    }
+
+    Q_EMIT sendFibulaToMesh(verticies, triangles, colours, normals, nbColours);
+}

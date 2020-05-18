@@ -5,6 +5,10 @@ ViewerFibula::ViewerFibula(QWidget *parent, StandardCamera *camera, int sliderMa
     polyRotation = 0;
 }
 
+void ViewerFibula::initSignals(){
+    connect(&mesh, &Mesh::sendInfoToManible, this, &ViewerFibula::recieveFromFibulaMesh);
+}
+
 // Set the start of the polyline and update the distances.
 void ViewerFibula::updateFibPolyline(const Vec& firstPoint, const std::vector<double>& distances){
     poly.setFirstPoint(firstPoint);
@@ -131,7 +135,7 @@ void ViewerFibula::projectToMesh(const std::vector<double>& distances){
     }
 
     // lower the entire polyline by 5mm
-    poly.lowerPolyline(Vec(0,-1,-1), 10.);
+    poly.lowerPolyline(Vec(0,-1,-1), 5.);
 }
 
 // Check if the projected distances match the actual distance. If not, modify it
@@ -230,4 +234,26 @@ void ViewerFibula::cut(){
     }
 
     mesh.setIsCut(Side::EXTERIOR, true, true);    // call the update if an exterior plane isn't going to
+
+    update();
+}
+
+void ViewerFibula::recieveFromFibulaMesh(std::vector<int> &planes, std::vector<Vec> &verticies, std::vector<std::vector<int>> &triangles, std::vector<int>& colours, std::vector<Vec> &normals, int nbColours){
+    for(unsigned int i=0; i<verticies.size(); i++){
+        if(planes[i]==0){
+            normals[i] = leftPlane->getLocalVector(normals[i]);
+            verticies[i] = leftPlane->getLocalCoordinates(verticies[i]);
+        }
+        else if(planes[i]==1){
+            normals[i] = rightPlane->getLocalVector(normals[i]);
+            verticies[i] = rightPlane->getLocalCoordinates(verticies[i]);
+        }
+        else {
+            int mandPlane = planes[i]-2;
+            normals[i] = ghostPlanes[static_cast<unsigned int>(mandPlane)]->getLocalVector(normals[i]);
+            verticies[i] = ghostPlanes[static_cast<unsigned int>(mandPlane)]->getLocalCoordinates(verticies[i]);
+        }
+    }
+
+    Q_EMIT sendToManible(planes, verticies, triangles, colours, normals, nbColours);
 }

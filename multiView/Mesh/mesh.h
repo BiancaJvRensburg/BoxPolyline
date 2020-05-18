@@ -62,10 +62,10 @@ public:
     void mlsProjection(const std::vector<Vec> &inputPoints, std::vector<Vec> &outputPoints);
 
 public Q_SLOTS:
-    void recieveInfoFromFibula(const std::vector<Vec>&, const std::vector<std::vector<int>>&, const std::vector<int>&, const std::vector<Vec>&, const int);
+    void recieveInfoFromFibula(std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
 
 Q_SIGNALS:
-    void sendInfoToManible(const std::vector<int>&, const std::vector<Vec>&, const std::vector<std::vector<int>>&, const std::vector<int>&, const std::vector<Vec>&, int);
+    void sendInfoToManible(std::vector<int>&, std::vector<Vec>&, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>&, int);
     void updateViewer();
 
 protected:

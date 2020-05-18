@@ -13,7 +13,8 @@ public:
     void updateFibPolyline(const Vec& firstPoint, const std::vector<double>& distances);
     void constructCurve();
     void toggleIsPolyline();
-    void repositionPlanesOnPolyline();
+    void repositionPlanesOnPolyline();  
+    void initSignals();
 
 public Q_SLOTS:
     void bendPolylineNormals(std::vector<Vec>&, const std::vector<double>&);
@@ -24,9 +25,11 @@ public Q_SLOTS:
     void updatePlaneOrientations(std::vector<Vec>&);
     void rotatePolylineOnAxisFibula(double);
     void cut();
+    void recieveFromFibulaMesh(std::vector<int>&, std::vector<Vec>&, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>&, int);
 
 Q_SIGNALS:
     void okToPlacePlanes(const std::vector<Vec>&);
+    void sendToManible(std::vector<int>&, std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
 
 private:
     void rotatePolyline();

@@ -149,6 +149,7 @@ void MainWindow::initFileActions(){
     connect(cutMeshAction, &QAction::triggered, skullViewer, &Viewer::cutMesh);
 
     QAction *cutAction = new QAction("Cut mesh", this);
+    connect(cutAction, &QAction::triggered, skullViewer, &Viewer::cut);
     connect(cutAction, &QAction::triggered, fibulaViewer, &ViewerFibula::cut);
 
     QAction *uncutMeshAction = new QAction("Undo cut", this);
@@ -187,6 +188,7 @@ void MainWindow::initFileActions(){
     connect(skullViewer, &Viewer::toUpdatePlaneOrientations, fibulaViewer, &ViewerFibula::updatePlaneOrientations);
     connect(skullViewer, &Viewer::toRotatePolylineOnAxis, fibulaViewer, &ViewerFibula::rotatePolylineOnAxisFibula);
     connect(skullViewer, &Viewer::planeMoved, fibulaViewer, &ViewerFibula::movePlanes);
+    connect(fibulaViewer, &ViewerFibula::sendToManible, skullViewer, &Viewer::recieveFromFibulaMesh);
 }
 
 void MainWindow::initFileMenu(){
