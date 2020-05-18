@@ -400,24 +400,11 @@ void Mesh::createSmoothedMandible(std::vector <std::vector <unsigned int>> &inte
 }
 
 void Mesh::createSmoothedFibula(std::vector <std::vector <unsigned int>> &intersectionTriangles, const std::vector<int> &planeNeighbours){
-    for(unsigned int i=0; i<planeNeighbours.size(); i++) std::cout << i << " : " << planeNeighbours[i] << std::endl;
+    /*for(unsigned int i=0; i<planeNeighbours.size(); i++) std::cout << i << " : " << planeNeighbours[i] << std::endl;
 
     for(unsigned int i=0; i<planes.size(); i++){
         for(unsigned long long j=0; j<intersectionTriangles[static_cast<unsigned long long>(i)].size(); j++){   // for each which intersects a plane
-            int actualFlooding;    //  Conserve the "real" flooding value
-
-            for(unsigned int k=0; k<3; k++){        // Initialise the real flooding value to the value of the vertex which is outside the segment
-                bool isFound = false;
-                const unsigned int &vertexIndex = triangles[intersectionTriangles[i][j]].getVertex(k);
-                for(unsigned int l=0; l<segmentsConserved.size(); l++){
-                    if(flooding[vertexIndex] == segmentsConserved[l]){      // Is the vertex NOT in the conserved segment?
-                        isFound = true;
-                        break;
-                    }
-                }
-                if(!isFound) actualFlooding = flooding[vertexIndex];
-            }
-
+            int actualFlooding = -1;    //  Conserve the "real" flooding value (won't stay at -1)
 
             for(unsigned int k=0; k<3; k++){    // find which verticies are on the otherside of the cut
                 const unsigned int &vertexIndex = triangles[intersectionTriangles[i][j]].getVertex(k);
@@ -440,25 +427,47 @@ void Mesh::createSmoothedFibula(std::vector <std::vector <unsigned int>> &inters
                 }
 
                 if(planeNeighbours[static_cast<unsigned int>(flooding[vertexIndex])]==-1 || isOutlier){        // if we need to change it
-                    //std::cout << "Neighbour : " << planeNeighbours[static_cast<unsigned int>(flooding[vertexIndex])]  << std::endl;
                     Vec newVertex = getPolylineProjectedVertex(i, 0, vertexIndex);
-                   /*  const unsigned int &lastIndex = static_cast<unsigned int>(planes.size()-1);
-                    if(i>2 && i<lastIndex){
-                        if(i%2==0) newVertex = getPolylineProjectedVertex(i, i-1, vertexIndex);
-                        else newVertex = getPolylineProjectedVertex(i, i+1, vertexIndex);
-                    }
-                    else if(i==2) newVertex = getPolylineProjectedVertex(i, 0, vertexIndex);
-                    else if(i==lastIndex && lastIndex!=1) newVertex = getPolylineProjectedVertex(i, 1, vertexIndex);
-                    else if(i==0){
-                        if(lastIndex>1) newVertex = getPolylineProjectedVertex(i, 2, vertexIndex);
-                        else newVertex = getPolylineProjectedVertex(i, 1, vertexIndex);
-                    }
-                    else if(i==1){
-                        if(lastIndex>1) newVertex = getPolylineProjectedVertex(i, lastIndex, vertexIndex);
-                        else newVertex = getPolylineProjectedVertex(i, 0, vertexIndex);
-                    }*/
+                    smoothedVerticies[vertexIndex] = Vec3Df(static_cast<float>(newVertex.x), static_cast<float>(newVertex.y), static_cast<float>(newVertex.z)); // get the projection
+                }
+                // else don't change the original
+            }
 
-                    //std::cout << "New vertex " << newVertex.x << "," << newVertex.y << "," << newVertex.z << std::endl;
+            for(unsigned int k=0; k<3; k++){
+                const unsigned int &vertexIndex = triangles[intersectionTriangles[i][j]].getVertex(k);
+                flooding[vertexIndex] = actualFlooding;
+            }
+        }
+    }*/
+
+    for(int i=0; i<planes.size(); i++){
+
+        // Get one of the two flooding values we want for this segment
+        int planeIndex = i + planes.size();
+        int planeOpposite = i;
+        for(unsigned int j=0; j<segmentsConserved.size(); j++){
+            if(segmentsConserved[j]==i){
+                planeIndex = i;
+                planeOpposite = i + planes.size();
+                break;
+            }
+        }
+        int neighbourIndex = planeNeighbours[planeIndex];
+
+        for(unsigned long long j=0; j<intersectionTriangles[static_cast<unsigned long long>(i)].size(); j++){   // for each which intersects a plane
+            int actualFlooding = -1;    //  Conserve the "real" flooding value (won't stay at -1)
+
+            for(unsigned int k=0; k<3; k++){    // find which verticies are on the otherside of the cut
+                const unsigned int &vertexIndex = triangles[intersectionTriangles[i][j]].getVertex(k);
+
+                bool isOutlier = true;
+                int flood = flooding[vertexIndex];
+                if(flood == planeIndex || flood == neighbourIndex) isOutlier = false; // Is the vertex in the segment we're currently dealing with?
+
+                if(isOutlier) actualFlooding = planeOpposite;      // if its not in the segment, set the flooding value to the opposite
+
+                if(planeNeighbours[static_cast<unsigned int>(flooding[vertexIndex])]==-1 || !isOutlier){        // if we need to change it
+                    Vec newVertex = getPolylineProjectedVertex(i, 0, vertexIndex);
                     smoothedVerticies[vertexIndex] = Vec3Df(static_cast<float>(newVertex.x), static_cast<float>(newVertex.y), static_cast<float>(newVertex.z)); // get the projection
                 }
                 // else don't change the original
@@ -669,10 +678,15 @@ void Mesh::recieveInfoFromFibula(const std::vector<Vec> &convertedVerticies, con
 void Mesh::draw()
 {
 
+
+    glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
+    glLineWidth(.5);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_DEPTH);
 
     glBegin (GL_TRIANGLES);
+
+
 
     if(!isCut){
         for(unsigned int i=0; i<triangles.size(); i++){
@@ -696,6 +710,7 @@ void Mesh::draw()
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_DEPTH);
+    glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 }
 
 void Mesh::drawCut(){
