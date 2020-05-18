@@ -239,22 +239,6 @@ void ViewerFibula::cut(){
 }
 
 void ViewerFibula::recieveFromFibulaMesh(std::vector<int> &planes, std::vector<Vec> &verticies, std::vector<std::vector<int>> &triangles, std::vector<int>& colours, std::vector<Vec> &normals, int nbColours){
-    /*for(unsigned int i=0; i<verticies.size(); i++){
-        if(planes[i]==0){       // first box
-            normals[i] = leftPlane->getLocalVector(normals[i]);
-            verticies[i] = leftPlane->getLocalCoordinates(verticies[i]);
-        }
-        else if(planes[i]==1){      // last box
-            normals[i] = rightPlane->getLocalVector(normals[i]);
-            verticies[i] = rightPlane->getLocalCoordinates(verticies[i]);
-        }
-        else {      // box = plane - 1
-            int mandPlane = planes[i]-2;
-            normals[i] = ghostPlanes[static_cast<unsigned int>(mandPlane)]->getLocalVector(normals[i]);
-            verticies[i] = ghostPlanes[static_cast<unsigned int>(mandPlane)]->getLocalCoordinates(verticies[i]);
-        }
-    }*/
-
     // Convert to box coordinates
     for(unsigned int i=0; i<verticies.size(); i++){
         if(planes[i]==0){
@@ -266,9 +250,9 @@ void ViewerFibula::recieveFromFibulaMesh(std::vector<int> &planes, std::vector<V
             verticies[i] = poly.getLocalBoxCoordinates(rightPlane->getID(), verticies[i]);
         }
         else {
-            int mandPlane = planes[i]-2;
-            normals[i] = poly.getLocalBoxTransform(ghostPlanes[static_cast<unsigned int>(mandPlane)]->getID(), normals[i]);
-            verticies[i] = poly.getLocalBoxCoordinates(ghostPlanes[static_cast<unsigned int>(mandPlane)]->getID(), verticies[i]);
+            int fibPlane = planes[i]-2;
+            normals[i] = poly.getLocalBoxTransform(ghostPlanes[static_cast<unsigned int>(fibPlane)]->getID(), normals[i]);
+            verticies[i] = poly.getLocalBoxCoordinates(ghostPlanes[static_cast<unsigned int>(fibPlane)]->getID(), verticies[i]);
         }
     }
 

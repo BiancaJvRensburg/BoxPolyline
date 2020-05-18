@@ -43,7 +43,7 @@ public:
     Vec getNormal(){ return normal; }
     Vec getProjection(Vec p);
     Vec getLocalProjection(Vec p);      // for vectors already in local coordinates
-    Vec& getPosition(){ return cp.getPoint(); }
+    Vec getPosition(){ return cp.getPosition(); }
     CurvePoint& getCurvePoint(){ return cp; }
 
     Vec getLocalCoordinates(Vec v) { return cp.getFrame().localCoordinatesOf(v); }    // same as get polyline

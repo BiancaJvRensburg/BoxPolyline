@@ -403,55 +403,51 @@ void Mesh::createSmoothedMandible(std::vector <std::vector <unsigned int>> &inte
 void Mesh::createSmoothedFibula(std::vector <std::vector <unsigned int>> &intersectionTriangles, const std::vector<int> &planeNeighbours){
     for(int i=0; i<static_cast<int>(planes.size()); i++){
 
-        // Get one of the two flooding values we want for this segment
+        // Get the two flooding values corresponding with this segment
         int planeIndex = i + static_cast<int>(planes.size());
-        //int planeOpposite = i;
         for(unsigned int j=0; j<segmentsConserved.size(); j++){
             if(segmentsConserved[j]==i){
                 planeIndex = i;
-                //planeOpposite = i + static_cast<int>(planes.size());
                 break;
             }
         }
         int neighbourIndex = planeNeighbours[static_cast<unsigned int>(planeIndex)];
 
-        for(unsigned long long j=0; j<intersectionTriangles[static_cast<unsigned long long>(i)].size(); j++){   // for each which intersects a plane
-            //int actualFlooding = -1;    //  Conserve the "real" flooding value (won't stay at -1)
+        for(unsigned long long j=0; j<intersectionTriangles[static_cast<unsigned long long>(i)].size(); j++){   // for triangle each which intersects a plane
 
-            for(unsigned int k=0; k<3; k++){    // find which verticies are on the otherside of the cut
+            for(unsigned int k=0; k<3; k++){    // for each vertex in the triangle : is it in the segment we want to keep?
                 const unsigned int &vertexIndex = triangles[intersectionTriangles[static_cast<unsigned int>(i)][j]].getVertex(k);
 
                 bool isOutlier = true;
                 int flood = flooding[vertexIndex];
                 if(flood == planeIndex || flood == neighbourIndex) isOutlier = false; // Is the vertex in the segment we're currently dealing with?
 
-                //if(isOutlier) actualFlooding = planeOpposite;      // if its not in the segment, set the flooding value to the opposite
-
                 if(planeNeighbours[static_cast<unsigned int>(flooding[vertexIndex])]==-1 || !isOutlier){        // if we need to change it
-                    Vec newVertex = getPolylineProjectedVertex(static_cast<unsigned int>(i), 0, vertexIndex);
+                    Vec newVertex = getPolylineProjectedVertex(static_cast<unsigned int>(planeIndex), static_cast<unsigned int>(neighbourIndex), vertexIndex);
                     smoothedVerticies[vertexIndex] = Vec3Df(static_cast<float>(newVertex.x), static_cast<float>(newVertex.y), static_cast<float>(newVertex.z)); // get the projection
                 }
                 // else don't change the original
             }
-
-           /* for(unsigned int k=0; k<3; k++){
-                const unsigned int &vertexIndex = triangles[intersectionTriangles[static_cast<unsigned int>(i)][j]].getVertex(k);
-                flooding[vertexIndex] = actualFlooding;
-            }*/
         }
     }
 }
 
-Vec Mesh::getPolylineProjectedVertex(unsigned int p1, unsigned int p2, unsigned int vertexIndex){
-    //Vec n = planes[p2]->getPosition() - planes[p1]->getPosition();      // this doesn't work anymore
-    // n.normalize();
-     Vec n = Vec(0,0,1);
-    n = planes[p1]->getLocalVector(n);
+// Project it onto the plane following the tangent of the box
+Vec Mesh::getPolylineProjectedVertex(unsigned int planeIndex, unsigned int neighbourIndex, unsigned int vertexIndex){
+    unsigned int plane = planeIndex;
+    unsigned int neighbour = neighbourIndex;
+    if(planeIndex >= planes.size()) plane -= planes.size();
+    if(neighbourIndex >= planes.size()) neighbour -= planes.size();
+
+    Vec n = planes[plane]->getPosition() - planes[neighbour]->getPosition();      // this doesn't work anymore
+    n.normalize();
+
+    n = planes[plane]->getLocalVector(n);
     Vec p = Vec(static_cast<double>(vertices[vertexIndex][0]), static_cast<double>(vertices[vertexIndex][1]), static_cast<double>(vertices[vertexIndex][2]));
-    p = planes[p1]->getLocalCoordinates(p);
+    p = planes[plane]->getLocalCoordinates(p);
     double alpha = p.z / n.z;
     Vec newVertex = p - alpha*n;
-    return planes[p1]->getMeshCoordinatesFromLocal(newVertex);
+    return planes[plane]->getMeshCoordinatesFromLocal(newVertex);
 }
 
 void Mesh::updatePlaneIntersections(Plane *p){
@@ -539,6 +535,7 @@ void Mesh::getIntersectionForPlane(unsigned int index, std::vector<unsigned int>
     }
 }
 
+// TODO simplify
 void Mesh::sendToMandible(){
     std::vector<int> planeNb;       // the plane nb associated
     std::vector<Vec> convertedVerticies;    // the vertex coordinates in relation to the plane nb
@@ -559,28 +556,6 @@ void Mesh::sendToMandible(){
             const unsigned int &triVert = triangles[trianglesCut[i]].getVertex(j);       // this must go into smoothedVerticies[triV....] (ie. index in the original)
 
             if(tempVerticies[triVert] != -1) newTriangle.push_back(tempVerticies[triVert]);     // If converted already
-
-           /* else{       // convert to the corresponding plane
-                int pNb = flooding[triVert];    // Get the plane nb
-                if(pNb >= static_cast<int>(planes.size())) pNb -= planes.size();      // The plane nb is referenced by the smallest side
-                planeNb.push_back(pNb);
-
-                // Convert the vertex
-                const Vec &unConverted = Vec(static_cast<double>(smoothedVerticies[triVert][0]), static_cast<double>(smoothedVerticies[triVert][1]), static_cast<double>(smoothedVerticies[triVert][2]));
-                const Vec &convertedCoords = planes[static_cast<unsigned int>(pNb)]->getLocalCoordinates(unConverted);
-
-                convertedVerticies.push_back(convertedCoords);      // add the converted vertex triVert
-                convertedColours.push_back(coloursIndicies[triVert]); // add its corresponding colour and normal
-
-                const Vec &unConvertedNorm = Vec(static_cast<double>(verticesNormals[triVert][0]), static_cast<double>(verticesNormals[triVert][1]), static_cast<double>(verticesNormals[triVert][2]));
-                const Vec &convertedNorm = planes[static_cast<unsigned int>(pNb)]->getLocalVector(unConvertedNorm);
-                convertedNormals.push_back(convertedNorm);
-
-                const int &vertexIndex = static_cast<int>(convertedVerticies.size()) - 1;
-                newTriangle.push_back(vertexIndex);  // set it to the last index of convertedVerticies
-
-                tempVerticies[triVert] = vertexIndex;       // Store the corresponding index in tempVerticies
-            }*/
             else{       // convert to the corresponding plane
                 int pNb = flooding[triVert];    // Get the plane nb
                 if(pNb >= static_cast<int>(planes.size())) pNb -= planes.size();      // The plane nb is referenced by the smallest side

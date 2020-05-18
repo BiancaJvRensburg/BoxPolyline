@@ -582,20 +582,6 @@ void Viewer::recieveFromFibulaMesh(std::vector<int> &planes, std::vector<Vec> ve
 
     // For each vertex and normal, convert it from the corresponding plane's coordinates to the mesh coordinates
     for(unsigned int i=0; i<verticies.size(); i++){
-        /*if(planes[i]==0){
-            normals[i] = leftPlane->getMeshVectorFromLocal(normals[i]);
-            verticies[i] = leftPlane->getMeshCoordinatesFromLocal(verticies[i]);
-        }
-        else if(planes[i]==1){
-            normals[i] = rightPlane->getMeshVectorFromLocal(normals[i]);
-            verticies[i] = rightPlane->getMeshCoordinatesFromLocal(verticies[i]);
-        }
-        else {
-            int mandPlane = (planes[i]+2) / 2 - 2;
-            normals[i] = ghostPlanes[static_cast<unsigned int>(mandPlane)]->getMeshVectorFromLocal(normals[i]);
-            verticies[i] = ghostPlanes[static_cast<unsigned int>(mandPlane)]->getMeshCoordinatesFromLocal(verticies[i]);
-        }*/
-
         if(planes[i]==0){
             normals[i] = poly.getWorldBoxTransform(leftPlane->getID(), normals[i]);
             verticies[i] = poly.getWorldBoxCoordinates(leftPlane->getID(), verticies[i]);
