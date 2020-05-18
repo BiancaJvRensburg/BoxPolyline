@@ -135,7 +135,7 @@ void ViewerFibula::projectToMesh(const std::vector<double>& distances){
     }
 
     // lower the entire polyline by 5mm
-    poly.lowerPolyline(Vec(0,-1,-1), 5.);
+    poly.lowerPolyline(Vec(0,-1,-1), 10.);
 }
 
 // Check if the projected distances match the actual distance. If not, modify it
@@ -239,19 +239,36 @@ void ViewerFibula::cut(){
 }
 
 void ViewerFibula::recieveFromFibulaMesh(std::vector<int> &planes, std::vector<Vec> &verticies, std::vector<std::vector<int>> &triangles, std::vector<int>& colours, std::vector<Vec> &normals, int nbColours){
-    for(unsigned int i=0; i<verticies.size(); i++){
-        if(planes[i]==0){
+    /*for(unsigned int i=0; i<verticies.size(); i++){
+        if(planes[i]==0){       // first box
             normals[i] = leftPlane->getLocalVector(normals[i]);
             verticies[i] = leftPlane->getLocalCoordinates(verticies[i]);
         }
-        else if(planes[i]==1){
+        else if(planes[i]==1){      // last box
             normals[i] = rightPlane->getLocalVector(normals[i]);
             verticies[i] = rightPlane->getLocalCoordinates(verticies[i]);
         }
-        else {
+        else {      // box = plane - 1
             int mandPlane = planes[i]-2;
             normals[i] = ghostPlanes[static_cast<unsigned int>(mandPlane)]->getLocalVector(normals[i]);
             verticies[i] = ghostPlanes[static_cast<unsigned int>(mandPlane)]->getLocalCoordinates(verticies[i]);
+        }
+    }*/
+
+    // Convert to box coordinates
+    for(unsigned int i=0; i<verticies.size(); i++){
+        if(planes[i]==0){
+            normals[i] = poly.getLocalBoxTransform(leftPlane->getID(), normals[i]);
+            verticies[i] = poly.getLocalBoxCoordinates(leftPlane->getID(), verticies[i]);
+        }
+        else if(planes[i]==1){
+            normals[i] = poly.getLocalBoxTransform(rightPlane->getID(), normals[i]);
+            verticies[i] = poly.getLocalBoxCoordinates(rightPlane->getID(), verticies[i]);
+        }
+        else {
+            int mandPlane = planes[i]-2;
+            normals[i] = poly.getLocalBoxTransform(ghostPlanes[static_cast<unsigned int>(mandPlane)]->getID(), normals[i]);
+            verticies[i] = poly.getLocalBoxCoordinates(ghostPlanes[static_cast<unsigned int>(mandPlane)]->getID(), verticies[i]);
         }
     }
 

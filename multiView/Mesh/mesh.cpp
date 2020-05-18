@@ -405,18 +405,18 @@ void Mesh::createSmoothedFibula(std::vector <std::vector <unsigned int>> &inters
 
         // Get one of the two flooding values we want for this segment
         int planeIndex = i + static_cast<int>(planes.size());
-        int planeOpposite = i;
+        //int planeOpposite = i;
         for(unsigned int j=0; j<segmentsConserved.size(); j++){
             if(segmentsConserved[j]==i){
                 planeIndex = i;
-                planeOpposite = i + static_cast<int>(planes.size());
+                //planeOpposite = i + static_cast<int>(planes.size());
                 break;
             }
         }
         int neighbourIndex = planeNeighbours[static_cast<unsigned int>(planeIndex)];
 
         for(unsigned long long j=0; j<intersectionTriangles[static_cast<unsigned long long>(i)].size(); j++){   // for each which intersects a plane
-            int actualFlooding = -1;    //  Conserve the "real" flooding value (won't stay at -1)
+            //int actualFlooding = -1;    //  Conserve the "real" flooding value (won't stay at -1)
 
             for(unsigned int k=0; k<3; k++){    // find which verticies are on the otherside of the cut
                 const unsigned int &vertexIndex = triangles[intersectionTriangles[static_cast<unsigned int>(i)][j]].getVertex(k);
@@ -425,7 +425,7 @@ void Mesh::createSmoothedFibula(std::vector <std::vector <unsigned int>> &inters
                 int flood = flooding[vertexIndex];
                 if(flood == planeIndex || flood == neighbourIndex) isOutlier = false; // Is the vertex in the segment we're currently dealing with?
 
-                if(isOutlier) actualFlooding = planeOpposite;      // if its not in the segment, set the flooding value to the opposite
+                //if(isOutlier) actualFlooding = planeOpposite;      // if its not in the segment, set the flooding value to the opposite
 
                 if(planeNeighbours[static_cast<unsigned int>(flooding[vertexIndex])]==-1 || !isOutlier){        // if we need to change it
                     Vec newVertex = getPolylineProjectedVertex(static_cast<unsigned int>(i), 0, vertexIndex);
@@ -434,10 +434,10 @@ void Mesh::createSmoothedFibula(std::vector <std::vector <unsigned int>> &inters
                 // else don't change the original
             }
 
-            for(unsigned int k=0; k<3; k++){
+           /* for(unsigned int k=0; k<3; k++){
                 const unsigned int &vertexIndex = triangles[intersectionTriangles[static_cast<unsigned int>(i)][j]].getVertex(k);
                 flooding[vertexIndex] = actualFlooding;
-            }
+            }*/
         }
     }
 }
@@ -600,7 +600,7 @@ void Mesh::sendToMandible(){
 
                 tempVerticies[triVert] = vertexIndex;       // Store the corresponding index in tempVerticies
             }
-        }      
+        }
         convertedTriangles.push_back(newTriangle);      // Add the triangle
     }
 
