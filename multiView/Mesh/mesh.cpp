@@ -224,6 +224,8 @@ void Mesh::updatePlaneIntersections(){
             }
         }
 
+        checkDoubleIntersections(intersectionTriangles);
+
         mergeFlood(planeNeighbours);
         cutMesh(intersectionTriangles, planeNeighbours);
     }
@@ -533,6 +535,33 @@ void Mesh::getIntersectionForPlane(unsigned int index, std::vector<unsigned int>
         if(planes[index]->isIntersection(Vec(vertices[t0]), Vec(vertices[t1]), Vec(vertices[t2]) ))        // if the triangle intersects the plane
             intersectionTrianglesPlane.push_back(i);
     }
+}
+
+void Mesh::checkDoubleIntersections(std::vector <std::vector <unsigned int>> &intersectionTriangles){     // are there triangles which intersect two planes?
+
+   /* for(unsigned int i=0; i<intersectionTriangles.size(); i++){
+        const std::vector<unsigned int>& intersections = intersectionTriangles[i];
+        for(unsigned int j=0; j<intersections.size(); j++){
+            int flood = flooding[triangles[intersections[j]].getVertex(0)];
+            if(flood != static_cast<int>(i) && flood != static_cast<int>(i+planes.size())){
+                for(unsigned int k=0; k<3; k++){
+                    const unsigned int &v = triangles[intersections[j]].getVertex(k);
+                    int neighbour = flooding[v];        // get the neighbouring plane of each vertex in the triangle
+                    std::cout << "Neighbour : " << neighbour << " ; " << i << std::endl;
+                    double sign = planes[i]->getSign(Vec(vertices[v]));
+                    if(neighbour == i && sign >= 0){
+                        std::cout << "Switched" << std::endl;
+                        flooding[v] = i + planes.size();
+                    }
+                    else if(neighbour == i+planes.size() && sign < 0){
+                        std::cout << "Switched" << std::endl;
+                        flooding[v] = i;
+                    }
+                }
+            }
+        }
+    }*/
+
 }
 
 // TODO simplify

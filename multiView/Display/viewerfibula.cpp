@@ -78,7 +78,7 @@ void ViewerFibula::initGhostPlanes(Movable s){
     deleteGhostPlanes();        // delete any previous ghost planes
     double size = leftPlane->getSize();
     for(unsigned int i=0; i<(poly.getNbPoints()-4)*2; i++){     // -2 for total nb of planes, another -2 for nb of ghost planes
-        Plane *p1 = new Plane(size, s, .5f, i/2+2);
+        Plane *p1 = new Plane(size, s, .5f, (i+1)/2+1);
         ghostPlanes.push_back(p1);
         //ghostPlanes[i]->setPosition(poly.getMeshPoint((i+2)/2));
         ghostPlanes[i]->setPosition(poly.getMeshBoxPoint((i+2)/2));
@@ -166,7 +166,10 @@ unsigned int ViewerFibula::getClosestDistance(unsigned int index, const double &
 // Position the planes on their corresponding polyline points
 void ViewerFibula::repositionPlanesOnPolyline(){
     leftPlane->setPosition(poly.getMeshBoxPoint(leftPlane->getID()));
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setPosition(poly.getMeshBoxPoint(ghostPlanes[i]->getID()));
+    for(unsigned int i=0; i<ghostPlanes.size(); i+=2){
+        ghostPlanes[i]->setPosition(poly.getMeshBoxEnd(ghostPlanes[i]->getID()));
+        ghostPlanes[i+1]->setPosition(poly.getMeshPoint(ghostPlanes[i+1]->getID()));
+    }
     rightPlane->setPosition(poly.getMeshBoxPoint(rightPlane->getID()));
 }
 
@@ -201,10 +204,11 @@ void ViewerFibula::rotatePolyline(){
 
 // Rotate the boxes
 void ViewerFibula::rotatePolylineOnAxisFibula(double r){
-    uncut();
-    for(unsigned int i=0; i<poly.getNbPoints()-1; i++) poly.rotateBox(i, r);
-    //poly.rotateBox(1,r);
-    cut();
+    bool isOriginallyCut = isCut;
+    if(isOriginallyCut) uncut();
+    //for(unsigned int i=0; i<poly.getNbPoints()-1; i++) poly.rotateBox(i, r);
+    poly.rotateBox(1,r);
+    if(isOriginallyCut) cut();
     update();
 }
 
@@ -236,6 +240,7 @@ void ViewerFibula::cut(){
     }
 
     mesh.setIsCut(Side::EXTERIOR, true, true);    // call the update if an exterior plane isn't going to
+    isCut = true;
 
     update();
 }
@@ -263,6 +268,7 @@ void ViewerFibula::recieveFromFibulaMesh(std::vector<int> &planes, std::vector<V
 
 void ViewerFibula::uncut(){
     mesh.setIsCut(Side::EXTERIOR, false, false);
+    isCut = false;
 
     update();
 }

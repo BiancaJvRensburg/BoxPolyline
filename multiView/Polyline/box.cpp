@@ -117,3 +117,9 @@ void Box::restoreRotation(){
 Vec Box::getLocation(){
     return f.position();
 }
+
+Vec Box::getEnd(){
+    Vec t = tangent*getLength();
+
+    return worldCoordinates(t);
+}

@@ -80,6 +80,7 @@ protected:
 
     void planeIntersection(unsigned int index, std::vector <unsigned int> &intersectionTrianglesPlane);
     void getIntersectionForPlane(unsigned int index, std::vector <unsigned int> &intersectionTrianglesPlane);
+    void checkDoubleIntersections(std::vector <std::vector <unsigned int>> &intersectionTriangles);
 
     void floodNeighbour(unsigned int index, int id, std::vector<int> &planeNeighbours);     // flood the neighbours of the vertex index with the value id
     void mergeFlood(const std::vector<int> &planeNeighbours);      // to be called after flooding; merges the regions between the planes
