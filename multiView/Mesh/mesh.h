@@ -104,6 +104,8 @@ protected:
     std::vector <Triangle> triangles;       // starting triangles
     std::vector <Plane*> planes;
 
+    std::vector<bool> isSharedVertex;
+
     std::vector<std::vector<unsigned int>> oneRing;
     std::vector<std::vector<unsigned int>> oneTriangleRing;
     std::vector<int> flooding;
@@ -130,6 +132,8 @@ protected:
     float alphaTransparency = 1.f;
     Vec3Df BBMin;
     Vec3Df BBMax;
+
+    std::vector <std::vector <unsigned int>> tempIntersections;
 
     Eigen::MatrixXd pointsToMatrix(const std::vector<Vec3Df> &basePoints, const int dimension);
     Eigen::MatrixXd mat;

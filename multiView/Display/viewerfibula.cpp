@@ -76,7 +76,8 @@ void ViewerFibula::updatePlaneOrientations(std::vector<Vec> &normals){
 
 void ViewerFibula::initGhostPlanes(Movable s){
     deleteGhostPlanes();        // delete any previous ghost planes
-    double size = leftPlane->getSize();
+    //double size = leftPlane->getSize();
+    double size = 20.;
     for(unsigned int i=0; i<(poly.getNbPoints()-4)*2; i++){     // -2 for total nb of planes, another -2 for nb of ghost planes
         Plane *p1 = new Plane(size, s, .5f, (i+1)/2+1);
         ghostPlanes.push_back(p1);
@@ -84,6 +85,9 @@ void ViewerFibula::initGhostPlanes(Movable s){
         ghostPlanes[i]->setPosition(poly.getMeshBoxPoint((i+2)/2));
         ghostPlanes[i]->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
     }
+
+    leftPlane->setSize(size);
+    rightPlane->setSize(size);
 
     // Connect the planes' movement. If bend the polyline if a plane is moved by hand.
     /*connect(&(leftPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);
@@ -117,7 +121,7 @@ void ViewerFibula::toggleIsPolyline(){
 
 // Project the polyline onto the fibula mesh
 void ViewerFibula::projectToMesh(const std::vector<double>& distances){
-    unsigned int nbU = 20;
+    unsigned int nbU = 50;
     constructSegmentPoints(nbU);     // construct the new polyline with segments
 
     std::vector<Vec> outputPoints;
@@ -135,7 +139,7 @@ void ViewerFibula::projectToMesh(const std::vector<double>& distances){
     }
 
     // lower the entire polyline by 5mm
-    poly.lowerPolyline(Vec(0,-1,-1), 10.);
+    poly.lowerPolyline(Vec(0,-.5,-1), 7.5);
 }
 
 // Check if the projected distances match the actual distance. If not, modify it

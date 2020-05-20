@@ -44,6 +44,7 @@ public:
     Vec getProjection(Vec p);
     Vec getLocalProjection(Vec p);      // for vectors already in local coordinates
     Vec getPosition(){ return cp.getPosition(); }
+    Vec getCentrePosition(){ return cp.getFrame().inverseCoordinatesOf( Vec(size/2., size/2., 0));}
     CurvePoint& getCurvePoint(){ return cp; }
 
     Vec getLocalCoordinates(Vec v) { return cp.getFrame().localCoordinatesOf(v); }    // same as get polyline

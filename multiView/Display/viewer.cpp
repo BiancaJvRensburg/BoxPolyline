@@ -180,7 +180,7 @@ void Viewer::initGhostPlanes(Movable s){
 void Viewer::updateCamera(const Vec& center, float radius){
     camera()->setSceneCenter(center);
     camera()->setSceneRadius(static_cast<double>(radius*1.05f));
-    camera()->setZClippingCoefficient(static_cast<double>(radius));
+    camera()->setZClippingCoefficient(static_cast<double>(10.));
     camera()->showEntireScene();
 }
 

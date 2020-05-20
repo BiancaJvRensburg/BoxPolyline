@@ -123,3 +123,9 @@ Vec Box::getEnd(){
 
     return worldCoordinates(t);
 }
+
+Vec Box::getMidPoint(){
+    Vec m = binormal*getWidth();
+
+    return worldCoordinates(m);
+}

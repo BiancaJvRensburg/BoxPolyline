@@ -30,6 +30,7 @@ public:
     Vec worldNormal(){ return worldTransform(normal); }
     Vec getLocation();
     Vec getEnd();
+    Vec getMidPoint();
     const Vec& getNormal(){ return normal; }
     const Vec& getBinormal(){ return binormal; }
     void restoreRotation();
