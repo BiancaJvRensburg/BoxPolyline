@@ -1,9 +1,9 @@
 #ifndef POLYLINE_H
 #define POLYLINE_H
 
-#include "curvepoint.h"
+#include "Planes/curvepoint.h"
 #include "box.h"
-#include "plane.h"
+#include "Planes/plane.h"
 
 class Polyline
 {
@@ -21,16 +21,25 @@ public:
     Vec& getPoint(unsigned int i){return points[i];}
     Vec getMeshPoint(unsigned int i){ return getWorldCoordinates(points[i]); }
     Vec getMeshBoxPoint(unsigned int i){ return getWorldCoordinates(boxes[i].getLocation()); }
+    Vec getMeshBoxMiddle(unsigned int i){ return getWorldCoordinates(boxes[i].getMidPoint()); }
+    Vec getMeshBoxEnd(unsigned int i){ return getWorldCoordinates(boxes[i].getEnd()); }
+
     Vec getWorldCoordinates(const Vec& v){ return frame.localInverseCoordinatesOf(v);}
     Vec getLocalCoordinates(const Vec& v){ return frame.localCoordinatesOf(v);}
     Vec getWorldTransform(const Vec& v){ return frame.localInverseTransformOf(v);}
     Vec getLocalTransform(const Vec& v){ return frame.localTransformOf(v); }
+
+    Vec getLocalBoxCoordinates(unsigned int i, const Vec &v){ return boxes[i].localCoordinates( getLocalCoordinates(v) ); }
+    Vec getLocalBoxTransform(unsigned int i, const Vec &v){ return boxes[i].localTransform( getLocalTransform(v) ); }
+    Vec getWorldBoxCoordinates(unsigned int i, const Vec &v){ return getWorldCoordinates(boxes[i].worldCoordinates(v)); }
+    Vec getWorldBoxTransform(unsigned int i, const Vec &v){ return getWorldTransform(boxes[i].worldTransform(v)); }
 
     void bend(unsigned int index, Vec &newPosition, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
     void bendFibula(unsigned int index, Vec &newPosition);
     void getDistances(std::vector<double>& distances);
     void lowerPoint(unsigned int index, const Vec &toLower);
     const std::vector<Vec>& getPoints(){ return points; }
+    void lowerPolyline(Vec localDirection, double distance);
 
     const Vec& getNormal(){ return normal; }
     const Vec& getBinormal(){ return binormal; }

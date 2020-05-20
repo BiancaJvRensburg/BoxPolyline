@@ -1,7 +1,7 @@
 #ifndef CURVEPOINT_H
 #define CURVEPOINT_H
 
-#include "controlpoint.h"
+#include "Curve/controlpoint.h"
 
 class CurvePoint : public ControlPoint
 {
@@ -12,6 +12,7 @@ public:
 
     void setPosition(Vec& p){ mf.setPosition(p.x, p.y, p.z); } //this->p = p;  }
     void setID(unsigned int id){ this->id = id; }
+    Vec getPosition(){ return  mf.position(); }
 
     Quaternion getOrientation(){ return mf.orientation(); }
 

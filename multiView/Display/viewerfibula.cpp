@@ -5,6 +5,10 @@ ViewerFibula::ViewerFibula(QWidget *parent, StandardCamera *camera, int sliderMa
     polyRotation = 0;
 }
 
+void ViewerFibula::initSignals(){
+    connect(&mesh, &Mesh::sendInfoToManible, this, &ViewerFibula::recieveFromFibulaMesh);
+}
+
 // Set the start of the polyline and update the distances.
 void ViewerFibula::updateFibPolyline(const Vec& firstPoint, const std::vector<double>& distances){
     poly.setFirstPoint(firstPoint);
@@ -72,14 +76,18 @@ void ViewerFibula::updatePlaneOrientations(std::vector<Vec> &normals){
 
 void ViewerFibula::initGhostPlanes(Movable s){
     deleteGhostPlanes();        // delete any previous ghost planes
-    double size = leftPlane->getSize();
+    //double size = leftPlane->getSize();
+    double size = 20.;
     for(unsigned int i=0; i<(poly.getNbPoints()-4)*2; i++){     // -2 for total nb of planes, another -2 for nb of ghost planes
-        Plane *p1 = new Plane(size, s, .5f, i/2+2);
+        Plane *p1 = new Plane(size, s, .5f, (i+1)/2+1);
         ghostPlanes.push_back(p1);
         //ghostPlanes[i]->setPosition(poly.getMeshPoint((i+2)/2));
         ghostPlanes[i]->setPosition(poly.getMeshBoxPoint((i+2)/2));
         ghostPlanes[i]->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
     }
+
+    leftPlane->setSize(size);
+    rightPlane->setSize(size);
 
     // Connect the planes' movement. If bend the polyline if a plane is moved by hand.
     /*connect(&(leftPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);
@@ -113,13 +121,11 @@ void ViewerFibula::toggleIsPolyline(){
 
 // Project the polyline onto the fibula mesh
 void ViewerFibula::projectToMesh(const std::vector<double>& distances){
-    unsigned int nbU = 20;
+    unsigned int nbU = 50;
     constructSegmentPoints(nbU);     // construct the new polyline with segments
 
     std::vector<Vec> outputPoints;
     mesh.mlsProjection(segmentPoints, outputPoints);
-
-    outTemp = outputPoints;
 
     std::vector<unsigned int> segIndexes;
     for(unsigned int i=0; i<poly.getNbPoints(); i++) segIndexes.push_back(i*nbU);
@@ -132,20 +138,12 @@ void ViewerFibula::projectToMesh(const std::vector<double>& distances){
         bendPolyline(i, outputPoints[segIndexes[i]]);
     }
 
-    /*std::cout << "Actual end distances : " << std::endl;
-    for(unsigned int i=0; i<poly.getNbPoints()-1; i++) std::cout << i << " : " << euclideanDistance(poly.getMeshPoint(i), poly.getMeshPoint(i+1)) << std::endl;
-*/
-
+    // lower the entire polyline by 5mm
+    poly.lowerPolyline(Vec(0,-.5,-1), 7.5);
 }
 
 // Check if the projected distances match the actual distance. If not, modify it
 void ViewerFibula::matchDistances(const std::vector<double> &distances, std::vector<unsigned int> &segIndexes, std::vector<Vec> &outputPoints, double epsilon, const unsigned int &searchRadius){
-    /*std::cout << "Target distances : " << std::endl;
-    for(unsigned int i=0; i<distances.size(); i++) std::cout << i << " : " << distances[i] << std::endl;
-
-    std::cout << "Actual distances : " << std::endl;
-    for(unsigned int i=0; i<poly.getNbPoints()-1; i++) std::cout << i << " : " << euclideanDistance(outputPoints[segIndexes[i]], outputPoints[segIndexes[i+1]]) << std::endl;
-*/
     for(unsigned int i=1; i<poly.getNbPoints()-2; i++){
         segIndexes[i+1] = getClosestDistance(i, distances[i], segIndexes, outputPoints, searchRadius);
     }
@@ -172,7 +170,10 @@ unsigned int ViewerFibula::getClosestDistance(unsigned int index, const double &
 // Position the planes on their corresponding polyline points
 void ViewerFibula::repositionPlanesOnPolyline(){
     leftPlane->setPosition(poly.getMeshBoxPoint(leftPlane->getID()));
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setPosition(poly.getMeshBoxPoint(ghostPlanes[i]->getID()));
+    for(unsigned int i=0; i<ghostPlanes.size(); i+=2){
+        ghostPlanes[i]->setPosition(poly.getMeshBoxEnd(ghostPlanes[i]->getID()));
+        ghostPlanes[i+1]->setPosition(poly.getMeshPoint(ghostPlanes[i+1]->getID()));
+    }
     rightPlane->setPosition(poly.getMeshBoxPoint(rightPlane->getID()));
 }
 
@@ -185,7 +186,7 @@ void ViewerFibula::constructPolyline(const std::vector<double>& distances, const
 
     initPolyPlanes(Movable::DYNAMIC);       // Set the planes on the polyline
 
-    toggleIsPolyline();     // The polyline is currently going through the centre of the planes, change it to the corner
+   toggleIsPolyline();     // The polyline is currently going through the centre of the planes, change it to the corner
 
     Q_EMIT okToPlacePlanes(newPoints);      // Tell the mandible it can now place its planes on the polyline. (Send its points back).
 }
@@ -207,8 +208,11 @@ void ViewerFibula::rotatePolyline(){
 
 // Rotate the boxes
 void ViewerFibula::rotatePolylineOnAxisFibula(double r){
-    for(unsigned int i=0; i<poly.getNbPoints()-1; i++) poly.rotateBox(i, r);
-    //poly.rotateBox(1,r);
+    bool isOriginallyCut = isCut;
+    if(isOriginallyCut) uncut();
+    //for(unsigned int i=0; i<poly.getNbPoints()-1; i++) poly.rotateBox(i, r);
+    poly.rotateBox(1,r);
+    if(isOriginallyCut) cut();
     update();
 }
 
@@ -232,4 +236,43 @@ void ViewerFibula::constructSegmentPoints(unsigned int nbU){
 
 double ViewerFibula::euclideanDistance(const Vec &a, const Vec &b){
     return sqrt(pow(a.x-b.x, 2.) + pow(a.y-b.y, 2.) + pow(a.z-b.z, 2.));
+}
+
+void ViewerFibula::cut(){
+    for(unsigned int i=0; i<ghostPlanes.size(); i++){
+        mesh.addPlane(ghostPlanes[i]);
+    }
+
+    mesh.setIsCut(Side::EXTERIOR, true, true);    // call the update if an exterior plane isn't going to
+    isCut = true;
+
+    update();
+}
+
+void ViewerFibula::recieveFromFibulaMesh(std::vector<int> &planes, std::vector<Vec> &verticies, std::vector<std::vector<int>> &triangles, std::vector<int>& colours, std::vector<Vec> &normals, int nbColours){
+    // Convert to box coordinates
+    for(unsigned int i=0; i<verticies.size(); i++){
+        if(planes[i]==0){
+            normals[i] = poly.getLocalBoxTransform(leftPlane->getID(), normals[i]);
+            verticies[i] = poly.getLocalBoxCoordinates(leftPlane->getID(), verticies[i]);
+        }
+        else if(planes[i]==1){
+            normals[i] = poly.getLocalBoxTransform(rightPlane->getID(), normals[i]);
+            verticies[i] = poly.getLocalBoxCoordinates(rightPlane->getID(), verticies[i]);
+        }
+        else {
+            int fibPlane = planes[i]-2;
+            normals[i] = poly.getLocalBoxTransform(ghostPlanes[static_cast<unsigned int>(fibPlane)]->getID(), normals[i]);
+            verticies[i] = poly.getLocalBoxCoordinates(ghostPlanes[static_cast<unsigned int>(fibPlane)]->getID(), verticies[i]);
+        }
+    }
+
+    Q_EMIT sendToManible(planes, verticies, triangles, colours, normals, nbColours);
+}
+
+void ViewerFibula::uncut(){
+    mesh.setIsCut(Side::EXTERIOR, false, false);
+    isCut = false;
+
+    update();
 }

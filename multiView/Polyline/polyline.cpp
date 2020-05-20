@@ -1,5 +1,5 @@
 #include "polyline.h"
-#include "point3.h"
+#include "Tools/point3.h"
 
 Polyline::Polyline()
 {
@@ -44,7 +44,7 @@ void Polyline::draw(){
 
     glColor3f(1.,1.,1.);
 
-    QGLViewer::drawAxis(20.);
+    // QGLViewer::drawAxis(20.);
 
     // The polyline
     glLineWidth(5.);
@@ -63,85 +63,19 @@ void Polyline::draw(){
     for(unsigned int i=0; i<points.size(); i++) glVertex3d(points[i].x, points[i].y, points[i].z);
     glEnd();
 
-    if(isWireframe) glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
     for(unsigned int i=0; i<boxes.size(); i++){
-        glColor4f(0,i%2,(i+1)%2, boxTransparency);
-        boxes[i].draw();
+        glColor4f(0,0,0, boxTransparency);
+        boxes[i].draw(0);
     }
     glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 
-    /*glColor3f(1.,.75,0);
-        double size = 40.;
-           glBegin(GL_LINES);
-           for(unsigned int i=0; i<cuttingBinormals.size(); i++){
-               Vec endPoint = points[i+1]+size*cuttingBinormals[i];
-               glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
-               glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-           }
-           for(unsigned int i=0; i<testBinorms.size(); i++){
-               Vec endPoint = points[i+1]+size*testBinorms[i];
-               glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
-               glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-           }
-
-           glColor3f(1.,0,0);
-           for(unsigned int i=0; i<testNorms.size(); i++){
-               Vec endPoint = points[i+1]+size*testNorms[i];
-               glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
-               glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-           }
-           for(unsigned int i=0; i<cuttingLines.size(); i++){
-               Vec endPoint = points[i+1]+size*cuttingLines[i];
-               glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
-               glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-           }*/
-            /*for(unsigned int i=0; i<originalCuttingLines.size(); i++){
-                Vec endPoint = points[i+1]+size*originalCuttingLines[i];
-                glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
-                glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-            }*/
-            /*for(unsigned int i=0; i<cuttingTangents.size(); i++){
-                Vec endPoint = points[i+1]+size*cuttingTangents[i];
-                glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
-                glVertex3d(endPoint.x, endPoint.y, endPoint.z);
-            }*/
-        //glEnd();
-
-
-
-       /* glColor3f(1., 0., 0.);
-        float s = 20.;
-       glBegin(GL_LINES);
-       Vec endPoint = points[0]+s*segmentNormals[0];
-       glVertex3f(points[0].x, points[0].y, points[0].z);
-       glVertex3f(endPoint.x, endPoint.y, endPoint.z);
-       for(unsigned int i=1; i<points.size()-1; i++){
-           for(unsigned int j=0; j<2; j++){
-               endPoint = points[i]+s*segmentNormals[i-j];
-               glVertex3f(points[i].x, points[i].y, points[i].z);
-               glVertex3f(endPoint.x, endPoint.y, endPoint.z);
-           }
-       }
-       endPoint = points.back()+s*segmentNormals.back();
-       glVertex3f(points.back().x, points.back().y, points.back().z);
-       glVertex3f(endPoint.x, endPoint.y, endPoint.z);
-       glEnd();
-    glColor3f(1., 1., 0.);
-        glBegin(GL_LINES);
-        endPoint = points[0]+s*segmentBinormals[0];
-        glVertex3f(points[0].x, points[0].y, points[0].z);
-        glVertex3f(endPoint.x, endPoint.y, endPoint.z);
-        for(unsigned int i=1; i<points.size()-1; i++){
-            for(unsigned int j=0; j<2; j++){
-                endPoint = points[i]+s*segmentBinormals[i-j];
-                glVertex3f(points[i].x, points[i].y, points[i].z);
-                glVertex3f(endPoint.x, endPoint.y, endPoint.z);
-            }
+    if(!isWireframe){
+        for(unsigned int i=0; i<boxes.size(); i++){
+            glColor4f(0,i%2,(i+1)%2, boxTransparency);
+            boxes[i].draw(-0.1);
         }
-        endPoint = points.back()+s*segmentBinormals.back();
-        glVertex3f(points.back().x, points.back().y, points.back().z);
-        glVertex3f(endPoint.x, endPoint.y, endPoint.z);
-        glEnd();*/
+    }
 
     glPopMatrix();
 
@@ -277,7 +211,7 @@ void Polyline::recalculateNormal(unsigned int index, const Vec &origin, const Ve
 }
 
 void Polyline::recalculateBinormal(unsigned int index, const Vec &origin, const Vec &newPosition){
-    Vec pos = newPosition - origin;     // Calculate an orthogonal vector on the plane
+    /*Vec pos = newPosition - origin;     // Calculate an orthogonal vector on the plane
     pos.normalize();
     pos.z = 0;        // The new polyline projected in the z plane
 
@@ -290,19 +224,21 @@ void Polyline::recalculateBinormal(unsigned int index, const Vec &origin, const 
     segmentBinormals[index] = Vec(x,y,0);
     segmentBinormals[index].normalize();
 
-    recalculateNormal(index, newPosition, origin);
+    recalculateNormal(index, newPosition, origin);*/
 
-        /* point3d  Nprev = normal;
+         point3d  Nprev = normal;
          point3d  Tprev = tangent;
 
          point3d  T0 = newPosition - origin;        // the polyline tangent
-         point3d  N0 = index == 0 ? T0.getOrthogonal() :
+         point3d  N0 = T0.getOrthogonal(); //index == 0 ? T0.getOrthogonal() :
          point3d::rotateVectorSimilarly( Nprev , Tprev , T0  );
 
          point3d  B0 = point3d::cross( T0 , N0 );
 
-         segmentNormals[index] = Vec(N0);
-         segmentBinormals[index] = -Vec(B0);*/
+         segmentNormals[index] = - Vec(B0);
+         segmentBinormals[index] = - Vec(N0);
+         segmentNormals[index].normalize();
+         segmentBinormals[index].normalize();
  }
 
 Vec Polyline::vectorQuaternionRotation(double theta, const Vec &axis, const Vec &vectorToRotate){
@@ -425,4 +361,12 @@ void Polyline::getRelativePlane(Plane &p, std::vector<Vec> &norms){
 void Polyline::getDirections(std::vector<Vec> &directions){
     directions.clear();
     for(unsigned int i=0; i<boxes.size(); i++) directions.push_back(getWorldTransform(boxes[i].worldTangent()));
+}
+
+
+// Move the entire polyline
+void Polyline::lowerPolyline(Vec localDirection, double distance){
+    Vec p = frame.position();
+    Vec worldDirection = getWorldTransform(localDirection);     // convert to world coordinates
+    frame.setPosition(p+worldDirection*distance);
 }

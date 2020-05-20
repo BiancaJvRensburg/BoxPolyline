@@ -2,11 +2,11 @@
 #define VIEWER_H
 
 #include <QGLViewer/qglviewer.h>
-#include "standardcamera.h"
-#include "plane.h"
-#include "curve.h"
-#include "polyline.h"
-#include "mesh.h"
+#include "Tools/standardcamera.h"
+#include "Planes/plane.h"
+#include "Curve/curve.h"
+#include "Polyline/polyline.h"
+#include "Mesh/mesh.h"
 
 using namespace qglviewer;
 
@@ -33,8 +33,10 @@ public Q_SLOTS:
     void setPlaneAlpha(int);
     void setMeshAlpha(int);
     void setBoxAlpha(int);
-    void cut();
+    virtual void cut();
+    virtual void uncut();
     void toggleWireframe();
+    void recieveFromFibulaMesh(std::vector<int>&, std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
@@ -44,10 +46,12 @@ Q_SIGNALS:
     void toUpdatePlaneOrientations(std::vector<Vec>&);
     void toRotatePolylineOnAxis(double);
     void planeMoved(double);
+    void sendFibulaToMesh(std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
 
 protected:
     void draw();
     void init();
+    virtual void initSignals();
     virtual void constructCurve();
     virtual void initGhostPlanes(Movable s);
     void initPolyPlanes(Movable s);
@@ -65,6 +69,7 @@ protected:
     void deconstructPolyline();
     void getPlaneBoxOrientations(std::vector<Vec>& norms);
     void simpleBend(const unsigned int &pointIndex, Vec v, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
+    void lowerPoints(double size, Vec localDirection);
 
 
     double angle(Vec a, Vec b);
@@ -93,7 +98,6 @@ protected:
 
     int polyRotation;
 
-    std::vector<Vec> outTemp;
     std::vector<Vec> segmentPoints;
 
 private:

@@ -10,7 +10,7 @@ class Box
 {
 public:
     Box();
-    void draw();
+    void draw(double offset);
     void init(const Frame *ref);
     void setPosition(const Vec& v){ f.setPosition(v); }
     void setFrameFromBasis(Vec x, Vec y, Vec z);
@@ -22,11 +22,15 @@ public:
     const double& getHeight(){ return dimensions.z; }
     void rotateOnAxis(double angle);
     Vec localTransform(Vec v){ return f.localTransformOf(v); }
+    Vec localCoordinates(Vec v){ return f.localCoordinatesOf(v); }
+    Vec worldCoordinates(Vec v){ return f.localInverseCoordinatesOf(v); }
     Vec worldTransform(Vec v){ return f.localInverseTransformOf(v); }
     Vec worldTangent(){ return worldTransform(tangent); }
     Vec worldBinormal(){ return worldTransform(binormal); }
     Vec worldNormal(){ return worldTransform(normal); }
     Vec getLocation();
+    Vec getEnd();
+    Vec getMidPoint();
     const Vec& getNormal(){ return normal; }
     const Vec& getBinormal(){ return binormal; }
     void restoreRotation();

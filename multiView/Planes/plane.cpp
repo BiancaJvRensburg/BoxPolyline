@@ -145,7 +145,7 @@ bool Plane::isIntersection(Vec v0, Vec v1, Vec v2){
             if(abs(d) > 1.0) continue;
 
             Vec intersection = d*l + tr[i];
-            if(abs(intersection.x) < size && abs(intersection.y) < size) return true;
+            if(abs(intersection.x) < size*2. && abs(intersection.y) < size*2.) return true;
         }
     }
 

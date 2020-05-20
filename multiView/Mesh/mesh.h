@@ -1,9 +1,9 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include "vec3D.h"
-#include "triangle.h"
-#include "plane.h"
+#include "Tools/vec3D.h"
+#include "Tools/triangle.h"
+#include "Planes/plane.h"
 #include <queue>
 #include <Eigenvalues>
 #include <nanoflann.hpp>
@@ -62,10 +62,10 @@ public:
     void mlsProjection(const std::vector<Vec> &inputPoints, std::vector<Vec> &outputPoints);
 
 public Q_SLOTS:
-    void recieveInfoFromFibula(const std::vector<Vec>&, const std::vector<std::vector<int>>&, const std::vector<int>&, const std::vector<Vec>&, const int);
+    void recieveInfoFromFibula(std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
 
 Q_SIGNALS:
-    void sendInfoToManible(const std::vector<int>&, const std::vector<Vec>&, const std::vector<std::vector<int>>&, const std::vector<int>&, const std::vector<Vec>&, int);
+    void sendInfoToManible(std::vector<int>&, std::vector<Vec>&, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>&, int);
     void updateViewer();
 
 protected:
@@ -78,10 +78,10 @@ protected:
     void collectOneRing(std::vector<std::vector<unsigned int>> &oneRing);
     void collectTriangleOneRing(std::vector<std::vector<unsigned int>> &oneTriangleRing);
 
-    void planeIntersection(unsigned int index, std::vector <unsigned int> &intersectionTrianglesPlane);
+    void planeIntersection(unsigned int index, std::vector <unsigned int> &intersectionTrianglesPlane, std::vector<bool>& isSharedVertex);
     void getIntersectionForPlane(unsigned int index, std::vector <unsigned int> &intersectionTrianglesPlane);
 
-    void floodNeighbour(unsigned int index, int id, std::vector<int> &planeNeighbours);     // flood the neighbours of the vertex index with the value id
+    void floodNeighbour(unsigned int index, int id, std::vector<int> &planeNeighbours, std::vector<bool>& isSharedVertex);     // flood the neighbours of the vertex index with the value id
     void mergeFlood(const std::vector<int> &planeNeighbours);      // to be called after flooding; merges the regions between the planes
 
     void createSmoothedTriangles(std::vector <std::vector <unsigned int>> &intersectionTriangles, const std::vector<int> &planeNeighbours);
