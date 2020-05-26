@@ -78,11 +78,10 @@ protected:
     void collectOneRing(std::vector<std::vector<unsigned int>> &oneRing);
     void collectTriangleOneRing(std::vector<std::vector<unsigned int>> &oneTriangleRing);
 
-    void planeIntersection(unsigned int index, std::vector <unsigned int> &intersectionTrianglesPlane);
+    void planeIntersection(unsigned int index, std::vector <unsigned int> &intersectionTrianglesPlane, std::vector<bool>& isSharedVertex);
     void getIntersectionForPlane(unsigned int index, std::vector <unsigned int> &intersectionTrianglesPlane);
-    void checkDoubleIntersections(std::vector <std::vector <unsigned int>> &intersectionTriangles);
 
-    void floodNeighbour(unsigned int index, int id, std::vector<int> &planeNeighbours);     // flood the neighbours of the vertex index with the value id
+    void floodNeighbour(unsigned int index, int id, std::vector<int> &planeNeighbours, std::vector<bool>& isSharedVertex);     // flood the neighbours of the vertex index with the value id
     void mergeFlood(const std::vector<int> &planeNeighbours);      // to be called after flooding; merges the regions between the planes
 
     void createSmoothedTriangles(std::vector <std::vector <unsigned int>> &intersectionTriangles, const std::vector<int> &planeNeighbours);
@@ -103,8 +102,6 @@ protected:
     std::vector <Vec3Df> vertices;      // starting verticies
     std::vector <Triangle> triangles;       // starting triangles
     std::vector <Plane*> planes;
-
-    std::vector<bool> isSharedVertex;
 
     std::vector<std::vector<unsigned int>> oneRing;
     std::vector<std::vector<unsigned int>> oneTriangleRing;
@@ -132,8 +129,6 @@ protected:
     float alphaTransparency = 1.f;
     Vec3Df BBMin;
     Vec3Df BBMax;
-
-    std::vector <std::vector <unsigned int>> tempIntersections;
 
     Eigen::MatrixXd pointsToMatrix(const std::vector<Vec3Df> &basePoints, const int dimension);
     Eigen::MatrixXd mat;

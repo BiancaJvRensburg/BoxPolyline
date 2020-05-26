@@ -202,8 +202,7 @@ void Mesh::deleteGhostPlanes(){
 void Mesh::updatePlaneIntersections(){
     if(isCut){
 
-        isSharedVertex.clear();
-        for(unsigned int i=0; i<vertices.size(); i++) isSharedVertex.push_back(false);
+        std::vector<bool> isSharedVertex(vertices.size(), false);
 
         std::vector <std::vector <unsigned int>> intersectionTriangles;
         intersectionTriangles.resize(planes.size());
@@ -213,7 +212,7 @@ void Mesh::updatePlaneIntersections(){
 
         std::vector<int> planeNeighbours;
         for(unsigned int i=0; i<planes.size()*2; i++) planeNeighbours.push_back(-1);
-        for(unsigned int i=0; i<planes.size(); i++) planeIntersection(i, intersectionTriangles[i]);
+        for(unsigned int i=0; i<planes.size(); i++) planeIntersection(i, intersectionTriangles[i], isSharedVertex);
 
         for(unsigned int i=0; i<intersectionTriangles.size(); i++){
             std::vector<unsigned int> &triIndexes = intersectionTriangles[i];
@@ -222,18 +221,11 @@ void Mesh::updatePlaneIntersections(){
                     Triangle &t = triangles[triIndexes[k]];
                     unsigned int index = t.getVertex(l);
                     for(unsigned int j=0; j<oneRing[index].size(); j++){
-                        floodNeighbour(oneRing[index][j], flooding[index], planeNeighbours);
+                        floodNeighbour(oneRing[index][j], flooding[index], planeNeighbours, isSharedVertex);
                     }
                 }
             }
         }
-
-        tempIntersections = intersectionTriangles;
-
-        std::cout << "Plane neighbours : " << std::endl;
-        for(unsigned int i=0; i<planeNeighbours.size(); i++) std::cout << i << " : " << planeNeighbours[i] << std::endl;
-
-        //checkDoubleIntersections(intersectionTriangles);
 
         mergeFlood(planeNeighbours);
         cutMesh(intersectionTriangles, planeNeighbours);
@@ -467,7 +459,7 @@ void Mesh::updatePlaneIntersections(Plane *p){
     updatePlaneIntersections();
 }
 
-void Mesh::floodNeighbour(unsigned int index, int id, std::vector<int> &planeNeighbours){
+void Mesh::floodNeighbour(unsigned int index, int id, std::vector<int> &planeNeighbours, std::vector<bool>& isSharedVertex){
     std::queue<unsigned int> toFlood;
     toFlood.push(index);
 
@@ -510,7 +502,7 @@ void Mesh::mergeFlood(const std::vector<int> &planeNeighbours){
 }
 
 // Finds all the intersecting triangles for plane nb index
-void Mesh::planeIntersection(unsigned int index, std::vector <unsigned int> &intersectionTrianglesPlane){
+void Mesh::planeIntersection(unsigned int index, std::vector <unsigned int> &intersectionTrianglesPlane, std::vector<bool>& isSharedVertex){
     intersectionTrianglesPlane.clear();       // empty the list of intersections
 
     for(unsigned int i = 0 ; i < triangles.size(); i++){
@@ -525,51 +517,29 @@ void Mesh::planeIntersection(unsigned int index, std::vector <unsigned int> &int
             for(unsigned int j=0; j<3; j++){
                 double sign = planes[index]->getSign(Vec(vertices[triangles[i].getVertex(j)]));     // get which side of the plane the vertex is on
                 int flood = flooding[triangles[i].getVertex(j)];
+
                 if(sign >= 0 ){
-                    //flooding[triangles[i].getVertex(j)] = static_cast<int>(planes.size() + index);
                     if(flood==-1) flooding[triangles[i].getVertex(j)] = static_cast<int>(planes.size() + index);
-                    else{
-
+                    else{       // if the vertex is already flooded
                         int planeIndex = flood;
-                        if(planeIndex >= static_cast<int>(planes.size())){
-                            planeIndex -= planes.size();
-                        }
-                        if(planeIndex == static_cast<int>(index)) continue; //flooding[triangles[i].getVertex(j)] = static_cast<int>(planes.size() + index);
+                        if(planeIndex >= static_cast<int>(planes.size())) planeIndex -= planes.size();
+                        if(planeIndex == static_cast<int>(index)) continue;     // if its already flooded with this plane
 
-                        std::cout << "flood " << index  << " : " << planeIndex << std::endl;
-                        Vec planeLocation = planes[planeIndex]->getCentrePosition();
-                        std::cout << "plane location : " << planeLocation.x << "," << planeLocation.y << ","  << planeLocation.z << std::endl;
-                        if(planes[index]->getSign(planeLocation) < 0){
-                            std::cout << "changed " << std::endl;
-                            flooding[triangles[i].getVertex(j)] = static_cast<int>(planes.size() + index);
-                        }
-                        else{
-                            std::cout << "shared" << std::endl;
-                            isSharedVertex[triangles[i].getVertex(j)] = true;
-                        }
+                        Vec planeLocation = planes[static_cast<unsigned int>(planeIndex)]->getCentrePosition();
+                        if(planes[index]->getSign(planeLocation) < 0) flooding[triangles[i].getVertex(j)] = static_cast<int>(planes.size() + index); // is the already flooded plane on the opposite side of this plane as the vertex
+                        else isSharedVertex[triangles[i].getVertex(j)] = true;      // if not, this vertex is shared between two planes
                     }
                 }
                 else if(sign < 0){
-                    //flooding[triangles[i].getVertex(j)] = static_cast<int>(index);
                      if(flood==-1) flooding[triangles[i].getVertex(j)] =  static_cast<int>(index);
                      else{
                          int planeIndex = flood;
-                         if(planeIndex >= static_cast<int>(planes.size())){
-                             planeIndex -= planes.size();
-                         }
-                         if(planeIndex == static_cast<int>(index)) continue; //flooding[triangles[i].getVertex(j)] = static_cast<int>(index);
+                         if(planeIndex >= static_cast<int>(planes.size())) planeIndex -= planes.size();
+                         if(planeIndex == static_cast<int>(index)) continue;     // if its already flooded with this index
 
-                         std::cout << "flood " << index  << " : " << planeIndex << std::endl;
-                         Vec planeLocation = planes[planeIndex]->getCentrePosition();
-                         std::cout << "plane location : " << planeLocation.x << "," << planeLocation.y << ","  << planeLocation.z << std::endl;
-                         if(planes[index]->getSign(planeLocation) >= 0){
-                             std::cout << "changed " << std::endl;
-                             flooding[triangles[i].getVertex(j)] = static_cast<int>(index);
-                         }
-                         else{
-                             std::cout << "shared" << std::endl;
-                             isSharedVertex[triangles[i].getVertex(j)] = true;
-                         }
+                         Vec planeLocation = planes[static_cast<unsigned int>(planeIndex)]->getCentrePosition();
+                         if(planes[index]->getSign(planeLocation) >= 0) flooding[triangles[i].getVertex(j)] = static_cast<int>(index);
+                         else isSharedVertex[triangles[i].getVertex(j)] = true;
                      }
                 }
             }
@@ -586,33 +556,6 @@ void Mesh::getIntersectionForPlane(unsigned int index, std::vector<unsigned int>
         if(planes[index]->isIntersection(Vec(vertices[t0]), Vec(vertices[t1]), Vec(vertices[t2]) ))        // if the triangle intersects the plane
             intersectionTrianglesPlane.push_back(i);
     }
-}
-
-void Mesh::checkDoubleIntersections(std::vector <std::vector <unsigned int>> &intersectionTriangles){     // are there triangles which intersect two planes?
-
-    for(unsigned int i=0; i<intersectionTriangles.size(); i++){
-        const std::vector<unsigned int>& intersections = intersectionTriangles[i];
-        for(unsigned int j=0; j<intersections.size(); j++){
-            int flood = flooding[triangles[intersections[j]].getVertex(0)];
-            if(flood != static_cast<int>(i) && flood != static_cast<int>(i+planes.size())){
-                for(unsigned int k=0; k<3; k++){
-                    const unsigned int &v = triangles[intersections[j]].getVertex(k);
-                    int neighbour = flooding[v];        // get the neighbouring plane of each vertex in the triangle
-                    double sign = planes[i]->getSign(Vec(vertices[v]));
-                    std::cout << "Neighbour : " << neighbour << " ; " << i << " sign : " << sign << std::endl;
-                    if(neighbour == i && sign >= 0){
-                        std::cout << "Switched" << std::endl;
-                        flooding[v] = i + planes.size();
-                    }
-                    else if(neighbour == i+planes.size() && sign < 0){
-                        std::cout << "Switched" << std::endl;
-                        flooding[v] = i;
-                    }
-                }
-            }
-        }
-    }
-
 }
 
 // TODO simplify
@@ -694,8 +637,6 @@ void Mesh::draw()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_DEPTH);
 
-    //glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
-
     glBegin (GL_TRIANGLES);
 
     if(!isCut){
@@ -713,36 +654,9 @@ void Mesh::draw()
         for(unsigned int i=0; i<fibInMandTriangles.size(); i++){
             glTriangleFibInMand(i, coloursIndicies);
         }
-
-       /* for(unsigned int i=0; i<tempIntersections.size(); i++){
-            for(unsigned int j=0; j<tempIntersections[i].size(); j++){
-                glTriangle(tempIntersections[i][j]);
-            }
-        }*/
     }
 
     glEnd();
-
-    /*glPointSize(7.);
-
-    glBegin (GL_POINTS);
-
-    if(!isCut){
-        for(unsigned int i=0; i<triangles.size(); i++){
-            glTriangle(i);
-        }
-    }
-    else{
-        for(unsigned int i=0; i<tempIntersections.size(); i++){
-            for(unsigned int j=0; j<tempIntersections[i].size(); j++){
-                glTriangle(tempIntersections[i][j]);
-            }
-        }
-    }
-
-    glEnd();
-
-    glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);*/
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_DEPTH);

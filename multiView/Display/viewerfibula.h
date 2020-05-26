@@ -27,6 +27,7 @@ public Q_SLOTS:
     void cut();
     void uncut();
     void recieveFromFibulaMesh(std::vector<int>&, std::vector<Vec>&, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>&, int);
+    void tryOffsetAngle();
 
 Q_SIGNALS:
     void okToPlacePlanes(const std::vector<Vec>&);
@@ -34,6 +35,8 @@ Q_SIGNALS:
 
 private:
     void rotatePolyline();
+    void rotatePolyToCurve();
+    void offsetPolyline();
     void setPlanesInPolyline(std::vector<Vec> &normals);
     void setPlaneOrientations(std::vector<Vec> &normals);
     void setDistances(const std::vector<double> &distances);
@@ -42,6 +45,9 @@ private:
     void matchDistances(const std::vector<double>& distances, std::vector<unsigned int> &segIndexes, std::vector<Vec> &outputPoints, double epsilon, const unsigned int& searchRadius);
     double euclideanDistance(const Vec &a, const Vec &b);
     unsigned int getClosestDistance(unsigned int index, const double &targetDistance, std::vector<unsigned int> &segIndexes, std::vector<Vec> &outputPoints, unsigned int searchRadius);
+    double getOffsetDistance(double angle);
+    double getBoxPlaneAngle(Plane &p);
+
     std::vector<Vec> planeNormals;
 };
 

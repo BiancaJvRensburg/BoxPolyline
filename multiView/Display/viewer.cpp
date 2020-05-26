@@ -30,6 +30,8 @@ void Viewer::draw() {
              glColor4f(0., 1., 1., ghostPlanes[i]->getAlpha());
              ghostPlanes[i]->draw();
          }
+
+         curve.draw();
      }
 
     if(isCut) poly.draw();
@@ -129,16 +131,16 @@ void Viewer::toggleIsPolyline(){
     rightPlane->toggleIsPoly();
     for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->toggleIsPoly();
 
-    lowerPoints(leftPlane->getSize(), direction);
+   // lowerPoints(leftPlane->getSize(), direction);
 
-    if(leftPlane->getIsPoly()){     // if the polyline now exits, project it onto the mesh
+    /*if(leftPlane->getIsPoly()){     // if the polyline now exits, project it onto the mesh
         std::vector<Vec> outputPoints;
         std::vector<Vec> inputPoints;
         for(unsigned int i=0; i<poly.getNbPoints(); i++) inputPoints.push_back(poly.getMeshPoint(i));
         mesh.mlsProjection(inputPoints, outputPoints);
         updatePolyline(outputPoints);
         lowerPoints(5., direction);     // move the plane position 5mm from the mesh
-    }
+    }*/
 
     repositionPlanesOnPolyline();
 }

@@ -21,6 +21,7 @@ public:
     Vec& getPoint(unsigned int i){return points[i];}
     Vec getMeshPoint(unsigned int i){ return getWorldCoordinates(points[i]); }
     Vec getMeshBoxPoint(unsigned int i){ return getWorldCoordinates(boxes[i].getLocation()); }
+    Vec getMeshBoxTransform(unsigned int i, Vec v){ return getWorldTransform(boxes[i].worldTransform(v)); }
     Vec getMeshBoxMiddle(unsigned int i){ return getWorldCoordinates(boxes[i].getMidPoint()); }
     Vec getMeshBoxEnd(unsigned int i){ return getWorldCoordinates(boxes[i].getEnd()); }
 

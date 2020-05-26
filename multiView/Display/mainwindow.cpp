@@ -172,6 +172,9 @@ void MainWindow::initFileActions(){
     connect(wireframeAction, &QAction::triggered, skullViewer, &Viewer::toggleWireframe);
     connect(wireframeAction, &QAction::triggered, fibulaViewer, &ViewerFibula::toggleWireframe);
 
+    QAction *testAction = new QAction("Test distance", this);
+    connect(testAction, &QAction::triggered, fibulaViewer, &ViewerFibula::tryOffsetAngle);
+
    /* QAction *projectionAction = new QAction("Projection", this);
     connect(projectionAction, &QAction::triggered, fibulaViewer, &ViewerFibula::projectToMesh);*/
 
@@ -186,6 +189,7 @@ void MainWindow::initFileActions(){
     fileActionGroup->addAction(drawMeshAction);
     fileActionGroup->addAction(drawPlanesAction);
     fileActionGroup->addAction(wireframeAction);
+    fileActionGroup->addAction(testAction);
 
     connect(skullViewer, &Viewer::constructPoly, fibulaViewer, &ViewerFibula::constructPolyline);
     connect(fibulaViewer, &ViewerFibula::okToPlacePlanes, skullViewer, &Viewer::placePlanes);
