@@ -37,6 +37,9 @@ private:
     void rotatePolyline();
     void rotatePolyToCurve();
     void offsetPolyline();
+    void alignPointToMesh(Plane *p0, Plane *p1);
+    void alignPolylineToMesh();
+    Vec getOffsetDistanceToMeshBorder(std::vector<Vec>& projections, Plane &p);
     void setPlanesInPolyline(std::vector<Vec> &normals);
     void setPlaneOrientations(std::vector<Vec> &normals);
     void setDistances(const std::vector<double> &distances);

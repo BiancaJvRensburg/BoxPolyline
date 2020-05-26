@@ -442,7 +442,11 @@ Vec Mesh::getPolylineProjectedVertex(unsigned int planeIndex, unsigned int neigh
     if(planeIndex >= planes.size()) plane -= planes.size();
     if(neighbourIndex >= planes.size()) neighbour -= planes.size();
 
-    Vec n = planes[plane]->getPosition() - planes[neighbour]->getPosition();      // this doesn't work anymore
+   // std::cout << "plane " << plane << " : " << planes[plane]->getPosition().x << "," << planes[plane]->getPosition().y << "," << planes[plane]->getPosition().z << std::endl;
+   // std::cout << "neighbour" << neighbour << " : " << planes[neighbour]->getPosition().x << "," << planes[neighbour]->getPosition().y << "," << planes[neighbour]->getPosition().z << std::endl;
+
+    // Vec n = planes[plane]->getPosition() - planes[neighbour]->getPosition();
+    Vec n = planes[plane]->getCentrePosition() - planes[neighbour]->getCentrePosition();
     n.normalize();
 
     n = planes[plane]->getLocalVector(n);
@@ -809,4 +813,26 @@ void Mesh::mlsProjection(const std::vector<Vec> &inputPoints, std::vector<Vec> &
         HPSS(tree, dimension, inputPoints[i], outputPoints[i], outputNormal, 1, 100.);
     }
 
+}
+
+// Get the minimum intersection point along the normal of the plane
+std::vector<Vec> Mesh::getMinNormalForPlane(unsigned int index, unsigned int neighbourIndex){
+    // Get the intersection triangles
+    std::vector<unsigned int> intersectionTrianglesPlane;
+    getIntersectionForPlane(index, intersectionTrianglesPlane);
+
+    std::vector<Vec> projections;
+
+    for(unsigned int i=0; i<intersectionTrianglesPlane.size(); i++){
+        for(unsigned int j=0; j<3; j++){
+            const unsigned int& vertexIndex = triangles[intersectionTrianglesPlane[i]].getVertex(j);
+            //Vec newVertex = Vec(vertices[vertexIndex]);
+            Vec newVertex = getPolylineProjectedVertex(index, neighbourIndex, vertexIndex);
+            //newVertex = planes[index]->getLocalCoordinates(newVertex);
+            //std::cout << "New vertex : " << newVertex.x << "," << newVertex.y << "," << newVertex.z << std::endl;
+            projections.push_back(newVertex);       // get the projection
+        }
+    }
+
+    return projections;
 }

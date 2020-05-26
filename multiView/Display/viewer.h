@@ -99,6 +99,7 @@ protected:
     int polyRotation;
 
     std::vector<Vec> segmentPoints;
+    std::vector<Vec> testPoints;
 
 private:
     void constructPolyline(const std::vector<Vec>& polyPoints);

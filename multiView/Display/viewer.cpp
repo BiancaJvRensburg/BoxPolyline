@@ -31,6 +31,14 @@ void Viewer::draw() {
              ghostPlanes[i]->draw();
          }
 
+         glPointSize(2.);
+         glBegin(GL_POINTS);
+         for(unsigned int i=0; i<testPoints.size(); i++){
+             glColor3f(0., 0., 1.);
+             glVertex3f(testPoints[i].x, testPoints[i].y, testPoints[i].z);
+         }
+         glEnd();
+
          curve.draw();
      }
 
