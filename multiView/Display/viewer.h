@@ -37,6 +37,7 @@ public Q_SLOTS:
     virtual void uncut();
     void toggleWireframe();
     void recieveFromFibulaMesh(std::vector<int>&, std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
+    void sendNewNorms();
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);

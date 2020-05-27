@@ -3,7 +3,7 @@
 Box::Box()
 {
     f = Frame();
-    dimensions = Vec(100., 25., 25.);
+    dimensions = Vec(100., 15., 15.);
     tangent = Vec(1.,0.,0.);
     binormal = Vec(0.,1.,0.);
     normal = Vec(0.,0.,1.);

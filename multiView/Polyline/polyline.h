@@ -25,6 +25,9 @@ public:
     Vec getMeshBoxMiddle(unsigned int i){ return getWorldCoordinates(boxes[i].getMidPoint()); }
     Vec getMeshBoxEnd(unsigned int i){ return getWorldCoordinates(boxes[i].getEnd()); }
 
+    const double& getBoxHeight(unsigned int i) { return boxes[i].getHeight(); }
+    const double& getBoxWidth(unsigned int i){ return boxes[i].getWidth(); }
+
     Vec getWorldCoordinates(const Vec& v){ return frame.localInverseCoordinatesOf(v);}
     Vec getLocalCoordinates(const Vec& v){ return frame.localCoordinatesOf(v);}
     Vec getWorldTransform(const Vec& v){ return frame.localInverseTransformOf(v);}

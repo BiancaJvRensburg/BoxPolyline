@@ -32,6 +32,7 @@ public Q_SLOTS:
 Q_SIGNALS:
     void okToPlacePlanes(const std::vector<Vec>&);
     void sendToManible(std::vector<int>&, std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
+    void requestNewNorms();
 
 private:
     void rotatePolyline();

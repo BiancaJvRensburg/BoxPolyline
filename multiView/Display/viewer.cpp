@@ -139,7 +139,7 @@ void Viewer::toggleIsPolyline(){
     rightPlane->toggleIsPoly();
     for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->toggleIsPoly();
 
-   // lowerPoints(leftPlane->getSize(), direction);
+    lowerPoints(poly.getBoxHeight(0)/2., direction);       // all the boxes are the same size
 
     /*if(leftPlane->getIsPoly()){     // if the polyline now exits, project it onto the mesh
         std::vector<Vec> outputPoints;
@@ -525,11 +525,15 @@ void Viewer::rotatePolylineOnAxis(int position){
     //for(unsigned int i=0; i<poly.getNbPoints()-1; i++) poly.rotateBox(i, r);
 
     // send over the new norms
+    sendNewNorms();
+    Q_EMIT toRotatePolylineOnAxis(r);
+    update();
+}
+
+void Viewer::sendNewNorms(){
     std::vector<Vec> norms;
     getPlaneBoxOrientations(norms);
     Q_EMIT toUpdatePlaneOrientations(norms);
-    Q_EMIT toRotatePolylineOnAxis(r);
-    update();
 }
 
 /* Display settings */

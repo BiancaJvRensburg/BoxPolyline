@@ -388,10 +388,7 @@ void ViewerFibula::positionBoxes(){
     bendWithRelativeVector(*rightPlane, minN);
     mesh.deleteGhostPlanes();
 
-   // repositionPlanesOnPolyline();       // TODO initial problem probably here
-    std::vector<Vec> normals;
-    for(unsigned int i=0; i<planeNormals.size(); i++) normals.push_back(planeNormals[i]);
-    setPlanesInPolyline(normals);
+    Q_EMIT requestNewNorms();
 }
 
 void ViewerFibula::tryOffsetAngle(){
