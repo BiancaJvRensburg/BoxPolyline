@@ -11,6 +11,7 @@ Viewer::Viewer(QWidget *parent, StandardCamera *cam, int sliderMax) : QGLViewer(
     this->sliderMax = sliderMax;
     this->isCut = false;
     this->isDrawMesh = true;
+    this->isPoly = false;
 }
 
 void Viewer::draw() {
@@ -54,7 +55,7 @@ void Viewer::draw() {
          curve.draw();
      }
 
-    if(isCut){
+    if(isPoly){
         /*for(unsigned int i=0; i<poly.getNbPoints()-1; i++){
             Vec point = poly.getPoint(i);
             Vec actualWorld = viewerFrame->localInverseCoordinatesOf(poly.getWorldCoordinates(point));
@@ -373,6 +374,7 @@ void Viewer::cutMesh(){
     else return;
 
     isCut = true;
+    isPoly = true;
 
     // Construct the polyline : First and last planes are immovable and are at the ends of the meshes
     std::vector<Vec> polylinePoints;
@@ -393,6 +395,7 @@ void Viewer::cutMesh(){
 
 void Viewer::uncutMesh(){
     isCut = false;
+    isPoly = false;
     deconstructPolyline();
     update();
 }

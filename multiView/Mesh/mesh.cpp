@@ -103,26 +103,6 @@ void Mesh::glTriangle(unsigned int i){
     const Triangle &t = triangles[i];
 
     for(unsigned int j = 0 ; j < 3 ; j++ ){
-        if(flooding.size()!=0){
-            /*if(flooding[t.getVertex(j)]!=-1) glColor4f(1.0, 0, 1.0, alphaTransparency);
-            else glColor4f(0, 1., 0, alphaTransparency);*/
-
-                if(flooding[t.getVertex(j)]==0) glColor4f(1.0, 0, 1.0, alphaTransparency);
-                else if(flooding[t.getVertex(j)]==1) glColor4f(0, 0, 1.0, alphaTransparency);
-                else if(flooding[t.getVertex(j)]==2) glColor4f(1, 0, 0, alphaTransparency);
-                else if(flooding[t.getVertex(j)]==3) glColor4f(1.0, 1.0, 0, alphaTransparency);
-                else if(flooding[t.getVertex(j)]==4) glColor4f(0, 1.0, 0.0, alphaTransparency);
-                else if(flooding[t.getVertex(j)]==5) glColor4f(0, 1.0, 1.0, alphaTransparency);
-                else if(flooding[t.getVertex(j)]==6) glColor4f(0.5, 0, 2.0, alphaTransparency);
-                else if(flooding[t.getVertex(j)]==7) glColor4f(0, .75, 1.0, alphaTransparency);
-                else if(flooding[t.getVertex(j)]==8) glColor4f(.25, 0.5, 1., alphaTransparency);
-                else if(flooding[t.getVertex(j)]==9) glColor4f(1.0, 0.5, 1.0, alphaTransparency);
-                else if(flooding[t.getVertex(j)]==10) glColor4f(1.0, 0, .5, alphaTransparency);
-                else if(flooding[t.getVertex(j)]==11) glColor4f(1.0, 2., .5, alphaTransparency);
-                else glColor4f(0, 0., 0, alphaTransparency);
-
-        }
-
         glNormal(verticesNormals[t.getVertex(j)]*normalDirection);
         glVertex(vertices[t.getVertex(j)]);
     }

@@ -188,7 +188,7 @@ void ViewerFibula::repositionPlanesOnPolyline(){
 }
 
 void ViewerFibula::constructPolyline(const std::vector<double>& distances, const std::vector<Vec>& newPoints){
-    isCut = true;       // if we have a polyline, it means that the fibula is cut. TODO The location of this may change when we actually cut the mesh
+    isPoly = true;       // if we have a polyline, it means that the fibula is cut. TODO The location of this may change when we actually cut the mesh
     rotatePolyline();   // Rotate the polyline so it matches the fibula as closely as it can
 
     poly.reinit(newPoints.size());      // Initialise the polyline

@@ -97,6 +97,7 @@ protected:
     const double constraint = 25.;
     int sliderMax;
     bool isCut;
+    bool isPoly = false;
     bool isDrawMesh;
 
     int polyRotation;
