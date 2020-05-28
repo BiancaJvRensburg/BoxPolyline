@@ -90,6 +90,10 @@ void MainWindow::initDisplayDockWidgets(){
     rotatePolylineMandible->setMaximum(360);
     contentLayoutMand->addRow("Rotate planes", rotatePolylineMandible);
 
+    QSlider *rotatePoly = new QSlider(Qt::Horizontal);
+    rotatePolylineMandible->setMaximum(360);
+    contentLayoutMand->addRow("Rotate polyline", rotatePoly);
+
     /*QSlider *rotatePolylineFibula = new QSlider(Qt::Horizontal);
     rotatePolylineFibula->setMaximum(360);
     contentLayoutMand->addRow("Rotate planes (fibula)", rotatePolylineFibula);*/
@@ -98,6 +102,7 @@ void MainWindow::initDisplayDockWidgets(){
     connect(rightPlaneSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::moveRightPlane);
     //connect(rotatePolylineFibula, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::rotatePolylineOnAxis);
     connect(rotatePolylineMandible, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::rotatePolylineOnAxis);
+    connect(rotatePoly, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::rotatePolylineOnAxe);
 
     QSlider *meshAlphaSlider = new QSlider(Qt::Horizontal);
     meshAlphaSlider->setMaximum(100);
@@ -152,6 +157,7 @@ void MainWindow::initFileActions(){
     connect(cutAction, &QAction::triggered, skullViewer, &Viewer::cut);
     connect(cutAction, &QAction::triggered, fibulaViewer, &ViewerFibula::cut);
 
+
     QAction *uncutAction = new QAction("Uncut mesh", this);
     connect(uncutAction, &QAction::triggered, skullViewer, &Viewer::uncut);
     connect(uncutAction, &QAction::triggered, fibulaViewer, &ViewerFibula::uncut);
@@ -199,6 +205,8 @@ void MainWindow::initFileActions(){
     connect(skullViewer, &Viewer::planeMoved, fibulaViewer, &ViewerFibula::movePlanes);
     connect(fibulaViewer, &ViewerFibula::sendToManible, skullViewer, &Viewer::recieveFromFibulaMesh);
     connect(fibulaViewer, &ViewerFibula::requestNewNorms, skullViewer, &Viewer::sendNewNorms);
+    connect(skullViewer, &Viewer::cutFibula, fibulaViewer, &ViewerFibula::cut);
+    connect(skullViewer, &Viewer::uncutFibula, fibulaViewer, &ViewerFibula::uncut);
 }
 
 void MainWindow::initFileMenu(){

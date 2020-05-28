@@ -48,6 +48,8 @@ Q_SIGNALS:
     void toRotatePolylineOnAxis(double);
     void planeMoved(double);
     void sendFibulaToMesh(std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
+    void cutFibula();
+    void uncutFibula();
 
 protected:
     void draw();
@@ -100,7 +102,10 @@ protected:
     int polyRotation;
 
     std::vector<Vec> segmentPoints;
+
+    // temporary for testing
     std::vector<Vec> testPoints;
+    Vec camCentre;
 
 private:
     void constructPolyline(const std::vector<Vec>& polyPoints);

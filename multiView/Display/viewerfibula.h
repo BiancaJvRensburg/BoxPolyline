@@ -24,6 +24,7 @@ public Q_SLOTS:
     void movePlanes(double);
     void updatePlaneOrientations(std::vector<Vec>&);
     void rotatePolylineOnAxisFibula(double);
+    void rotatePolylineOnAxe(double);
     void cut();
     void uncut();
     void recieveFromFibulaMesh(std::vector<int>&, std::vector<Vec>&, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>&, int);
@@ -53,6 +54,7 @@ private:
     double getBoxPlaneAngle(Plane &p);
 
     std::vector<Vec> planeNormals;
+    double prevRotation = 0.;
 };
 
 #endif // VIEWERFIBULA_H

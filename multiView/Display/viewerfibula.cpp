@@ -182,7 +182,7 @@ void ViewerFibula::repositionPlanesOnPolyline(){
     leftPlane->setPosition(poly.getMeshBoxPoint(leftPlane->getID()));
     for(unsigned int i=0; i<ghostPlanes.size(); i+=2){
         ghostPlanes[i]->setPosition(poly.getMeshBoxEnd(ghostPlanes[i]->getID()));
-        ghostPlanes[i+1]->setPosition(poly.getMeshPoint(ghostPlanes[i+1]->getID()));
+        ghostPlanes[i+1]->setPosition(poly.getMeshBoxPoint(ghostPlanes[i+1]->getID()));
     }
     rightPlane->setPosition(poly.getMeshBoxPoint(rightPlane->getID()));
 }
@@ -240,7 +240,18 @@ void ViewerFibula::rotatePolylineOnAxisFibula(double r){
     bool isOriginallyCut = isCut;
     if(isOriginallyCut) uncut();
     //for(unsigned int i=0; i<poly.getNbPoints()-1; i++) poly.rotateBox(i, r);
-    poly.rotateBox(1,r);
+    poly.rotateBox(2,r);
+    if(isOriginallyCut) cut();
+    update();
+}
+
+void ViewerFibula::rotatePolylineOnAxe(double r){
+    bool isOriginallyCut = isCut;
+    if(isOriginallyCut) uncut();
+    r = r*M_PI/180.;
+    r -= prevRotation;
+    prevRotation = r;
+    poly.rotateOnAxis(r, poly.getMeshBoxMiddle(0));
     if(isOriginallyCut) cut();
     update();
 }
@@ -319,7 +330,7 @@ double ViewerFibula::getBoxPlaneAngle(Plane &p){
 
 // Move the polyline so it leaves a gap of 1mm between the two ghost planes
 void ViewerFibula::offsetPolyline(){
-    Vec direction =  -(poly.getNormal()+poly.getBinormal());
+    /*Vec direction =  -(poly.getNormal()+poly.getBinormal());
     direction.normalize();
 
     for(unsigned int i=0; i<ghostPlanes.size(); i+=2){
@@ -330,7 +341,7 @@ void ViewerFibula::offsetPolyline(){
         bendPolyline(ghostPlanes[i+1]->getID(), p);
     }
 
-    repositionPlanesOnPolyline();
+    repositionPlanesOnPolyline();*/
 }
 
 Vec ViewerFibula::getOffsetDistanceToMeshBorder(std::vector<Vec> &projections, Plane &p){

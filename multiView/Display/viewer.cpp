@@ -4,8 +4,9 @@
 
 Viewer::Viewer(QWidget *parent, StandardCamera *cam, int sliderMax) : QGLViewer(parent) {
     Camera *c = camera();       // switch the cameras
-    setCamera(cam);
-    delete c;
+    setCamera(c);
+    //setCamera(cam);
+    //delete c;
     isCurve = false;
     this->sliderMax = sliderMax;
     this->isCut = false;
@@ -14,6 +15,17 @@ Viewer::Viewer(QWidget *parent, StandardCamera *cam, int sliderMax) : QGLViewer(
 
 void Viewer::draw() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    Vec base = viewerFrame->localInverseCoordinatesOf(camCentre);
+    camera()->setSceneCenter(base);
+
+    /*glLineWidth(5.);
+    glColor3f(1., 0, 0);
+    glBegin(GL_POINTS);
+    // glVertex3f(0,0,0);
+    //glVertex3f(camCentre.x, camCentre.y, camCentre.z);
+    glVertex3f(base.x, base.y, base.z);
+    glEnd();*/
 
     glPushMatrix();
     glMultMatrixd(viewerFrame->matrix());
@@ -42,7 +54,14 @@ void Viewer::draw() {
          curve.draw();
      }
 
-    if(isCut) poly.draw();
+    if(isCut){
+        /*for(unsigned int i=0; i<poly.getNbPoints()-1; i++){
+            Vec point = poly.getPoint(i);
+            Vec actualWorld = viewerFrame->localInverseCoordinatesOf(poly.getWorldCoordinates(point));
+            poly.setBoxLocation(i,actualWorld);
+        }*/
+        poly.draw();
+    }
 
 
     glPopMatrix();
@@ -65,7 +84,8 @@ void Viewer::init() {
   // Camera without mesh
   Vec centre(0,0,0);
   float radius(15.);
-  updateCamera(centre, radius);
+  camCentre = centre;
+  updateCamera(camCentre, radius);
 
   glEnable(GL_LIGHTING);
   glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
@@ -116,10 +136,10 @@ void Viewer::initPolyPlanes(Movable s){
     rightPlane->setID(poly.getNbPoints()-2);
     endRight->setID(poly.getNbPoints()-1);
 
-    leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
+    leftPlane->setPosition(viewerFrame->localCoordinatesOf(poly.getMeshPoint(leftPlane->getID())));
     leftPlane->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));      // TODO this could be done with an existing function?
 
-    rightPlane->setPosition(poly.getMeshPoint(rightPlane->getID()));
+    rightPlane->setPosition(viewerFrame->localCoordinatesOf(poly.getMeshPoint(rightPlane->getID())));
     rightPlane->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
 
     initGhostPlanes(s);
@@ -188,7 +208,8 @@ void Viewer::initGhostPlanes(Movable s){
 }
 
 void Viewer::updateCamera(const Vec& center, float radius){
-    camera()->setSceneCenter(center);
+    camCentre = center;
+    camera()->setSceneCenter(camCentre);
     camera()->setSceneRadius(static_cast<double>(radius*1.05f));
     camera()->setZClippingCoefficient(static_cast<double>(10.));
     camera()->showEntireScene();
@@ -578,13 +599,13 @@ void Viewer::setPlaneAlpha(int position){
 
 void Viewer::cut(){
     mesh.setIsCut(Side::INTERIOR, true, true);
-
+    //Q_EMIT cutFibula();
     update();
 }
 
 void Viewer::uncut(){
     mesh.setIsCut(Side::INTERIOR, false, false);
-
+    //Q_EMIT uncutFibula();
     update();
 }
 

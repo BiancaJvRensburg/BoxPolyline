@@ -12,7 +12,7 @@ Box::Box()
 
 // Set the reference frame
 void Box::init(const Frame *ref){
-    f.setReferenceFrame(ref);
+    //f.setReferenceFrame(ref);
 }
 
 // Set the reference frame to x,y,z
@@ -30,7 +30,7 @@ void Box::draw(double offset){
     glPushMatrix();
     glMultMatrixd(f.matrix());
 
-   // QGLViewer::drawAxis(40.);
+    QGLViewer::drawAxis(10.);
 
     const double& length = getLength();
     const double& width = getWidth();

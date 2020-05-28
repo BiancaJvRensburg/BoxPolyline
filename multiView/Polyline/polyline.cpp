@@ -3,12 +3,12 @@
 
 Polyline::Polyline()
 {
-    frame = ManipulatedFrame();
+    frame = Frame();
 }
 
 // This is only called once. Used to set the reference frame.
 void Polyline::init(const Frame *const refFrame, unsigned int nbPoints){
-    frame.setReferenceFrame(refFrame);
+    //frame.setReferenceFrame(refFrame);
     reinit(nbPoints);
 }
 
@@ -44,7 +44,12 @@ void Polyline::draw(){
 
     glColor3f(1.,1.,1.);
 
-   // QGLViewer::drawAxis(40.);
+    QGLViewer::drawAxis(40.);
+
+    glPointSize(10);
+    glBegin(GL_POINTS);
+    glVertex3d(0,0,0);
+    glEnd();
 
     // The polyline
     glLineWidth(5.);
@@ -76,6 +81,8 @@ void Polyline::draw(){
             boxes[i].draw(-0.1);
         }
     }
+
+    // for(unsigned int i=0; i<boxes.size(); i++) drawBox(i);       // this works
 
     glPopMatrix();
 
