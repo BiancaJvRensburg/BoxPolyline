@@ -38,9 +38,10 @@ Q_SIGNALS:
 private:
     void rotatePolyline();
     void rotatePolyToCurve();
-    void offsetPolyline();
     void positionBoxes();
     Vec getOffsetDistanceToMeshBorder(std::vector<Vec>& projections, Plane &p);
+    Vec getGreatestOffsetDistance(Plane &p1, Plane &p2, unsigned int p1I, unsigned int p2I);
+    Vec getMinOfMin(Vec &a, Vec &b);
     void bendWithRelativeVector(Plane &p, Vec v);
     void setPlanesInPolyline(std::vector<Vec> &normals);
     void setPlaneOrientations(std::vector<Vec> &normals);
@@ -53,7 +54,6 @@ private:
     double getOffsetDistance(double angle);
     double getBoxPlaneAngle(Plane &p);
 
-    std::vector<Vec> planeNormals;
     double prevRotation = 0.;
 };
 

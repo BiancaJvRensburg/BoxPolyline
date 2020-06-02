@@ -21,8 +21,6 @@ void ViewerFibula::updateDistances(const std::vector<double>& distances){
     projectToMesh(distances);
     repositionPlanesOnPolyline();
 
-    //offsetPolyline();       // set the space between the ghost planes to 1mm
-
     positionBoxes();
 }
 
@@ -34,22 +32,15 @@ void ViewerFibula::setDistances(const std::vector<double> &distances){
     newPoints.push_back(Vec(0,0,0));
     for(unsigned int i=0; i<distances.size(); i++) newPoints.push_back(newPoints[i] + distances[i]*direction);
     updatePolyline(newPoints);
-    //poly.resetBoxes();
 }
 
 // This is activated by the mandible
 void ViewerFibula::bendPolylineNormals(std::vector<Vec>& normals, const std::vector<double>& distances){
     updateFibPolyline(poly.getMeshPoint(0), distances);     // Reset the distances
 
-    // Save the normals for when we want to move the polyline by hand
-    planeNormals.clear();
-    for(unsigned int i=0; i<normals.size(); i++) planeNormals.push_back(normals[i]);
-
     projectToMesh(distances);
 
     setPlanesInPolyline(normals);
-
-    //offsetPolyline();       // set the space between the ghost planes to 1mm
     positionBoxes();
 }
 
@@ -76,19 +67,15 @@ void ViewerFibula::setPlaneOrientations(std::vector<Vec> &normals){
 
 // Update the relationship between the planes and the boxes when the mandible boxes are rotated
 void ViewerFibula::updatePlaneOrientations(std::vector<Vec> &normals){
-    //planeNormals.clear();
-    //for(unsigned int i=0; i<normals.size(); i++) planeNormals.push_back(normals[i]);
     setPlanesInPolyline(normals);
 }
 
 void ViewerFibula::initGhostPlanes(Movable s){
     deleteGhostPlanes();        // delete any previous ghost planes
-    //double size = leftPlane->getSize();
     double size = 20.;
     for(unsigned int i=0; i<(poly.getNbPoints()-4)*2; i++){     // -2 for total nb of planes, another -2 for nb of ghost planes
         Plane *p1 = new Plane(size, s, .5f, (i+1)/2+1);
         ghostPlanes.push_back(p1);
-        //ghostPlanes[i]->setPosition(poly.getMeshPoint((i+2)/2));
         ghostPlanes[i]->setPosition(poly.getMeshBoxPoint((i+2)/2));
         ghostPlanes[i]->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
     }
@@ -96,10 +83,7 @@ void ViewerFibula::initGhostPlanes(Movable s){
     leftPlane->setSize(size);
     rightPlane->setSize(size);
 
-    // Connect the planes' movement. If bend the polyline if a plane is moved by hand.
-    /*connect(&(leftPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);
-    connect(&(rightPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);*/
-    // for(unsigned int i=0; i<ghostPlanes.size(); i++) connect(&(ghostPlanes[i]->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &ViewerFibula::bendPolyline);        // connnect the ghost planes
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setDisplayDimensions(5., 5.);
 }
 
 void ViewerFibula::constructCurve(){
@@ -147,9 +131,6 @@ void ViewerFibula::projectToMesh(const std::vector<double>& distances){
     for(unsigned int i=0; i<poly.getNbPoints(); i++){
         bendPolyline(i, outputPoints[segIndexes[i]]);
     }
-
-    // lower the entire polyline by 5mm
-    //poly.lowerPolyline(Vec(0,-1,-1), 7.5);
 }
 
 // Check if the projected distances match the actual distance. If not, modify it
@@ -194,11 +175,9 @@ void ViewerFibula::constructPolyline(const std::vector<double>& distances, const
     poly.reinit(newPoints.size());      // Initialise the polyline
     updateFibPolyline(curve.getPoint(curveIndexL), distances);      // Make the polyline start at the left plane (which doesn't move) TODO change this so the left plane in the polyline doesnt move. The start must be at the start of the mesh.
 
-    initPolyPlanes(Movable::DYNAMIC);       // Set the planes on the polyline
+    initPolyPlanes(Movable::STATIC);       // Set the planes on the polyline
 
    toggleIsPolyline();     // The polyline is currently going through the centre of the planes, change it to the corner
-
-   //rotatePolyToCurve();
 
     Q_EMIT okToPlacePlanes(newPoints);      // Tell the mandible it can now place its planes on the polyline. (Send its points back).
 }
@@ -216,11 +195,9 @@ void ViewerFibula::rotatePolyline(){
     double alpha = angle(poly.getWorldTransform(poly.getTangent()), v);     // Get the angle between the curve vector and the polyline's current position
     Quaternion q(-poly.getBinormal(), alpha);
     poly.rotate(q);     // Rotate the polyline around its binormal to match the curve
-
-    //rotatePolyToCurve();
 }
 
-// Rotate the polyline to its angled towards the curve
+// Rotate the polyline so its angled towards the curve
 void ViewerFibula::rotatePolyToCurve(){
     Vec fp = poly.getLocalCoordinates(curve.getPoint(0));
     // set the x coordinate to zero
@@ -239,12 +216,12 @@ void ViewerFibula::rotatePolyToCurve(){
 void ViewerFibula::rotatePolylineOnAxisFibula(double r){
     bool isOriginallyCut = isCut;
     if(isOriginallyCut) uncut();
-    //for(unsigned int i=0; i<poly.getNbPoints()-1; i++) poly.rotateBox(i, r);
     poly.rotateBox(2,r);
     if(isOriginallyCut) cut();
     update();
 }
 
+// TODO this doesn't work yet
 void ViewerFibula::rotatePolylineOnAxe(double r){
     bool isOriginallyCut = isCut;
     if(isOriginallyCut) uncut();
@@ -328,22 +305,6 @@ double ViewerFibula::getBoxPlaneAngle(Plane &p){
     return angle(p.getMeshVectorFromLocal(binormal), poly.getMeshBoxTransform(p.getID(), binormal));
 }
 
-// Move the polyline so it leaves a gap of 1mm between the two ghost planes
-void ViewerFibula::offsetPolyline(){
-    /*Vec direction =  -(poly.getNormal()+poly.getBinormal());
-    direction.normalize();
-
-    for(unsigned int i=0; i<ghostPlanes.size(); i+=2){
-        double alpha = (getBoxPlaneAngle(*ghostPlanes[i]) + getBoxPlaneAngle(*ghostPlanes[i+1])) / 2.;     // get the average, the two should be the same in theory
-        double distance = getOffsetDistance(alpha);     // get the distance by which we need to move the planes
-        poly.lowerPoint(ghostPlanes[i+1]->getID(), direction*distance);
-        Vec p = poly.getMeshPoint(ghostPlanes[i+1]->getID());
-        bendPolyline(ghostPlanes[i+1]->getID(), p);
-    }
-
-    repositionPlanesOnPolyline();*/
-}
-
 Vec ViewerFibula::getOffsetDistanceToMeshBorder(std::vector<Vec> &projections, Plane &p){
     Vec minN(0,0,0);
     for(unsigned int i=0; i<projections.size(); i++){
@@ -360,6 +321,20 @@ Vec ViewerFibula::getOffsetDistanceToMeshBorder(std::vector<Vec> &projections, P
     return minN - Vec(0,0.001, 0.001);
 }
 
+Vec ViewerFibula::getMinOfMin(Vec &a, Vec &b){
+    Vec min(0,0,0);
+    if(a.x < b.x) min.x = a.x;
+    else min.x = b.x;
+
+    if(a.y < b.y) min.y = a.y;
+    else min.y = b.y;
+
+    if(a.z < b.z) min.z = a.z;
+    else min.z = b.z;
+
+    return min;
+}
+
 // Bend the polyline with a vector defined in the polyline's frame
 void ViewerFibula::bendWithRelativeVector(Plane &p, Vec v){
     poly.lowerPoint(p.getID(), v);
@@ -367,10 +342,9 @@ void ViewerFibula::bendWithRelativeVector(Plane &p, Vec v){
     bendPolyline(p.getID(), point);
 }
 
+// Position the boxes correctly so it cuts the whole segment
 void ViewerFibula::positionBoxes(){
-    for(unsigned int i=0; i<ghostPlanes.size(); i++){
-        mesh.addPlane(ghostPlanes[i]);
-    }
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) mesh.addPlane(ghostPlanes[i]);
 
     std::vector<Vec> projections;
     if(ghostPlanes.size()!=0) projections = mesh.getMinNormalForPlane(0, 2);
@@ -378,12 +352,14 @@ void ViewerFibula::positionBoxes(){
     Vec minN = getOffsetDistanceToMeshBorder(projections, *leftPlane);
     bendWithRelativeVector(*leftPlane, minN);
 
-
     for(unsigned int index=0; index<ghostPlanes.size(); index+=2){
         projections = mesh.getMinNormalForPlane(index+2, index+3);
-        //testPoints = projections;
+        Vec min1 = getOffsetDistanceToMeshBorder(projections, *ghostPlanes[index]);
+        if(index+1 == ghostPlanes.size()-1) projections = mesh.getMinNormalForPlane(index+3, 1);        // if its the last plane, compare it with the right plane
+        else projections = mesh.getMinNormalForPlane(index+3, index+4);
+        Vec min2 = getOffsetDistanceToMeshBorder(projections, *ghostPlanes[index+1]);
+        minN = getMinOfMin(min1, min2);
 
-        minN = getOffsetDistanceToMeshBorder(projections, *ghostPlanes[index]);
         Vec direction =  -(poly.getNormal()+poly.getBinormal());
         direction.normalize();
         double alpha = (getBoxPlaneAngle(*ghostPlanes[index]) + getBoxPlaneAngle(*ghostPlanes[index+1])) / 2.;     // get the average, the two should be the same in theory

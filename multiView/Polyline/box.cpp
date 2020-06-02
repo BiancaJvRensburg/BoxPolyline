@@ -30,7 +30,7 @@ void Box::draw(double offset){
     glPushMatrix();
     glMultMatrixd(f.matrix());
 
-    QGLViewer::drawAxis(10.);
+    // QGLViewer::drawAxis(10.);
 
     const double& length = getLength();
     const double& width = getWidth();

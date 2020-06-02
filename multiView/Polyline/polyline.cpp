@@ -44,12 +44,7 @@ void Polyline::draw(){
 
     glColor3f(1.,1.,1.);
 
-    QGLViewer::drawAxis(40.);
-
-    glPointSize(10);
-    glBegin(GL_POINTS);
-    glVertex3d(0,0,0);
-    glEnd();
+    // QGLViewer::drawAxis(40.);
 
     // The polyline
     glLineWidth(5.);
@@ -81,8 +76,6 @@ void Polyline::draw(){
             boxes[i].draw(-0.1);
         }
     }
-
-    // for(unsigned int i=0; i<boxes.size(); i++) drawBox(i);       // this works
 
     glPopMatrix();
 
