@@ -73,6 +73,7 @@ protected:
     void getPlaneBoxOrientations(std::vector<Vec>& norms);
     void simpleBend(const unsigned int &pointIndex, Vec v, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
     void lowerPoints(double size, Vec localDirection);
+    void changePlaneDisplaySize(double width, double height);
 
 
     double angle(Vec a, Vec b);

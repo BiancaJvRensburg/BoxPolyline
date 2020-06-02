@@ -67,6 +67,7 @@ public:
 
 private:
     void initBasePlane();
+    void reinitDisplayPoints();
 
     AxisPlaneConstraint constraint;
     AxisPlaneConstraint constraintFree;
@@ -80,6 +81,7 @@ private:
     float alpha;
     unsigned int id;
     bool isPoly;
+    Vec displayDimensions;
 };
 
 #endif // PLANE_H

@@ -83,7 +83,11 @@ void ViewerFibula::initGhostPlanes(Movable s){
     leftPlane->setSize(size);
     rightPlane->setSize(size);
 
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setDisplayDimensions(5., 5.);
+    double displaySize = 10.;
+
+    leftPlane->setDisplayDimensions(displaySize, displaySize);
+    rightPlane->setDisplayDimensions(displaySize, displaySize);
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setDisplayDimensions(displaySize, displaySize);
 }
 
 void ViewerFibula::constructCurve(){

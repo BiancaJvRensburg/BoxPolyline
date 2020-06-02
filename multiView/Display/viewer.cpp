@@ -132,9 +132,11 @@ void Viewer::initPolyPlanes(Movable s){
 
 void Viewer::toggleIsPolyline(){
     Vec direction = Vec(1,1,0);
+    double displaySize = 30.;
 
     if(!leftPlane->getIsPoly()){
         direction = -direction;
+        displaySize = 15.;
     }
 
     endLeft->toggleIsPoly();
@@ -147,6 +149,13 @@ void Viewer::toggleIsPolyline(){
     lowerPoints(poly.getBoxHeight(0)/2., direction);       // all the boxes are the same size
 
     repositionPlanesOnPolyline();
+    changePlaneDisplaySize(displaySize, displaySize);
+}
+
+void Viewer::changePlaneDisplaySize(double width, double height){
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setDisplayDimensions(width, height);
+    leftPlane->setDisplayDimensions(width, height);
+    rightPlane->setDisplayDimensions(width, height);
 }
 
 void Viewer::lowerPoints(double size, Vec localDirection){
