@@ -69,7 +69,6 @@ private:
     Vec projection(Vec &a, Vec &planeNormal);
     double angle(const Vec &a, const Vec &b);
     Vec vectorQuaternionRotation(double angle, const Vec &axis, const Vec &vectorToRotate);
-    void recalculateNormal(unsigned int index, const Vec &origin, const Vec &newPoint);
     void recalculateBinormal(unsigned int index, const Vec &origin, const Vec &newPoint);
     void initialiseFrame(Frame &f);
     void getCuttingAngles(std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);

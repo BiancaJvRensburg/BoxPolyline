@@ -201,45 +201,21 @@ void Polyline::recalculateOrientations(){
     for(unsigned int i=0; i<points.size()-1; i++) recalculateBinormal(i, points[i], points[i+1]);
 }
 
-// Recalculate the normal as a cross product of the binormal and the tangent
-void Polyline::recalculateNormal(unsigned int index, const Vec &origin, const Vec &newPosition){
-    Vec pos = newPosition - origin;
-    pos.normalize();
-
-    segmentNormals[index] = -cross(pos, segmentBinormals[index]);
-    segmentNormals[index].normalize();
-}
-
 void Polyline::recalculateBinormal(unsigned int index, const Vec &origin, const Vec &newPosition){
-    /*Vec pos = newPosition - origin;     // Calculate an orthogonal vector on the plane
-    pos.normalize();
-    pos.z = 0;        // The new polyline projected in the z plane
+    point3d  Nprev = normal;
+    point3d  Tprev = tangent;
 
-    double theta = angle(pos, tangent);        // get the angle which the tangent rotated
-    if(pos.y <0) theta = -theta;        // rotate the opposite way
+    point3d  T0 = newPosition - origin;        // the polyline tangent
+    point3d  N0 = T0.getOrthogonal(); //index == 0 ? T0.getOrthogonal() :
+    point3d::rotateVectorSimilarly( Nprev , Tprev , T0  );
 
-    // Rotate the CONSTANT binormal around the z axis
-    double x = binormal.x * cos(theta) - binormal.y * sin(theta);
-    double y = binormal.x * sin(theta) + binormal.y * cos(theta);
-    segmentBinormals[index] = Vec(x,y,0);
+    point3d  B0 = point3d::cross( T0 , N0 );
+
+    segmentNormals[index] = - Vec(B0);
+    segmentBinormals[index] = - Vec(N0);
+    segmentNormals[index].normalize();
     segmentBinormals[index].normalize();
-
-    recalculateNormal(index, newPosition, origin);*/
-
-         point3d  Nprev = normal;
-         point3d  Tprev = tangent;
-
-         point3d  T0 = newPosition - origin;        // the polyline tangent
-         point3d  N0 = T0.getOrthogonal(); //index == 0 ? T0.getOrthogonal() :
-         point3d::rotateVectorSimilarly( Nprev , Tprev , T0  );
-
-         point3d  B0 = point3d::cross( T0 , N0 );
-
-         segmentNormals[index] = - Vec(B0);
-         segmentBinormals[index] = - Vec(N0);
-         segmentNormals[index].normalize();
-         segmentBinormals[index].normalize();
- }
+}
 
 Vec Polyline::vectorQuaternionRotation(double theta, const Vec &axis, const Vec &vectorToRotate){
     Quaternion r(cos(theta/2.0)*axis.x, cos(theta/2.0)*axis.y, cos(theta/2.0)*axis.z, sin(theta/2.0));      // rotation
@@ -301,6 +277,8 @@ void Polyline::getDistances(std::vector<double> &distances){
     for(unsigned int i=0; i<points.size()-1; i++){
         distances.push_back(euclideanDistance(points[i], points[i+1]));
     }
+
+    distances[0] = 0.0001;       // We don't want an offet in the fibula, so set the first box to nearly zero (null vector if zero)
 }
 
 double Polyline::euclideanDistance(const Vec &a, const Vec &b){

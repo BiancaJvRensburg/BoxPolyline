@@ -179,6 +179,33 @@ void Mesh::deleteGhostPlanes(){
     planes.erase(planes.begin()+2, planes.end());       // delete the ghost planes
 }
 
+void Mesh::constructPlaneNeighbours(std::vector<int> &planeNeighbours){
+    planeNeighbours.clear();
+    unsigned int nbPlanes = static_cast<unsigned int>(planes.size());
+    planeNeighbours.resize(nbPlanes*2);
+
+    planeNeighbours[nbPlanes] = -1;
+    planeNeighbours[1] = -1;
+
+    if(nbPlanes==2){
+        setNeighbours(planeNeighbours, 0, 3);
+    }
+    else{
+        // Ghost plane case
+        setNeighbours(planeNeighbours, 0, nbPlanes+2);
+        setNeighbours(planeNeighbours, nbPlanes-1, nbPlanes+1);
+
+        for(unsigned int i=2; i<nbPlanes-1; i++){   // Only for the ghost planes aligned with each other
+            setNeighbours(planeNeighbours, i, i+nbPlanes+1);
+        }
+    }
+}
+
+void Mesh::setNeighbours(std::vector<int> &planeNeighbours, unsigned int a, unsigned int b){
+    planeNeighbours[a] = static_cast<int>(b);
+    planeNeighbours[b] = static_cast<int>(a);
+}
+
 void Mesh::updatePlaneIntersections(){
     if(isCut){
 
@@ -207,6 +234,7 @@ void Mesh::updatePlaneIntersections(){
             }
         }
 
+        constructPlaneNeighbours(planeNeighbours);
         mergeFlood(planeNeighbours);
         cutMesh(intersectionTriangles, planeNeighbours);
     }
@@ -263,6 +291,7 @@ void Mesh::cutFibula(bool* truthTriangles, std::vector <std::vector <unsigned in
     }
 
     getSegmentsToKeep(planeNeighbours);    // figure out what to keep (TODO can be done earlier) - fills segmentsConserved with the flooding indexes we want to keep
+
     for(unsigned int i=0; i<flooding.size(); i++){
         bool isKeep = false;
         for(unsigned int k=0; k<segmentsConserved.size(); k++){      // Only keep the index i it if it belongs to a kept segment
@@ -421,9 +450,6 @@ Vec Mesh::getPolylineProjectedVertex(unsigned int planeIndex, unsigned int neigh
     unsigned int neighbour = neighbourIndex;
     if(planeIndex >= planes.size()) plane -= planes.size();
     if(neighbourIndex >= planes.size()) neighbour -= planes.size();
-
-   // std::cout << "plane " << plane << " : " << planes[plane]->getPosition().x << "," << planes[plane]->getPosition().y << "," << planes[plane]->getPosition().z << std::endl;
-   // std::cout << "neighbour" << neighbour << " : " << planes[neighbour]->getPosition().x << "," << planes[neighbour]->getPosition().y << "," << planes[neighbour]->getPosition().z << std::endl;
 
     // Vec n = planes[plane]->getPosition() - planes[neighbour]->getPosition();
     Vec n = planes[plane]->getCentrePosition() - planes[neighbour]->getCentrePosition();
