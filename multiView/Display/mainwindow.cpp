@@ -90,9 +90,9 @@ void MainWindow::initDisplayDockWidgets(){
     rotatePolylineMandible->setMaximum(360);
     contentLayoutMand->addRow("Rotate planes", rotatePolylineMandible);
 
-    QSlider *rotatePoly = new QSlider(Qt::Horizontal);
+    /*QSlider *rotatePoly = new QSlider(Qt::Horizontal);
     rotatePolylineMandible->setMaximum(360);
-    contentLayoutMand->addRow("Rotate polyline", rotatePoly);
+    contentLayoutMand->addRow("Rotate polyline", rotatePoly);*/
 
     /*QSlider *rotatePolylineFibula = new QSlider(Qt::Horizontal);
     rotatePolylineFibula->setMaximum(360);
@@ -102,7 +102,7 @@ void MainWindow::initDisplayDockWidgets(){
     connect(rightPlaneSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::moveRightPlane);
     //connect(rotatePolylineFibula, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::rotatePolylineOnAxis);
     connect(rotatePolylineMandible, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::rotatePolylineOnAxis);
-    connect(rotatePoly, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::rotatePolylineOnAxe);
+    //connect(rotatePoly, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::rotatePolylineOnAxe);
 
     QSlider *meshAlphaSlider = new QSlider(Qt::Horizontal);
     meshAlphaSlider->setMaximum(100);
@@ -150,17 +150,20 @@ void MainWindow::initFileActions(){
     QAction *openJsonFibFileAction = new QAction("Open fibula JSON", this);
     connect(openJsonFibFileAction, &QAction::triggered, this, &MainWindow::openFibJSON);
 
+    QAction *editPlanesAction = new QAction("Edit planes", this);
+    connect(editPlanesAction, &QAction::triggered, skullViewer, &Viewer::toggleEditPlaneMode);
+
     QAction *cutMeshAction = new QAction("Cut", this);
     connect(cutMeshAction, &QAction::triggered, skullViewer, &Viewer::cutMesh);
 
-    QAction *cutAction = new QAction("Cut mesh", this);
-    connect(cutAction, &QAction::triggered, skullViewer, &Viewer::cut);
-    connect(cutAction, &QAction::triggered, fibulaViewer, &ViewerFibula::cut);
+    /*QAction *cutAction = new QAction("Cut mesh", this);
+    connect(cutAction, &QAction::triggered, skullViewer, &Viewer::cut);*/
+    //connect(cutAction, &QAction::triggered, fibulaViewer, &ViewerFibula::cut);
 
 
-    QAction *uncutAction = new QAction("Uncut mesh", this);
-    connect(uncutAction, &QAction::triggered, skullViewer, &Viewer::uncut);
-    connect(uncutAction, &QAction::triggered, fibulaViewer, &ViewerFibula::uncut);
+   /* QAction *uncutAction = new QAction("Uncut mesh", this);
+    connect(uncutAction, &QAction::triggered, skullViewer, &Viewer::uncut);*/
+    //connect(uncutAction, &QAction::triggered, fibulaViewer, &ViewerFibula::uncut);
 
     QAction *uncutMeshAction = new QAction("Undo cut", this);
     connect(uncutMeshAction, &QAction::triggered, skullViewer, &Viewer::uncutMesh);
@@ -178,8 +181,8 @@ void MainWindow::initFileActions(){
     connect(wireframeAction, &QAction::triggered, skullViewer, &Viewer::toggleWireframe);
     connect(wireframeAction, &QAction::triggered, fibulaViewer, &ViewerFibula::toggleWireframe);
 
-    QAction *testAction = new QAction("Test distance", this);
-    connect(testAction, &QAction::triggered, fibulaViewer, &ViewerFibula::tryOffsetAngle);
+   /* QAction *testAction = new QAction("Test distance", this);
+    connect(testAction, &QAction::triggered, fibulaViewer, &ViewerFibula::tryOffsetAngle);*/
 
    /* QAction *projectionAction = new QAction("Projection", this);
     connect(projectionAction, &QAction::triggered, fibulaViewer, &ViewerFibula::projectToMesh);*/
@@ -187,15 +190,16 @@ void MainWindow::initFileActions(){
 
     fileActionGroup->addAction(openJsonFileAction);
     fileActionGroup->addAction(openJsonFibFileAction);
+    fileActionGroup->addAction(editPlanesAction);
     fileActionGroup->addAction(cutMeshAction);
     //fileActionGroup->addAction(projectionAction);
-    fileActionGroup->addAction(cutAction);
-    fileActionGroup->addAction(uncutAction);
+    //fileActionGroup->addAction(cutAction);
+    //fileActionGroup->addAction(uncutAction);
     fileActionGroup->addAction(uncutMeshAction);
     fileActionGroup->addAction(drawMeshAction);
     fileActionGroup->addAction(drawPlanesAction);
     fileActionGroup->addAction(wireframeAction);
-    fileActionGroup->addAction(testAction);
+    //fileActionGroup->addAction(testAction);
 
     connect(skullViewer, &Viewer::constructPoly, fibulaViewer, &ViewerFibula::constructPolyline);
     connect(fibulaViewer, &ViewerFibula::okToPlacePlanes, skullViewer, &Viewer::placePlanes);

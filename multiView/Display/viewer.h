@@ -21,7 +21,7 @@ public :
 
 public Q_SLOTS:
     void toUpdate();
-    virtual void bendPolyline(unsigned int pointIndex, Vec v);
+    void bendPolylineManually(unsigned int pointIndex, Vec v);
     void cutMesh();
     void uncutMesh();
     void placePlanes(const std::vector<Vec>&);
@@ -38,6 +38,7 @@ public Q_SLOTS:
     void toggleWireframe();
     void recieveFromFibulaMesh(std::vector<int>&, std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
     void sendNewNorms();
+    void toggleEditPlaneMode();
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
@@ -57,6 +58,7 @@ protected:
     virtual void initSignals();
     virtual void constructCurve();
     virtual void initGhostPlanes(Movable s);
+    virtual void bendPolyline(unsigned int pointIndex, Vec v);
     void initPolyPlanes(Movable s);
     void initCurvePlanes(Movable s);
     void updateCamera(const Vec& center, float radius);

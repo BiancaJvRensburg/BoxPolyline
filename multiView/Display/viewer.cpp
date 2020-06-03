@@ -186,10 +186,9 @@ void Viewer::initGhostPlanes(Movable s){
     }
 
     // Connect all planes' movement (except the two end planes which we don't see). If a plane is moved, bend the polyline.
-    connect(&(leftPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolyline);
-    connect(&(rightPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolyline);
-
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) connect(&(ghostPlanes[i]->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolyline);        // connnect the ghost planes
+    connect(&(leftPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolylineManually);
+    connect(&(rightPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolylineManually);
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) connect(&(ghostPlanes[i]->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolylineManually);        // connnect the ghost planes
 }
 
 void Viewer::updateCamera(const Vec& center, float radius){
@@ -266,6 +265,13 @@ void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
     poly.getDistances(distances);
 
     Q_EMIT polylineBent(relativeNorms, distances);      // Send the new normals and distances to the fibula TODO only send over the info for the corresponding point
+}
+
+void Viewer::bendPolylineManually(unsigned int pointIndex, Vec v){
+    bool isOriginallyCut = isCut;
+    if(isOriginallyCut) uncut();
+    bendPolyline(pointIndex, v);
+    if(isOriginallyCut) cut();
 }
 
 // Bend the polyline without updating everything else
@@ -375,14 +381,18 @@ void Viewer::cutMesh(){
 
     constructPolyline(polylinePoints);
 
+    cut();
+
     update();
 }
 
 void Viewer::uncutMesh(){
+    uncut();
+
     isCut = false;
     isPoly = false;
     deconstructPolyline();
-    update();
+    //update();
 }
 
 void Viewer::moveLeftPlane(int position){
@@ -578,13 +588,13 @@ void Viewer::setPlaneAlpha(int position){
 
 void Viewer::cut(){
     mesh.setIsCut(Side::INTERIOR, true, true);
-    //Q_EMIT cutFibula();
+    Q_EMIT cutFibula();
     update();
 }
 
 void Viewer::uncut(){
     mesh.setIsCut(Side::INTERIOR, false, false);
-    //Q_EMIT uncutFibula();
+    Q_EMIT uncutFibula();
     update();
 }
 
@@ -618,4 +628,11 @@ void Viewer::recieveFromFibulaMesh(std::vector<int> &planes, std::vector<Vec> ve
     }
 
     Q_EMIT sendFibulaToMesh(verticies, triangles, colours, normals, nbColours);
+}
+
+void Viewer::toggleEditPlaneMode(){
+    leftPlane->toggleEditMode();
+    rightPlane->toggleEditMode();
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->toggleEditMode();
+    update();
 }

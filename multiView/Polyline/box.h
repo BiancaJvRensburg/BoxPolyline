@@ -3,6 +3,7 @@
 
 #include <QGLViewer/qglviewer.h>
 #include <QGLViewer/frame.h>
+#include "simplemanipulator.h"
 
 using namespace qglviewer;
 
@@ -40,6 +41,7 @@ private:
     Vec normal, binormal, tangent;
     Vec dimensions;
     double prevRotation;
+    //SimpleManipulator manipulator;
 };
 
 #endif // BOX_H

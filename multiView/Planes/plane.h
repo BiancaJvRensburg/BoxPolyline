@@ -5,6 +5,7 @@
 #include <QGLViewer/manipulatedFrame.h>
 
 #include "curvepoint.h"
+#include "simplemanipulator.h"
 
 enum Movable {STATIC, DYNAMIC};
 
@@ -24,7 +25,10 @@ public:
     bool getIsPoly(){ return isPoly; }
 
     void setPosition(Vec pos);
-    void setOrientation(Quaternion q){ cp.getFrame().setOrientation(q); }
+    void setOrientation(Quaternion q){
+        cp.getFrame().setOrientation(q);
+        setManipulatorToOrientation();
+    }
     Quaternion fromRotatedBasis(Vec x, Vec y, Vec z);
     void setFrameFromBasis(Vec x, Vec y, Vec z);
     void setDisplayDimensions(double height, double width);
@@ -36,6 +40,10 @@ public:
     void freeZRotation(){ cp.getFrame().setConstraint(&constraintFree); }
     void draw();
     const Frame* getReferenceFrame(){ return cp.getReferenceFrame(); }
+
+    const Vec& getManipulatorPosition(){ return manipulator.getPosition(); }
+    void getManipulatorOrientation(Vec &x, Vec &y, Vec &z){ manipulator.getOrientation(x,y,z); }
+    SimpleManipulator& getManipulator(){ return manipulator; }
 
     // Mesh calculations
     bool isIntersection(Vec v0, Vec v1, Vec v2);
@@ -62,12 +70,14 @@ public:
     const double& getSize(){ return size; }
 
     void toggleIsPoly();
+    void toggleEditMode(){ manipulator.switchStates(); }
 
     Movable status;
 
 private:
     void initBasePlane();
     void reinitDisplayPoints();
+    void setManipulatorToOrientation();
 
     AxisPlaneConstraint constraint;
     AxisPlaneConstraint constraintFree;
@@ -82,6 +92,8 @@ private:
     unsigned int id;
     bool isPoly;
     Vec displayDimensions;
+
+    SimpleManipulator manipulator;
 };
 
 #endif // PLANE_H

@@ -8,6 +8,8 @@ Box::Box()
     binormal = Vec(0.,1.,0.);
     normal = Vec(0.,0.,1.);
     prevRotation = 0.;
+    //manipulator = SimpleManipulator();
+    //manipulator.setEtat(1);
 }
 
 // Set the reference frame
@@ -31,6 +33,8 @@ void Box::draw(double offset){
     glMultMatrixd(f.matrix());
 
     // QGLViewer::drawAxis(10.);
+
+    //manipulator.draw();
 
     const double& length = getLength();
     const double& width = getWidth();
