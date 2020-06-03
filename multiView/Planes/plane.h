@@ -27,6 +27,7 @@ public:
     void setOrientation(Quaternion q){ cp.getFrame().setOrientation(q); }
     Quaternion fromRotatedBasis(Vec x, Vec y, Vec z);
     void setFrameFromBasis(Vec x, Vec y, Vec z);
+    void setDisplayDimensions(double height, double width);
 
     void rotatePlane(Vec axis, double angle);
     void rotatePlaneXY(double percentage);
@@ -66,10 +67,12 @@ public:
 
 private:
     void initBasePlane();
+    void reinitDisplayPoints();
 
     AxisPlaneConstraint constraint;
     AxisPlaneConstraint constraintFree;
     Vec points[4];
+    Vec displayPoints[4];
     double size;
     double rotationPercentage;
     Vec normal;
@@ -78,6 +81,7 @@ private:
     float alpha;
     unsigned int id;
     bool isPoly;
+    Vec displayDimensions;
 };
 
 #endif // PLANE_H

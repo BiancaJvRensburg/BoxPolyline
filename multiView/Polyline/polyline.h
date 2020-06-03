@@ -21,8 +21,14 @@ public:
     Vec& getPoint(unsigned int i){return points[i];}
     Vec getMeshPoint(unsigned int i){ return getWorldCoordinates(points[i]); }
     Vec getMeshBoxPoint(unsigned int i){ return getWorldCoordinates(boxes[i].getLocation()); }
+    Vec getMeshBoxTransform(unsigned int i, Vec v){ return getWorldTransform(boxes[i].worldTransform(v)); }
     Vec getMeshBoxMiddle(unsigned int i){ return getWorldCoordinates(boxes[i].getMidPoint()); }
     Vec getMeshBoxEnd(unsigned int i){ return getWorldCoordinates(boxes[i].getEnd()); }
+
+    void setBoxLocation(unsigned int i, const Vec& v){ boxes[i].setPosition(v); }
+
+    const double& getBoxHeight(unsigned int i) { return boxes[i].getHeight(); }
+    const double& getBoxWidth(unsigned int i){ return boxes[i].getWidth(); }
 
     Vec getWorldCoordinates(const Vec& v){ return frame.localInverseCoordinatesOf(v);}
     Vec getLocalCoordinates(const Vec& v){ return frame.localCoordinatesOf(v);}
@@ -63,14 +69,13 @@ private:
     Vec projection(Vec &a, Vec &planeNormal);
     double angle(const Vec &a, const Vec &b);
     Vec vectorQuaternionRotation(double angle, const Vec &axis, const Vec &vectorToRotate);
-    void recalculateNormal(unsigned int index, const Vec &origin, const Vec &newPoint);
     void recalculateBinormal(unsigned int index, const Vec &origin, const Vec &newPoint);
     void initialiseFrame(Frame &f);
     void getCuttingAngles(std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
     double euclideanDistance(const Vec &a, const Vec &b);
     void resetBox(unsigned int index);
 
-    ManipulatedFrame frame;
+    Frame frame;
     const Vec tangent = Vec(1,0,0);
     const Vec normal = Vec(0,0,1);
     const Vec binormal = Vec(0,1,0);

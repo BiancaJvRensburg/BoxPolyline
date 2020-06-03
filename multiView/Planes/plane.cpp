@@ -13,6 +13,7 @@ Plane::Plane(double s, Movable status, float alpha, unsigned int id) : cp(id)
     this->alpha = alpha;
     this->isPoly = false;
     this->id = id;
+    this->displayDimensions = Vec(s,s,0);
 
     initBasePlane();
 }
@@ -37,6 +38,31 @@ void Plane::initBasePlane(){
         points[2] = Vec(cp.getPoint().x + size, cp.getPoint().y + size, cp.getPoint().z);
         points[3] = Vec(cp.getPoint().x + size, cp.getPoint().y - size, cp.getPoint().z);
     }
+
+    reinitDisplayPoints();
+}
+
+void Plane::setDisplayDimensions(double height, double width){
+    displayDimensions = Vec(width, height, 0);
+    reinitDisplayPoints();
+}
+
+void Plane::reinitDisplayPoints(){
+    const double& width = displayDimensions.x;
+    const double& height = displayDimensions.y;
+
+    if(isPoly){     // If the polyline exits, put the curve point on the edge of the plane
+        displayPoints[0] = Vec(cp.getPoint().x, cp.getPoint().y, cp.getPoint().z);
+        displayPoints[1] = Vec(cp.getPoint().x, cp.getPoint().y + 2.*height, cp.getPoint().z);
+        displayPoints[2] = Vec(cp.getPoint().x + 2.*width, cp.getPoint().y + 2.*height, cp.getPoint().z);
+        displayPoints[3] = Vec(cp.getPoint().x + 2.*width, cp.getPoint().y, cp.getPoint().z);
+    }
+    else{       // Put it in the middle of the plane
+        displayPoints[0] = Vec(cp.getPoint().x - width, cp.getPoint().y - height, cp.getPoint().z);
+        displayPoints[1] = Vec(cp.getPoint().x - width, cp.getPoint().y + height, cp.getPoint().z);
+        displayPoints[2] = Vec(cp.getPoint().x + width, cp.getPoint().y + height, cp.getPoint().z);
+        displayPoints[3] = Vec(cp.getPoint().x + width, cp.getPoint().y - height, cp.getPoint().z);
+    }
 }
 
 // Gets the four corner points of the plane in the world coordinates
@@ -56,10 +82,10 @@ void Plane::draw(){
         glEnable(GL_DEPTH_TEST);
 
         glBegin(GL_QUADS);
-            glVertex3f(static_cast<float>(points[0].x), static_cast<float>(points[0].y), static_cast<float>(points[0].z));
-            glVertex3f(static_cast<float>(points[1].x), static_cast<float>(points[1].y), static_cast<float>(points[1].z));
-            glVertex3f(static_cast<float>(points[2].x), static_cast<float>(points[2].y), static_cast<float>(points[2].z));
-            glVertex3f(static_cast<float>(points[3].x), static_cast<float>(points[3].y), static_cast<float>(points[3].z));
+            glVertex3d(displayPoints[0].x, displayPoints[0].y, displayPoints[0].z);
+            glVertex3d(displayPoints[1].x, displayPoints[1].y, displayPoints[1].z);
+            glVertex3d(displayPoints[2].x, displayPoints[2].y, displayPoints[2].z);
+            glVertex3d(displayPoints[3].x, displayPoints[3].y, displayPoints[3].z);
         glEnd();
 
         glDisable(GL_DEPTH);

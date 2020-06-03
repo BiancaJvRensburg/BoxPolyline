@@ -103,26 +103,6 @@ void Mesh::glTriangle(unsigned int i){
     const Triangle &t = triangles[i];
 
     for(unsigned int j = 0 ; j < 3 ; j++ ){
-        if(flooding.size()!=0){
-            /*if(flooding[t.getVertex(j)]!=-1) glColor4f(1.0, 0, 1.0, alphaTransparency);
-            else glColor4f(0, 1., 0, alphaTransparency);*/
-
-                if(flooding[t.getVertex(j)]==0) glColor4f(1.0, 0, 1.0, alphaTransparency);
-                else if(flooding[t.getVertex(j)]==1) glColor4f(0, 0, 1.0, alphaTransparency);
-                else if(flooding[t.getVertex(j)]==2) glColor4f(1, 0, 0, alphaTransparency);
-                else if(flooding[t.getVertex(j)]==3) glColor4f(1.0, 1.0, 0, alphaTransparency);
-                else if(flooding[t.getVertex(j)]==4) glColor4f(0, 1.0, 0.0, alphaTransparency);
-                else if(flooding[t.getVertex(j)]==5) glColor4f(0, 1.0, 1.0, alphaTransparency);
-                else if(flooding[t.getVertex(j)]==6) glColor4f(0.5, 0, 2.0, alphaTransparency);
-                else if(flooding[t.getVertex(j)]==7) glColor4f(0, .75, 1.0, alphaTransparency);
-                else if(flooding[t.getVertex(j)]==8) glColor4f(.25, 0.5, 1., alphaTransparency);
-                else if(flooding[t.getVertex(j)]==9) glColor4f(1.0, 0.5, 1.0, alphaTransparency);
-                else if(flooding[t.getVertex(j)]==10) glColor4f(1.0, 0, .5, alphaTransparency);
-                else if(flooding[t.getVertex(j)]==11) glColor4f(1.0, 2., .5, alphaTransparency);
-                else glColor4f(0, 0., 0, alphaTransparency);
-
-        }
-
         glNormal(verticesNormals[t.getVertex(j)]*normalDirection);
         glVertex(vertices[t.getVertex(j)]);
     }
@@ -199,6 +179,33 @@ void Mesh::deleteGhostPlanes(){
     planes.erase(planes.begin()+2, planes.end());       // delete the ghost planes
 }
 
+void Mesh::constructPlaneNeighbours(std::vector<int> &planeNeighbours){
+    planeNeighbours.clear();
+    unsigned int nbPlanes = static_cast<unsigned int>(planes.size());
+    planeNeighbours.resize(nbPlanes*2);
+
+    planeNeighbours[nbPlanes] = -1;
+    planeNeighbours[1] = -1;
+
+    if(nbPlanes==2){
+        setNeighbours(planeNeighbours, 0, 3);
+    }
+    else{
+        // Ghost plane case
+        setNeighbours(planeNeighbours, 0, nbPlanes+2);
+        setNeighbours(planeNeighbours, nbPlanes-1, nbPlanes+1);
+
+        for(unsigned int i=2; i<nbPlanes-1; i++){   // Only for the ghost planes aligned with each other
+            setNeighbours(planeNeighbours, i, i+nbPlanes+1);
+        }
+    }
+}
+
+void Mesh::setNeighbours(std::vector<int> &planeNeighbours, unsigned int a, unsigned int b){
+    planeNeighbours[a] = static_cast<int>(b);
+    planeNeighbours[b] = static_cast<int>(a);
+}
+
 void Mesh::updatePlaneIntersections(){
     if(isCut){
 
@@ -227,6 +234,7 @@ void Mesh::updatePlaneIntersections(){
             }
         }
 
+        constructPlaneNeighbours(planeNeighbours);
         mergeFlood(planeNeighbours);
         cutMesh(intersectionTriangles, planeNeighbours);
     }
@@ -283,6 +291,7 @@ void Mesh::cutFibula(bool* truthTriangles, std::vector <std::vector <unsigned in
     }
 
     getSegmentsToKeep(planeNeighbours);    // figure out what to keep (TODO can be done earlier) - fills segmentsConserved with the flooding indexes we want to keep
+
     for(unsigned int i=0; i<flooding.size(); i++){
         bool isKeep = false;
         for(unsigned int k=0; k<segmentsConserved.size(); k++){      // Only keep the index i it if it belongs to a kept segment
@@ -442,7 +451,8 @@ Vec Mesh::getPolylineProjectedVertex(unsigned int planeIndex, unsigned int neigh
     if(planeIndex >= planes.size()) plane -= planes.size();
     if(neighbourIndex >= planes.size()) neighbour -= planes.size();
 
-    Vec n = planes[plane]->getPosition() - planes[neighbour]->getPosition();      // this doesn't work anymore
+    // Vec n = planes[plane]->getPosition() - planes[neighbour]->getPosition();
+    Vec n = planes[plane]->getCentrePosition() - planes[neighbour]->getCentrePosition();
     n.normalize();
 
     n = planes[plane]->getLocalVector(n);
@@ -809,4 +819,26 @@ void Mesh::mlsProjection(const std::vector<Vec> &inputPoints, std::vector<Vec> &
         HPSS(tree, dimension, inputPoints[i], outputPoints[i], outputNormal, 1, 100.);
     }
 
+}
+
+// Get the minimum intersection point along the normal of the plane
+std::vector<Vec> Mesh::getMinNormalForPlane(unsigned int index, unsigned int neighbourIndex){
+    // Get the intersection triangles
+    std::vector<unsigned int> intersectionTrianglesPlane;
+    getIntersectionForPlane(index, intersectionTrianglesPlane);
+
+    std::vector<Vec> projections;
+
+    for(unsigned int i=0; i<intersectionTrianglesPlane.size(); i++){
+        for(unsigned int j=0; j<3; j++){
+            const unsigned int& vertexIndex = triangles[intersectionTrianglesPlane[i]].getVertex(j);
+            //Vec newVertex = Vec(vertices[vertexIndex]);
+            Vec newVertex = getPolylineProjectedVertex(index, neighbourIndex, vertexIndex);
+            //newVertex = planes[index]->getLocalCoordinates(newVertex);
+            //std::cout << "New vertex : " << newVertex.x << "," << newVertex.y << "," << newVertex.z << std::endl;
+            projections.push_back(newVertex);       // get the projection
+        }
+    }
+
+    return projections;
 }

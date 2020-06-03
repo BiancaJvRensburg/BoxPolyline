@@ -4,16 +4,21 @@
 
 Viewer::Viewer(QWidget *parent, StandardCamera *cam, int sliderMax) : QGLViewer(parent) {
     Camera *c = camera();       // switch the cameras
-    setCamera(cam);
-    delete c;
+    setCamera(c);
+    //setCamera(cam);
+    //delete c;
     isCurve = false;
     this->sliderMax = sliderMax;
     this->isCut = false;
     this->isDrawMesh = true;
+    this->isPoly = false;
 }
 
 void Viewer::draw() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    Vec base = viewerFrame->localInverseCoordinatesOf(camCentre);
+    camera()->setSceneCenter(base);
 
     glPushMatrix();
     glMultMatrixd(viewerFrame->matrix());
@@ -30,10 +35,19 @@ void Viewer::draw() {
              glColor4f(0., 1., 1., ghostPlanes[i]->getAlpha());
              ghostPlanes[i]->draw();
          }
+
+         glPointSize(2.);
+         glBegin(GL_POINTS);
+         for(unsigned int i=0; i<testPoints.size(); i++){
+             glColor3f(0., 0., 1.);
+             glVertex3f(testPoints[i].x, testPoints[i].y, testPoints[i].z);
+         }
+         glEnd();
+
+         curve.draw();
      }
 
-    if(isCut) poly.draw();
-
+    if(isPoly) poly.draw();
 
     glPopMatrix();
 }
@@ -55,7 +69,8 @@ void Viewer::init() {
   // Camera without mesh
   Vec centre(0,0,0);
   float radius(15.);
-  updateCamera(centre, radius);
+  camCentre = centre;
+  updateCamera(camCentre, radius);
 
   glEnable(GL_LIGHTING);
   glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
@@ -106,10 +121,10 @@ void Viewer::initPolyPlanes(Movable s){
     rightPlane->setID(poly.getNbPoints()-2);
     endRight->setID(poly.getNbPoints()-1);
 
-    leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
+    leftPlane->setPosition(viewerFrame->localCoordinatesOf(poly.getMeshPoint(leftPlane->getID())));
     leftPlane->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));      // TODO this could be done with an existing function?
 
-    rightPlane->setPosition(poly.getMeshPoint(rightPlane->getID()));
+    rightPlane->setPosition(viewerFrame->localCoordinatesOf(poly.getMeshPoint(rightPlane->getID())));
     rightPlane->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
 
     initGhostPlanes(s);
@@ -117,9 +132,11 @@ void Viewer::initPolyPlanes(Movable s){
 
 void Viewer::toggleIsPolyline(){
     Vec direction = Vec(1,1,0);
+    double displaySize = 30.;
 
     if(!leftPlane->getIsPoly()){
         direction = -direction;
+        displaySize = 15.;
     }
 
     endLeft->toggleIsPoly();
@@ -129,18 +146,16 @@ void Viewer::toggleIsPolyline(){
     rightPlane->toggleIsPoly();
     for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->toggleIsPoly();
 
-    lowerPoints(leftPlane->getSize(), direction);
-
-    if(leftPlane->getIsPoly()){     // if the polyline now exits, project it onto the mesh
-        std::vector<Vec> outputPoints;
-        std::vector<Vec> inputPoints;
-        for(unsigned int i=0; i<poly.getNbPoints(); i++) inputPoints.push_back(poly.getMeshPoint(i));
-        mesh.mlsProjection(inputPoints, outputPoints);
-        updatePolyline(outputPoints);
-        lowerPoints(5., direction);     // move the plane position 5mm from the mesh
-    }
+    lowerPoints(poly.getBoxHeight(0)/2., direction);       // all the boxes are the same size
 
     repositionPlanesOnPolyline();
+    changePlaneDisplaySize(displaySize, displaySize);
+}
+
+void Viewer::changePlaneDisplaySize(double width, double height){
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setDisplayDimensions(width, height);
+    leftPlane->setDisplayDimensions(width, height);
+    rightPlane->setDisplayDimensions(width, height);
 }
 
 void Viewer::lowerPoints(double size, Vec localDirection){
@@ -171,14 +186,15 @@ void Viewer::initGhostPlanes(Movable s){
     }
 
     // Connect all planes' movement (except the two end planes which we don't see). If a plane is moved, bend the polyline.
-    connect(&(leftPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolyline);
-    connect(&(rightPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolyline);
+    connect(&(leftPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolylineManually);
+    connect(&(rightPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolylineManually);
 
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) connect(&(ghostPlanes[i]->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolyline);        // connnect the ghost planes
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) connect(&(ghostPlanes[i]->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolylineManually);        // connnect the ghost planes
 }
 
 void Viewer::updateCamera(const Vec& center, float radius){
-    camera()->setSceneCenter(center);
+    camCentre = center;
+    camera()->setSceneCenter(camCentre);
     camera()->setSceneRadius(static_cast<double>(radius*1.05f));
     camera()->setZClippingCoefficient(static_cast<double>(10.));
     camera()->showEntireScene();
@@ -214,6 +230,7 @@ void Viewer::placePlanes(const std::vector<Vec> &polyPoints){
     Q_EMIT toUpdateDistances(distances);        // the distances are no longer the same because the polyline has been lowered, so update it in the fibula
 
     poly.resetBoxes();      // Set the boxes to the polyline
+    sendNewNorms();
 }
 
 double Viewer::segmentLength(const Vec a, const Vec b){
@@ -249,6 +266,13 @@ void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
     poly.getDistances(distances);
 
     Q_EMIT polylineBent(relativeNorms, distances);      // Send the new normals and distances to the fibula TODO only send over the info for the corresponding point
+}
+
+void Viewer::bendPolylineManually(unsigned int pointIndex, Vec v){
+    bool isOriginallyCut = isCut;
+    if(isOriginallyCut) uncut();
+    bendPolyline(pointIndex, v);
+    if(isOriginallyCut) cut();
 }
 
 // Bend the polyline without updating everything else
@@ -342,6 +366,7 @@ void Viewer::cutMesh(){
     else return;
 
     isCut = true;
+    isPoly = true;
 
     // Construct the polyline : First and last planes are immovable and are at the ends of the meshes
     std::vector<Vec> polylinePoints;
@@ -357,17 +382,22 @@ void Viewer::cutMesh(){
 
     constructPolyline(polylinePoints);
 
+    cut();
+
     update();
 }
 
 void Viewer::uncutMesh(){
+    uncut();
+
     isCut = false;
+    isPoly = false;
     deconstructPolyline();
-    update();
+    //update();
 }
 
 void Viewer::moveLeftPlane(int position){
-    if(isCut) return;       // disable the ability to move the planes once the mesh is cut
+    if(isPoly) return;       // disable the ability to move the planes once the mesh is cut
 
     double percentage = static_cast<double>(position) / static_cast<double>(sliderMax);
     unsigned int index = static_cast<unsigned int>(percentage * static_cast<double>(nbU) );
@@ -385,7 +415,7 @@ void Viewer::moveLeftPlane(int position){
 }
 
 void Viewer::moveRightPlane(int position){
-    if(isCut) return;
+    if(isPoly) return;
 
     double percentage = static_cast<double>(position) / static_cast<double>(sliderMax);
     unsigned int index = nbU - 1 - static_cast<unsigned int>(percentage * static_cast<double>(nbU) );
@@ -400,19 +430,11 @@ void Viewer::moveRightPlane(int position){
     movePlane(rightPlane, curveIndexR);
 }
 
+// Move the plane and send the distance between the two planes to the fibula
 void Viewer::movePlane(Plane *p, unsigned int curveIndex){
     repositionPlane(p, curveIndex);
-
-    /*if(isCut){
-        toggleIsPolyline();
-        bendPolyline(p->getID(), curve.getPoint(curveIndex));
-        toggleIsPolyline();
-    }
-    else{*/
-        double distance = curve.discreteChordLength(curveIndexL, curveIndexR);
-        Q_EMIT planeMoved(distance);
-    //}
-
+    double distance = curve.discreteChordLength(curveIndexL, curveIndexR);
+    Q_EMIT planeMoved(distance);
     update();
 }
 
@@ -512,14 +534,17 @@ double Viewer::angle(Vec a, Vec b){
 
 void Viewer::rotatePolylineOnAxis(int position){
     double r = (position/360.*2.*M_PI);
-    //for(unsigned int i=0; i<poly.getNbPoints()-1; i++) poly.rotateBox(i, r);
 
     // send over the new norms
+    sendNewNorms();
+    Q_EMIT toRotatePolylineOnAxis(r);
+    update();
+}
+
+void Viewer::sendNewNorms(){
     std::vector<Vec> norms;
     getPlaneBoxOrientations(norms);
     Q_EMIT toUpdatePlaneOrientations(norms);
-    Q_EMIT toRotatePolylineOnAxis(r);
-    update();
 }
 
 /* Display settings */
@@ -564,13 +589,13 @@ void Viewer::setPlaneAlpha(int position){
 
 void Viewer::cut(){
     mesh.setIsCut(Side::INTERIOR, true, true);
-
+    Q_EMIT cutFibula();
     update();
 }
 
 void Viewer::uncut(){
     mesh.setIsCut(Side::INTERIOR, false, false);
-
+    Q_EMIT uncutFibula();
     update();
 }
 

@@ -24,16 +24,25 @@ public Q_SLOTS:
     void movePlanes(double);
     void updatePlaneOrientations(std::vector<Vec>&);
     void rotatePolylineOnAxisFibula(double);
+    void rotatePolylineOnAxe(double);
     void cut();
     void uncut();
     void recieveFromFibulaMesh(std::vector<int>&, std::vector<Vec>&, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>&, int);
+    void tryOffsetAngle();
 
 Q_SIGNALS:
     void okToPlacePlanes(const std::vector<Vec>&);
     void sendToManible(std::vector<int>&, std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
+    void requestNewNorms();
 
 private:
     void rotatePolyline();
+    void rotatePolyToCurve();
+    void positionBoxes();
+    Vec getOffsetDistanceToMeshBorder(std::vector<Vec>& projections, Plane &p);
+    Vec getGreatestOffsetDistance(Plane &p1, Plane &p2, unsigned int p1I, unsigned int p2I);
+    Vec getMinOfMin(Vec &a, Vec &b);
+    void bendWithRelativeVector(Plane &p, Vec v);
     void setPlanesInPolyline(std::vector<Vec> &normals);
     void setPlaneOrientations(std::vector<Vec> &normals);
     void setDistances(const std::vector<double> &distances);
@@ -42,7 +51,10 @@ private:
     void matchDistances(const std::vector<double>& distances, std::vector<unsigned int> &segIndexes, std::vector<Vec> &outputPoints, double epsilon, const unsigned int& searchRadius);
     double euclideanDistance(const Vec &a, const Vec &b);
     unsigned int getClosestDistance(unsigned int index, const double &targetDistance, std::vector<unsigned int> &segIndexes, std::vector<Vec> &outputPoints, unsigned int searchRadius);
-    std::vector<Vec> planeNormals;
+    double getOffsetDistance(double angle);
+    double getBoxPlaneAngle(Plane &p);
+
+    double prevRotation = 0.;
 };
 
 #endif // VIEWERFIBULA_H

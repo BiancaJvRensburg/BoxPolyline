@@ -21,7 +21,7 @@ public :
 
 public Q_SLOTS:
     void toUpdate();
-    virtual void bendPolyline(unsigned int pointIndex, Vec v);
+    void bendPolylineManually(unsigned int pointIndex, Vec v);
     void cutMesh();
     void uncutMesh();
     void placePlanes(const std::vector<Vec>&);
@@ -37,6 +37,7 @@ public Q_SLOTS:
     virtual void uncut();
     void toggleWireframe();
     void recieveFromFibulaMesh(std::vector<int>&, std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
+    void sendNewNorms();
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
@@ -47,6 +48,8 @@ Q_SIGNALS:
     void toRotatePolylineOnAxis(double);
     void planeMoved(double);
     void sendFibulaToMesh(std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
+    void cutFibula();
+    void uncutFibula();
 
 protected:
     void draw();
@@ -54,6 +57,7 @@ protected:
     virtual void initSignals();
     virtual void constructCurve();
     virtual void initGhostPlanes(Movable s);
+    virtual void bendPolyline(unsigned int pointIndex, Vec v);
     void initPolyPlanes(Movable s);
     void initCurvePlanes(Movable s);
     void updateCamera(const Vec& center, float radius);
@@ -70,6 +74,7 @@ protected:
     void getPlaneBoxOrientations(std::vector<Vec>& norms);
     void simpleBend(const unsigned int &pointIndex, Vec v, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
     void lowerPoints(double size, Vec localDirection);
+    void changePlaneDisplaySize(double width, double height);
 
 
     double angle(Vec a, Vec b);
@@ -94,11 +99,16 @@ protected:
     const double constraint = 25.;
     int sliderMax;
     bool isCut;
+    bool isPoly = false;
     bool isDrawMesh;
 
     int polyRotation;
 
     std::vector<Vec> segmentPoints;
+
+    // temporary for testing
+    std::vector<Vec> testPoints;
+    Vec camCentre;
 
 private:
     void constructPolyline(const std::vector<Vec>& polyPoints);
