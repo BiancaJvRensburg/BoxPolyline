@@ -645,3 +645,7 @@ void Viewer::setBoxToManipulator(unsigned int id, Vec manipulatorPosition){
     poly.setBoxToManipulator(id, manipulatorPosition);
     update();
 }
+
+void Viewer::toggleEditBoxMode(){
+    poly.activateBoxManipulators();
+}

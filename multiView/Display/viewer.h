@@ -40,6 +40,7 @@ public Q_SLOTS:
     void sendNewNorms();
     void toggleEditPlaneMode();
     void setBoxToManipulator(unsigned int, Vec);
+    void toggleEditBoxMode();
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);

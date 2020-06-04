@@ -68,6 +68,7 @@ public:
 
     void setBoxToManipulator(unsigned int id, Vec manipulatorPosition);
     void setManipulatorsToBoxes();
+    void activateBoxManipulators();
 
 private:
     Vec projection(Vec &a, Vec &planeNormal);

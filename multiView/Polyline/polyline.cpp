@@ -147,8 +147,8 @@ void Polyline::initManipulators(){
 
     for(unsigned int i=0; i<boxes.size(); i++){
         boxManipulators.push_back(new SimpleManipulator);
-        boxManipulators[i]->activate();
-        boxManipulators[i]->setDisplayScale(20.);
+        boxManipulators[i]->deactivate();
+        boxManipulators[i]->setDisplayScale(boxes[i].getLength()/5.);
         boxManipulators[i]->setID(i);
     }
 
@@ -174,7 +174,13 @@ void Polyline::setManipulatorsToBoxes(){
 
        Vec p = getMeshBoxPoint(i) + boxes[i].getLength()/2. * getWorldBoxTransform(i, boxes[i].getTangent());
        boxManipulators[i]->setOrigin(p);
+       boxManipulators[i]->setDisplayScale(boxes[i].getLength()/5.);
     }
+}
+
+void Polyline::activateBoxManipulators(){
+    // Don't activate the first and the last - these boxes don't count
+    for(unsigned int i=1; i<boxManipulators.size()-1; i++) boxManipulators[i]->activate();
 }
 
 // Update the points locations without updating their orientations
@@ -350,7 +356,6 @@ void Polyline::restoreBoxRotations(){
     for(unsigned int i=0; i<boxes.size(); i++) boxes[i].restoreRotation();
 }
 
-
 // Convert the vectors from the box frame to the world frame
 void Polyline::getRelatvieNormals(std::vector<Vec> &relativeNorms){
     for(unsigned int i=0; i<relativeNorms.size(); i++){
@@ -385,7 +390,6 @@ void Polyline::getDirections(std::vector<Vec> &directions){
     directions.clear();
     for(unsigned int i=0; i<boxes.size(); i++) directions.push_back(getWorldTransform(boxes[i].worldTangent()));
 }
-
 
 // Move the entire polyline
 void Polyline::lowerPolyline(Vec localDirection, double distance){
