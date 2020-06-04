@@ -39,6 +39,7 @@ public Q_SLOTS:
     void recieveFromFibulaMesh(std::vector<int>&, std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
     void sendNewNorms();
     void toggleEditPlaneMode();
+    void setBoxToManipulator(unsigned int, Vec);
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);

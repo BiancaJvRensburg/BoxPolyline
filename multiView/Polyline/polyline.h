@@ -66,6 +66,9 @@ public:
 
     void toggleIsWireframe(){ isWireframe = !isWireframe; }
 
+    void setBoxToManipulator(unsigned int id, Vec manipulatorPosition);
+    void setManipulatorsToBoxes();
+
 private:
     Vec projection(Vec &a, Vec &planeNormal);
     double angle(const Vec &a, const Vec &b);
@@ -75,6 +78,8 @@ private:
     void getCuttingAngles(std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
     double euclideanDistance(const Vec &a, const Vec &b);
     void resetBox(unsigned int index);
+    void initManipulators();
+    void deleteManipulators();
 
     Frame frame;
     const Vec tangent = Vec(1,0,0);
@@ -87,7 +92,7 @@ private:
     std::vector<Vec> cuttingBinormals;
     float boxTransparency = 1.f;
     std::vector<Box> boxes;
-    std::vector<SimpleManipulator> planeManipulations;
+    std::vector<SimpleManipulator*> boxManipulators;     // a manipulator for each box
     bool isWireframe = true;
 };
 

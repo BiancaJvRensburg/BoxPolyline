@@ -133,3 +133,13 @@ Vec Box::getMidPoint(){
 
     return worldCoordinates(m);
 }
+
+void Box::getOrientation(Vec &x, Vec &y, Vec &z){
+    Vec a(1,0,0);
+    Vec b(0,1,0);
+    Vec c(0,0,1);
+
+    x = worldTransform(a);
+    y = worldTransform(b);
+    z = worldTransform(c);
+}

@@ -34,7 +34,9 @@ public:
     Vec getMidPoint();
     const Vec& getNormal(){ return normal; }
     const Vec& getBinormal(){ return binormal; }
+    const Vec& getTangent(){ return tangent; }
     void restoreRotation();
+    void getOrientation(Vec &x, Vec &y, Vec &z);
 
 private:
     Frame f;

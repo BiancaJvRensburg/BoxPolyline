@@ -33,6 +33,7 @@ void Polyline::reinit(unsigned int nbPoints){
         boxes.push_back(Box());
         boxes[i].init(frame.referenceFrame());
     }
+    initManipulators();
 }
 
 void Polyline::draw(){
@@ -78,6 +79,8 @@ void Polyline::draw(){
     }
 
     glPopMatrix();
+
+    for(unsigned int i=0; i<boxManipulators.size(); i++) boxManipulators[i]->draw();
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_DEPTH);
@@ -134,6 +137,46 @@ void Polyline::drawBox(unsigned int index){
     glEnd();
 }
 
+void Polyline::deleteManipulators(){
+    for(unsigned int i=0; i<boxManipulators.size(); i++) delete boxManipulators[i];
+    boxManipulators.clear();
+}
+
+void Polyline::initManipulators(){
+    deleteManipulators();
+
+    for(unsigned int i=0; i<boxes.size(); i++){
+        boxManipulators.push_back(new SimpleManipulator);
+        boxManipulators[i]->activate();
+        boxManipulators[i]->setDisplayScale(20.);
+        boxManipulators[i]->setID(i);
+    }
+
+    setManipulatorsToBoxes();
+}
+
+void Polyline::setBoxToManipulator(unsigned int id, Vec manipulatorPosition){
+    // Set the orientation
+    Vec x,y,z;
+    boxManipulators[id]->getOrientation(x,y,z);
+    boxes[id].setFrameFromBasis(x,y,z);
+
+    // Set box to the manipulator position - half the length
+}
+
+void Polyline::setManipulatorsToBoxes(){
+    Vec x,y,z;
+    for(unsigned int i=0; i<boxes.size(); i++){
+       boxes[i].getOrientation(x,y,z);
+       boxManipulators[i]->setRepX(x);
+       boxManipulators[i]->setRepY(y);
+       boxManipulators[i]->setRepZ(z);
+
+       Vec p = getMeshBoxPoint(i) + boxes[i].getLength()/2. * getWorldBoxTransform(i, boxes[i].getTangent());
+       boxManipulators[i]->setOrigin(p);
+    }
+}
+
 // Update the points locations without updating their orientations
 void Polyline::updatePoints(const std::vector<Vec> &newPoints){
     points.clear();
@@ -141,6 +184,7 @@ void Polyline::updatePoints(const std::vector<Vec> &newPoints){
     for(unsigned int i=0; i<boxes.size(); i++){
         resetBox(i);
         boxes[i].restoreRotation();
+        // setManipulatorsToBoxes();
     }
 }
 
@@ -169,6 +213,7 @@ void Polyline::resetBox(unsigned int index){
     boxes[index].setFrameFromBasis(-cross(n,b),b,n);
     double length = euclideanDistance(points[index], points[index+1]);
     boxes[index].setLength(length);
+    setManipulatorsToBoxes();
 }
 
 void Polyline::bend(unsigned int index, Vec &newPosition, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals){

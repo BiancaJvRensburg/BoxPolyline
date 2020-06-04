@@ -640,3 +640,8 @@ void Viewer::toggleEditPlaneMode(){
     for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->toggleEditMode();
     update();
 }
+
+void Viewer::setBoxToManipulator(unsigned int id, Vec manipulatorPosition){
+    poly.setBoxToManipulator(id, manipulatorPosition);
+    update();
+}
