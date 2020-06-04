@@ -387,6 +387,8 @@ void Viewer::cutMesh(){
 
     cut();
 
+    for(unsigned int i=1; i<poly.getNbPoints()-2; i++) connect(poly.getBoxManipulator(i), &SimpleManipulator::moved, this, &Viewer::setBoxToManipulator);
+
     update();
 }
 
@@ -648,4 +650,5 @@ void Viewer::setBoxToManipulator(unsigned int id, Vec manipulatorPosition){
 
 void Viewer::toggleEditBoxMode(){
     poly.activateBoxManipulators();
+    update();
 }

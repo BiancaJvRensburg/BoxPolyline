@@ -70,6 +70,8 @@ public:
     void setManipulatorsToBoxes();
     void activateBoxManipulators();
 
+    SimpleManipulator* getBoxManipulator(unsigned int i){ return boxManipulators[i]; }
+
 private:
     Vec projection(Vec &a, Vec &planeNormal);
     double angle(const Vec &a, const Vec &b);

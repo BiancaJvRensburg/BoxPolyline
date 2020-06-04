@@ -162,6 +162,8 @@ void Polyline::setBoxToManipulator(unsigned int id, Vec manipulatorPosition){
     boxes[id].setFrameFromBasis(x,y,z);
 
     // Set box to the manipulator position - half the length
+    Vec p = getLocalCoordinates(manipulatorPosition - (boxes[id].getLength()/2. * getWorldBoxTransform(id, boxes[id].getTangent()) + boxes[id].getHeight()/2. * getWorldBoxTransform(id, boxes[id].getBinormal()) + boxes[id].getWidth()/2. * getWorldBoxTransform(id, boxes[id].getNormal())));
+    boxes[id].setPosition(p);
 }
 
 void Polyline::setManipulatorsToBoxes(){
@@ -172,7 +174,7 @@ void Polyline::setManipulatorsToBoxes(){
        boxManipulators[i]->setRepY(y);
        boxManipulators[i]->setRepZ(z);
 
-       Vec p = getMeshBoxPoint(i) + boxes[i].getLength()/2. * getWorldBoxTransform(i, boxes[i].getTangent());
+       Vec p = getMeshBoxPoint(i) + boxes[i].getLength()/2. * getWorldBoxTransform(i, boxes[i].getTangent()) + boxes[i].getHeight()/2. * getWorldBoxTransform(i, boxes[i].getBinormal()) + boxes[i].getWidth()/2. * getWorldBoxTransform(i, boxes[i].getNormal());
        boxManipulators[i]->setOrigin(p);
        boxManipulators[i]->setDisplayScale(boxes[i].getLength()/5.);
     }
