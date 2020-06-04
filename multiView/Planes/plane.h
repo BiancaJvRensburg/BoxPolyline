@@ -5,7 +5,7 @@
 #include <QGLViewer/manipulatedFrame.h>
 
 #include "curvepoint.h"
-#include "simplemanipulator.h"
+#include "Manipulator/simplemanipulator.h"
 
 enum Movable {STATIC, DYNAMIC};
 

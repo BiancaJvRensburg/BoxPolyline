@@ -8,11 +8,10 @@ using std::map;
 using std::pair;
 
 #include <QGLViewer/qglviewer.h>
-#include "GLUtilityMethods.h"
+#include "Tools/GLUtilityMethods.h"
 class GLVWidget;
 #include <QtGui>
 #include <QGLViewer/mouseGrabber.h>
-
 
 class SimpleManipulator: public QObject , public qglviewer::MouseGrabber
 {
@@ -26,6 +25,7 @@ public:
     void activate(){ this->setState(1); }
     void deactivate(){ this->setState(0); }
     void switchStates(){ if(getState()==0) activate(); else deactivate(); }
+    void setID(unsigned int i){ id = i; }
 
     void setOrigin( qglviewer::Vec const & p ){ Origin = p; }
     void setRepX( qglviewer::Vec const & p ){ RepX = p; }
@@ -61,7 +61,7 @@ public:
 
 Q_SIGNALS:
     void mouseReleased();
-    void moved();
+    void moved(unsigned int, qglviewer::Vec);
 
 private:
     void setState( int e ){ this->state = e; }
@@ -103,6 +103,7 @@ private:
 
     float m_xx_default , m_yy_default;
 
+    unsigned int id;        // same as the plane's id
 };
 
 #endif // SIMPLEMANIPULATOR_H

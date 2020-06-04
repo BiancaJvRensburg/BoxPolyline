@@ -16,6 +16,7 @@ Plane::Plane(double s, Movable status, float alpha, unsigned int id) : cp(id)
     this->displayDimensions = Vec(s,s,0);
     manipulator.setDisplayScale(size/3.);
     manipulator.deactivate();
+    manipulator.setID(id);
 
     initBasePlane();
 }

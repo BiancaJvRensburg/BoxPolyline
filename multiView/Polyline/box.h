@@ -3,7 +3,7 @@
 
 #include <QGLViewer/qglviewer.h>
 #include <QGLViewer/frame.h>
-#include "simplemanipulator.h"
+#include "Manipulator/simplemanipulator.h"
 
 using namespace qglviewer;
 

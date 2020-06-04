@@ -4,6 +4,7 @@
 #include "Planes/curvepoint.h"
 #include "box.h"
 #include "Planes/plane.h"
+#include "Manipulator/simplemanipulator.h"
 
 class Polyline
 {
@@ -86,6 +87,7 @@ private:
     std::vector<Vec> cuttingBinormals;
     float boxTransparency = 1.f;
     std::vector<Box> boxes;
+    std::vector<SimpleManipulator> planeManipulations;
     bool isWireframe = true;
 };
 

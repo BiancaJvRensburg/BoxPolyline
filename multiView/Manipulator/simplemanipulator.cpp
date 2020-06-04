@@ -10,6 +10,7 @@ SimpleManipulator::SimpleManipulator()
     mode_modification = 0.f;
     Xscale = Yscale = Zscale = 1.;
     mode_grabbing = 1;
+    id = 0;
 }
 
 void SimpleManipulator::checkIfGrabsMouse(int x, int y, const qglviewer::Camera *const cam){
@@ -420,7 +421,7 @@ void SimpleManipulator::clear()
 
 void SimpleManipulator::manipulatedCallback()
 {
-    Q_EMIT moved();
+    Q_EMIT moved(id, Origin);
 }
 
 void SimpleManipulator::fakeMouseDoubleClickEvent( QMouseEvent* const )
