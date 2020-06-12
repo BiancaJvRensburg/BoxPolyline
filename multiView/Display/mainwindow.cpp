@@ -121,7 +121,7 @@ void MainWindow::initDisplayDockWidgets(){
 
     QSlider *boxAlphaSlider = new QSlider(Qt::Horizontal);
     boxAlphaSlider->setMaximum(100);
-    boxAlphaSlider->setSliderPosition(100);
+    boxAlphaSlider->setSliderPosition(50);
     contentLayoutMand->addRow("Box transparency", boxAlphaSlider);
     connect(boxAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::setBoxAlpha);
     connect(boxAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::setBoxAlpha);
@@ -159,15 +159,6 @@ void MainWindow::initFileActions(){
     QAction *cutMeshAction = new QAction("Cut", this);
     connect(cutMeshAction, &QAction::triggered, skullViewer, &Viewer::cutMesh);
 
-    /*QAction *cutAction = new QAction("Cut mesh", this);
-    connect(cutAction, &QAction::triggered, skullViewer, &Viewer::cut);*/
-    //connect(cutAction, &QAction::triggered, fibulaViewer, &ViewerFibula::cut);
-
-
-   /* QAction *uncutAction = new QAction("Uncut mesh", this);
-    connect(uncutAction, &QAction::triggered, skullViewer, &Viewer::uncut);*/
-    //connect(uncutAction, &QAction::triggered, fibulaViewer, &ViewerFibula::uncut);
-
     QAction *uncutMeshAction = new QAction("Undo cut", this);
     connect(uncutMeshAction, &QAction::triggered, skullViewer, &Viewer::uncutMesh);
     connect(uncutMeshAction, &QAction::triggered, fibulaViewer, &Viewer::uncutMesh);
@@ -180,15 +171,9 @@ void MainWindow::initFileActions(){
     connect(drawPlanesAction, &QAction::triggered, skullViewer, &Viewer::toggleDrawPlane);
     connect(drawPlanesAction, &QAction::triggered, fibulaViewer, &ViewerFibula::toggleDrawPlane);
 
-    QAction *wireframeAction = new QAction("Box wireframe", this);
+    /*QAction *wireframeAction = new QAction("Box wireframe", this);
     connect(wireframeAction, &QAction::triggered, skullViewer, &Viewer::toggleWireframe);
-    connect(wireframeAction, &QAction::triggered, fibulaViewer, &ViewerFibula::toggleWireframe);
-
-   /* QAction *testAction = new QAction("Test distance", this);
-    connect(testAction, &QAction::triggered, fibulaViewer, &ViewerFibula::tryOffsetAngle);*/
-
-   /* QAction *projectionAction = new QAction("Projection", this);
-    connect(projectionAction, &QAction::triggered, fibulaViewer, &ViewerFibula::projectToMesh);*/
+    connect(wireframeAction, &QAction::triggered, fibulaViewer, &ViewerFibula::toggleWireframe);*/
 
 
     fileActionGroup->addAction(openJsonFileAction);
@@ -196,14 +181,10 @@ void MainWindow::initFileActions(){
     fileActionGroup->addAction(editPlanesAction);
     fileActionGroup->addAction(editBoxAction);
     fileActionGroup->addAction(cutMeshAction);
-    //fileActionGroup->addAction(projectionAction);
-    //fileActionGroup->addAction(cutAction);
-    //fileActionGroup->addAction(uncutAction);
     fileActionGroup->addAction(uncutMeshAction);
     fileActionGroup->addAction(drawMeshAction);
     fileActionGroup->addAction(drawPlanesAction);
-    fileActionGroup->addAction(wireframeAction);
-    //fileActionGroup->addAction(testAction);
+    //fileActionGroup->addAction(wireframeAction);
 
     connect(skullViewer, &Viewer::constructPoly, fibulaViewer, &ViewerFibula::constructPolyline);
     connect(fibulaViewer, &ViewerFibula::okToPlacePlanes, skullViewer, &Viewer::placePlanes);
@@ -215,6 +196,7 @@ void MainWindow::initFileActions(){
     connect(fibulaViewer, &ViewerFibula::requestNewNorms, skullViewer, &Viewer::sendNewNorms);
     connect(skullViewer, &Viewer::cutFibula, fibulaViewer, &ViewerFibula::cut);
     connect(skullViewer, &Viewer::uncutFibula, fibulaViewer, &ViewerFibula::uncut);
+    connect(skullViewer, &Viewer::toReinitBox, fibulaViewer, &ViewerFibula::reinitBox);
 }
 
 void MainWindow::initFileMenu(){
@@ -267,5 +249,70 @@ void MainWindow::openMandJSON(){
 
 void MainWindow::openFibJSON(){
     openJSON(fibulaViewer);
+}
+
+// Stage 1
+void MainWindow::uncutStage(){
+    fileActionGroup = new QActionGroup(this);
+
+    QAction *openJsonFileAction = new QAction("Open mandible JSON", this);
+    connect(openJsonFileAction, &QAction::triggered, this, &MainWindow::openMandJSON);
+
+    QAction *openJsonFibFileAction = new QAction("Open fibula JSON", this);
+    connect(openJsonFibFileAction, &QAction::triggered, this, &MainWindow::openFibJSON);
+
+    QAction *cutMeshAction = new QAction("Cut", this);
+    connect(cutMeshAction, &QAction::triggered, this, &MainWindow::cutStage);
+
+    fileActionGroup->addAction(openJsonFileAction);
+    fileActionGroup->addAction(openJsonFibFileAction);
+    fileActionGroup->addAction(cutMeshAction);
+
+    // skullViewer->uncutMesh();
+}
+
+// Stage 2
+void MainWindow::cutStage(){
+    fileActionGroup = new QActionGroup(this);
+
+    QAction *editPlanesAction = new QAction("Edit planes", this);
+    connect(editPlanesAction, &QAction::triggered, skullViewer, &Viewer::toggleEditPlaneMode);
+
+    QAction *editBoxAction = new QAction("Edit segments", this);
+    connect(editBoxAction, &QAction::triggered, skullViewer, &Viewer::toggleEditBoxMode);
+
+    QAction *uncutMeshAction = new QAction("Undo cut", this);
+    connect(uncutMeshAction, &QAction::triggered, skullViewer, &Viewer::uncutMesh);
+    connect(uncutMeshAction, &QAction::triggered, fibulaViewer, &Viewer::uncutMesh);
+;
+    fileActionGroup->addAction(editPlanesAction);
+    fileActionGroup->addAction(editBoxAction);
+    fileActionGroup->addAction(uncutMeshAction);
+
+    skullViewer->cutMesh();
+}
+
+// Stage 3
+void MainWindow::editStage(){
+    fileActionGroup = new QActionGroup(this);
+
+    QAction *drawMeshAction = new QAction("Draw mesh", this);
+    connect(drawMeshAction, &QAction::triggered, skullViewer, &Viewer::toggleDrawMesh);
+    connect(drawMeshAction, &QAction::triggered, fibulaViewer, &ViewerFibula::toggleDrawMesh);
+
+    QAction *drawPlanesAction = new QAction("Draw planes", this);
+    connect(drawPlanesAction, &QAction::triggered, skullViewer, &Viewer::toggleDrawPlane);
+    connect(drawPlanesAction, &QAction::triggered, fibulaViewer, &ViewerFibula::toggleDrawPlane);
+
+    QAction *wireframeAction = new QAction("Box wireframe", this);
+    connect(wireframeAction, &QAction::triggered, skullViewer, &Viewer::toggleWireframe);
+    connect(wireframeAction, &QAction::triggered, fibulaViewer, &ViewerFibula::toggleWireframe);
+
+    QAction *cutMeshAction = new QAction("Cut", this);
+    connect(cutMeshAction, &QAction::triggered, this, &MainWindow::cutStage);
+
+    fileActionGroup->addAction(drawMeshAction);
+    fileActionGroup->addAction(drawPlanesAction);
+    fileActionGroup->addAction(wireframeAction);
 }
 

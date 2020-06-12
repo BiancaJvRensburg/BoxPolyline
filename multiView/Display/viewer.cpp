@@ -45,7 +45,14 @@ void Viewer::draw() {
          glEnd();
 
          curve.draw();
+
      }
+
+     glPointSize(10.);
+     glBegin(GL_POINTS);
+     glColor3d(1,0,0);
+     glVertex3d(projPoint.x, projPoint.y, projPoint.z);
+     glEnd();
 
     if(isPoly) poly.draw();
 
@@ -645,10 +652,33 @@ void Viewer::toggleEditPlaneMode(){
 
 void Viewer::setBoxToManipulator(unsigned int id, Vec manipulatorPosition){
     poly.setBoxToManipulator(id, manipulatorPosition);
+    if(id == ghostPlanes[0]->getID()) {
+        double distShift;
+        projPoint = projectBoxToPlane(ghostPlanes[0]->getID(), *ghostPlanes[0], distShift);
+        poly.setBoxToProjectionPoint(id, projPoint);
+        // Shift the box size
+        // poly.adjustBoxLength(ghostPlanes[0]->getID(), distShift);
+    }
+    sendNewNorms();     // Need to send new norms and the new rotation of the box - here its the opposite of before -- don't update on this side but send the update to the fibula correspondance
+    Q_EMIT toReinitBox(id);
     update();
 }
 
 void Viewer::toggleEditBoxMode(){
     poly.activateBoxManipulators();
     update();
+}
+
+Vec Viewer::projectBoxToPlane(unsigned int boxIndex, Plane &p, double &distShift){
+    Vec worldBox = poly.getMeshBoxPoint(boxIndex);
+    Vec worldProjectionAxis = worldBox - poly.getMeshBoxEnd(boxIndex);
+    Vec projPoint = p.getAxisProjection(worldBox, worldProjectionAxis);
+
+    distShift = euclideanDistance(worldBox, projPoint);
+
+    return projPoint;
+}
+
+double Viewer::euclideanDistance(const Vec &a, const Vec &b){
+    return sqrt(pow(a.x-b.x, 2.) + pow(a.y-b.y, 2.) + pow(a.z-b.z, 2.));
 }

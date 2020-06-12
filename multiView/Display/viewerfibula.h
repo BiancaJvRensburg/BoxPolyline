@@ -29,6 +29,7 @@ public Q_SLOTS:
     void uncut();
     void recieveFromFibulaMesh(std::vector<int>&, std::vector<Vec>&, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>&, int);
     void tryOffsetAngle();
+    void reinitBox(unsigned int);
 
 Q_SIGNALS:
     void okToPlacePlanes(const std::vector<Vec>&);
@@ -49,7 +50,6 @@ private:
     void constructSegmentPoints(unsigned int nbU);
     void projectToMesh(const std::vector<double>& distances);
     void matchDistances(const std::vector<double>& distances, std::vector<unsigned int> &segIndexes, std::vector<Vec> &outputPoints, double epsilon, const unsigned int& searchRadius);
-    double euclideanDistance(const Vec &a, const Vec &b);
     unsigned int getClosestDistance(unsigned int index, const double &targetDistance, std::vector<unsigned int> &segIndexes, std::vector<Vec> &outputPoints, unsigned int searchRadius);
     double getOffsetDistance(double angle);
     double getBoxPlaneAngle(Plane &p);

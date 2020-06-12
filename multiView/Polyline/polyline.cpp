@@ -65,7 +65,7 @@ void Polyline::draw(){
     glEnd();
 
     glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
-    for(unsigned int i=0; i<boxes.size(); i++){
+    for(unsigned int i=1; i<boxes.size()-1; i++){
         glColor4f(0,0,0, boxTransparency);
         boxes[i].draw(0);
     }
@@ -166,6 +166,11 @@ void Polyline::setBoxToManipulator(unsigned int id, Vec manipulatorPosition){
     boxes[id].setPosition(p);
 }
 
+void Polyline::setBoxToProjectionPoint(unsigned int id, Vec projPoint){
+    Vec p = getLocalCoordinates(projPoint);
+    boxes[id].setPosition(p);
+}
+
 void Polyline::setManipulatorsToBoxes(){
     Vec x,y,z;
     for(unsigned int i=0; i<boxes.size(); i++){
@@ -182,7 +187,7 @@ void Polyline::setManipulatorsToBoxes(){
 
 void Polyline::activateBoxManipulators(){
     // Don't activate the first and the last - these boxes don't count
-    for(unsigned int i=1; i<boxManipulators.size()-1; i++) boxManipulators[i]->activate();
+    for(unsigned int i=1; i<boxManipulators.size()-1; i++) boxManipulators[i]->switchStates();
 }
 
 // Update the points locations without updating their orientations
@@ -398,4 +403,8 @@ void Polyline::lowerPolyline(Vec localDirection, double distance){
     Vec p = frame.position();
     Vec worldDirection = getWorldTransform(localDirection);     // convert to world coordinates
     frame.setPosition(p+worldDirection*distance);
+}
+
+void Polyline::adjustBoxLength(unsigned int i, double &distShift){
+    boxes[i].setLength(distShift);
 }

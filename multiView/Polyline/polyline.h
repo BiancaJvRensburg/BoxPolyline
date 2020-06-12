@@ -67,10 +67,13 @@ public:
     void toggleIsWireframe(){ isWireframe = !isWireframe; }
 
     void setBoxToManipulator(unsigned int id, Vec manipulatorPosition);
+    void setBoxToProjectionPoint(unsigned int id, Vec projPoint);
     void setManipulatorsToBoxes();
     void activateBoxManipulators();
 
     SimpleManipulator* getBoxManipulator(unsigned int i){ return boxManipulators[i]; }
+
+    void adjustBoxLength(unsigned int i, double &distShift);
 
 private:
     Vec projection(Vec &a, Vec &planeNormal);
@@ -93,7 +96,7 @@ private:
     std::vector<Vec> segmentBinormals;
     std::vector<Vec> cuttingLines;
     std::vector<Vec> cuttingBinormals;
-    float boxTransparency = 1.f;
+    float boxTransparency = 0.5f;
     std::vector<Box> boxes;
     std::vector<SimpleManipulator*> boxManipulators;     // a manipulator for each box
     bool isWireframe = true;

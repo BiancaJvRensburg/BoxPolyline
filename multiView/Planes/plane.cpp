@@ -209,6 +209,14 @@ Vec Plane::getProjection(Vec p){
     return cp.getFrame().localInverseCoordinatesOf(newP);   // convert back into original coordinate system
 }
 
+Vec Plane::getAxisProjection(Vec p, Vec axis){
+    const Vec &localP = cp.getFrame().localCoordinatesOf(p);       // convert into local coordinates
+    Vec localAxis = cp.getFrame().localTransformOf(axis);
+    double alpha = localP.z / localAxis.z;
+    Vec newP = localP - alpha*localAxis;
+    return cp.getFrame().localInverseCoordinatesOf(newP);
+}
+
 // Project coordinates onto the plane (coordinates in terms of the plane)
 Vec Plane::getLocalProjection(Vec localP){
     return localP - normal * (localP * normal);             // don't convert between coordinate systems

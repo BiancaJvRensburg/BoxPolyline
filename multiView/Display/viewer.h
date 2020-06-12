@@ -53,6 +53,7 @@ Q_SIGNALS:
     void sendFibulaToMesh(std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
     void cutFibula();
     void uncutFibula();
+    void toReinitBox(unsigned int);
 
 protected:
     void draw();
@@ -78,6 +79,8 @@ protected:
     void simpleBend(const unsigned int &pointIndex, Vec v, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
     void lowerPoints(double size, Vec localDirection);
     void changePlaneDisplaySize(double width, double height);
+    Vec projectBoxToPlane(unsigned int boxIndex, Plane &p, double& distShift);
+    double euclideanDistance(const Vec &a, const Vec &b);
 
 
     double angle(Vec a, Vec b);
@@ -112,6 +115,7 @@ protected:
     // temporary for testing
     std::vector<Vec> testPoints;
     Vec camCentre;
+    Vec projPoint;
 
 private:
     void constructPolyline(const std::vector<Vec>& polyPoints);

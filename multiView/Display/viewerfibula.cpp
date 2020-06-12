@@ -225,6 +225,14 @@ void ViewerFibula::rotatePolylineOnAxisFibula(double r){
     update();
 }
 
+void ViewerFibula::reinitBox(unsigned int id){
+    bool isOriginallyCut = isCut;
+    if(isOriginallyCut) uncut();
+
+    if(isOriginallyCut) cut();
+    update();
+}
+
 // TODO this doesn't work yet
 void ViewerFibula::rotatePolylineOnAxe(double r){
     bool isOriginallyCut = isCut;
@@ -253,10 +261,6 @@ void ViewerFibula::constructSegmentPoints(unsigned int nbU){
 
     // add the last control point point
     segmentPoints.push_back(poly.getMeshPoint(poly.getNbPoints()-1));
-}
-
-double ViewerFibula::euclideanDistance(const Vec &a, const Vec &b){
-    return sqrt(pow(a.x-b.x, 2.) + pow(a.y-b.y, 2.) + pow(a.z-b.z, 2.));
 }
 
 void ViewerFibula::cut(){
