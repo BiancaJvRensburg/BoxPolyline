@@ -79,7 +79,7 @@ protected:
     void simpleBend(const unsigned int &pointIndex, Vec v, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
     void lowerPoints(double size, Vec localDirection);
     void changePlaneDisplaySize(double width, double height);
-    Vec projectBoxToPlane(unsigned int boxIndex, Plane &p, double& distShift);
+    Vec projectBoxToPlane(unsigned int boxIndex, Plane &p, Plane &endP, double& distShift);
     double euclideanDistance(const Vec &a, const Vec &b);
 
 

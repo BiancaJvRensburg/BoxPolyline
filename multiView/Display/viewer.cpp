@@ -654,10 +654,10 @@ void Viewer::setBoxToManipulator(unsigned int id, Vec manipulatorPosition){
     poly.setBoxToManipulator(id, manipulatorPosition);
     if(id == ghostPlanes[0]->getID()) {
         double distShift;
-        projPoint = projectBoxToPlane(ghostPlanes[0]->getID(), *ghostPlanes[0], distShift);
+        projPoint = projectBoxToPlane(ghostPlanes[0]->getID(), *ghostPlanes[0], *ghostPlanes[1], distShift);
         poly.setBoxToProjectionPoint(id, projPoint);
         // Shift the box size
-        // poly.adjustBoxLength(ghostPlanes[0]->getID(), distShift);
+        poly.adjustBoxLength(ghostPlanes[0]->getID(), distShift);
     }
     sendNewNorms();     // Need to send new norms and the new rotation of the box - here its the opposite of before -- don't update on this side but send the update to the fibula correspondance
     Q_EMIT toReinitBox(id);
@@ -669,12 +669,14 @@ void Viewer::toggleEditBoxMode(){
     update();
 }
 
-Vec Viewer::projectBoxToPlane(unsigned int boxIndex, Plane &p, double &distShift){
+Vec Viewer::projectBoxToPlane(unsigned int boxIndex, Plane &p, Plane &endP, double &distShift){
     Vec worldBox = poly.getMeshBoxPoint(boxIndex);
     Vec worldProjectionAxis = worldBox - poly.getMeshBoxEnd(boxIndex);
     Vec projPoint = p.getAxisProjection(worldBox, worldProjectionAxis);
 
-    distShift = euclideanDistance(worldBox, projPoint);
+    Vec worldBoxEnd = poly.getMeshBoxEnd(boxIndex);
+    Vec projEnd = endP.getAxisProjection(worldBoxEnd, -worldProjectionAxis);
+    distShift = euclideanDistance(projPoint, projEnd);
 
     return projPoint;
 }
