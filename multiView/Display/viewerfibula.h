@@ -30,6 +30,7 @@ public Q_SLOTS:
     void recieveFromFibulaMesh(std::vector<int>&, std::vector<Vec>&, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>&, int);
     void tryOffsetAngle();
     void reinitBox(unsigned int, std::vector<double>&);
+    void reinitPoly(unsigned int);
 
 Q_SIGNALS:
     void okToPlacePlanes(const std::vector<Vec>&);

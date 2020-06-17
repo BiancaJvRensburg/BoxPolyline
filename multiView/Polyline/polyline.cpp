@@ -264,13 +264,12 @@ void Polyline::recalculateBinormal(unsigned int index, const Vec &origin, const 
     point3d  Tprev = tangent;
 
     point3d  T0 = newPosition - origin;        // the polyline tangent
-    point3d  N0 = T0.getOrthogonal(); //index == 0 ? T0.getOrthogonal() :
-    point3d::rotateVectorSimilarly( Nprev , Tprev , T0  );
+    point3d  N0 = point3d::rotateVectorSimilarly( Nprev , Tprev , T0  );
 
     point3d  B0 = point3d::cross( T0 , N0 );
 
-    segmentNormals[index] = - Vec(B0);
-    segmentBinormals[index] = - Vec(N0);
+    segmentNormals[index] = Vec(N0);
+    segmentBinormals[index] = -Vec(B0);
     segmentNormals[index].normalize();
     segmentBinormals[index].normalize();
 }

@@ -197,6 +197,7 @@ void MainWindow::initFileActions(){
     connect(skullViewer, &Viewer::cutFibula, fibulaViewer, &ViewerFibula::cut);
     connect(skullViewer, &Viewer::uncutFibula, fibulaViewer, &ViewerFibula::uncut);
     connect(skullViewer, &Viewer::toReinitBox, fibulaViewer, &ViewerFibula::reinitBox);
+    connect(skullViewer, &Viewer::toReinitPoly, fibulaViewer, &ViewerFibula::reinitPoly);
 }
 
 void MainWindow::initFileMenu(){

@@ -283,6 +283,7 @@ void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
 void Viewer::bendPolylineManually(unsigned int pointIndex, Vec v){
     bool isOriginallyCut = isCut;
     if(isOriginallyCut) uncut();
+    Q_EMIT toReinitPoly(poly.getNbPoints());
     bendPolyline(pointIndex, v);
     if(isOriginallyCut) cut();
 }

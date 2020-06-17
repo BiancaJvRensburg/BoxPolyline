@@ -54,6 +54,7 @@ Q_SIGNALS:
     void cutFibula();
     void uncutFibula();
     void toReinitBox(unsigned int, std::vector<double>&);
+    void toReinitPoly(unsigned int);
 
 protected:
     void draw();
