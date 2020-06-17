@@ -36,23 +36,23 @@ void Viewer::draw() {
              ghostPlanes[i]->draw();
          }
 
-         glPointSize(2.);
+         /*glPointSize(2.);
          glBegin(GL_POINTS);
          for(unsigned int i=0; i<testPoints.size(); i++){
              glColor3f(0., 0., 1.);
              glVertex3f(testPoints[i].x, testPoints[i].y, testPoints[i].z);
          }
-         glEnd();
+         glEnd();*/
 
          curve.draw();
 
      }
 
-     glPointSize(10.);
+     /*glPointSize(10.);
      glBegin(GL_POINTS);
      glColor3d(1,0,0);
      glVertex3d(projPoint.x, projPoint.y, projPoint.z);
-     glEnd();
+     glEnd();*/
 
     if(isPoly) poly.draw();
 
@@ -235,11 +235,13 @@ void Viewer::placePlanes(const std::vector<Vec> &polyPoints){
     for(unsigned int i=0; i<poly.getNbPoints()-1; i++) simpleBend(i, polyPoints[i], norms, binorms);        // Bend the polyline point by point WITHOUT updating rest
     bendPolyline(poly.getNbPoints()-1, polyPoints[poly.getNbPoints()-1]);       // update the fibula and set the planes for all points on the last point
     toggleIsPolyline();     // Change the polyline from going through the centre of the planes to going through the corner
+
+    poly.resetBoxes();      // Set the boxes to the polyline
+
     std::vector<double> distances;
     poly.getDistances(distances);
     Q_EMIT toUpdateDistances(distances);        // the distances are no longer the same because the polyline has been lowered, so update it in the fibula
 
-    poly.resetBoxes();      // Set the boxes to the polyline
     sendNewNorms();
 }
 
@@ -660,7 +662,9 @@ void Viewer::setBoxToManipulator(unsigned int id, Vec manipulatorPosition){
         poly.adjustBoxLength(ghostPlanes[0]->getID(), distShift);
     }
     sendNewNorms();     // Need to send new norms and the new rotation of the box - here its the opposite of before -- don't update on this side but send the update to the fibula correspondance
-    Q_EMIT toReinitBox(id);
+    std::vector<double> distances;
+    poly.getDistances(distances);
+    Q_EMIT toReinitBox(id, distances);
     update();
 }
 

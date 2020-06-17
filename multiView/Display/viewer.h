@@ -53,7 +53,7 @@ Q_SIGNALS:
     void sendFibulaToMesh(std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
     void cutFibula();
     void uncutFibula();
-    void toReinitBox(unsigned int);
+    void toReinitBox(unsigned int, std::vector<double>&);
 
 protected:
     void draw();

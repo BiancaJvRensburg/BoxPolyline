@@ -332,8 +332,12 @@ void Polyline::getCuttingAngles(std::vector<Vec>& planeNormals, std::vector<Vec>
 void Polyline::getDistances(std::vector<double> &distances){
     distances.clear();
 
-    for(unsigned int i=0; i<points.size()-1; i++){
+    /*for(unsigned int i=0; i<points.size()-1; i++){
         distances.push_back(euclideanDistance(points[i], points[i+1]));
+    }*/
+
+    for(unsigned int i=0; i<boxes.size(); i++){
+        distances.push_back(boxes[i].getLength());
     }
 
     distances[0] = 0.0001;       // We don't want an offet in the fibula, so set the first box to nearly zero (null vector if zero)
