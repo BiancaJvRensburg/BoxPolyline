@@ -177,7 +177,7 @@ void ViewerFibula::constructPolyline(const std::vector<double>& distances, const
     rotatePolyline();   // Rotate the polyline so it matches the fibula as closely as it can
 
     poly.reinit(newPoints.size());      // Initialise the polyline
-    updateFibPolyline(curve.getPoint(curveIndexL), distances);      // Make the polyline start at the left plane (which doesn't move) TODO change this so the left plane in the polyline doesnt move. The start must be at the start of the mesh.
+    updateFibPolyline(curve.getPoint(curveIndexL), distances);      // Make the polyline start at the left plane (which doesn't move)
 
     initPolyPlanes(Movable::STATIC);       // Set the planes on the polyline
 
@@ -225,6 +225,16 @@ void ViewerFibula::rotatePolylineOnAxisFibula(double r){
     update();
 }
 
+void ViewerFibula::reinitBox(unsigned int id, std::vector<double>& distances){
+    bool isOriginallyCut = isCut;
+    if(isOriginallyCut) uncut();
+    // Reset the polyline with updated distances
+    poly.reinit(distances.size()+1);
+    updateDistances(distances);
+    if(isOriginallyCut) cut();
+    update();
+}
+
 // TODO this doesn't work yet
 void ViewerFibula::rotatePolylineOnAxe(double r){
     bool isOriginallyCut = isCut;
@@ -253,10 +263,6 @@ void ViewerFibula::constructSegmentPoints(unsigned int nbU){
 
     // add the last control point point
     segmentPoints.push_back(poly.getMeshPoint(poly.getNbPoints()-1));
-}
-
-double ViewerFibula::euclideanDistance(const Vec &a, const Vec &b){
-    return sqrt(pow(a.x-b.x, 2.) + pow(a.y-b.y, 2.) + pow(a.z-b.z, 2.));
 }
 
 void ViewerFibula::cut(){

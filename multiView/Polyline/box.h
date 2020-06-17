@@ -3,6 +3,7 @@
 
 #include <QGLViewer/qglviewer.h>
 #include <QGLViewer/frame.h>
+#include "Manipulator/simplemanipulator.h"
 
 using namespace qglviewer;
 
@@ -33,13 +34,16 @@ public:
     Vec getMidPoint();
     const Vec& getNormal(){ return normal; }
     const Vec& getBinormal(){ return binormal; }
+    const Vec& getTangent(){ return tangent; }
     void restoreRotation();
+    void getOrientation(Vec &x, Vec &y, Vec &z);
 
 private:
     Frame f;
     Vec normal, binormal, tangent;
     Vec dimensions;
     double prevRotation;
+    //SimpleManipulator manipulator;
 };
 
 #endif // BOX_H

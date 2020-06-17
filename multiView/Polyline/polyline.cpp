@@ -33,6 +33,7 @@ void Polyline::reinit(unsigned int nbPoints){
         boxes.push_back(Box());
         boxes[i].init(frame.referenceFrame());
     }
+    initManipulators();
 }
 
 void Polyline::draw(){
@@ -64,7 +65,7 @@ void Polyline::draw(){
     glEnd();
 
     glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
-    for(unsigned int i=0; i<boxes.size(); i++){
+    for(unsigned int i=1; i<boxes.size()-1; i++){
         glColor4f(0,0,0, boxTransparency);
         boxes[i].draw(0);
     }
@@ -78,6 +79,8 @@ void Polyline::draw(){
     }
 
     glPopMatrix();
+
+    for(unsigned int i=0; i<boxManipulators.size(); i++) boxManipulators[i]->draw();
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_DEPTH);
@@ -134,6 +137,59 @@ void Polyline::drawBox(unsigned int index){
     glEnd();
 }
 
+void Polyline::deleteManipulators(){
+    for(unsigned int i=0; i<boxManipulators.size(); i++) delete boxManipulators[i];
+    boxManipulators.clear();
+}
+
+void Polyline::initManipulators(){
+    deleteManipulators();
+
+    for(unsigned int i=0; i<boxes.size(); i++){
+        boxManipulators.push_back(new SimpleManipulator);
+        boxManipulators[i]->deactivate();
+        boxManipulators[i]->setDisplayScale(boxes[i].getLength()/5.);
+        boxManipulators[i]->setID(i);
+    }
+
+    setManipulatorsToBoxes();
+}
+
+void Polyline::setBoxToManipulator(unsigned int id, Vec manipulatorPosition){
+    // Set the orientation
+    Vec x,y,z;
+    boxManipulators[id]->getOrientation(x,y,z);
+    boxes[id].setFrameFromBasis(x,y,z);
+
+    // Set box to the manipulator position - half the length
+    Vec p = getLocalCoordinates(manipulatorPosition - (boxes[id].getLength()/2. * getWorldBoxTransform(id, boxes[id].getTangent()) + boxes[id].getHeight()/2. * getWorldBoxTransform(id, boxes[id].getBinormal()) + boxes[id].getWidth()/2. * getWorldBoxTransform(id, boxes[id].getNormal())));
+    boxes[id].setPosition(p);
+}
+
+void Polyline::setBoxToProjectionPoint(unsigned int id, Vec projPoint){
+    Vec p = getLocalCoordinates(projPoint);
+    boxes[id].setPosition(p);
+}
+
+void Polyline::setManipulatorsToBoxes(){
+    Vec x,y,z;
+    for(unsigned int i=0; i<boxes.size(); i++){
+       boxes[i].getOrientation(x,y,z);
+       boxManipulators[i]->setRepX(x);
+       boxManipulators[i]->setRepY(y);
+       boxManipulators[i]->setRepZ(z);
+
+       Vec p = getMeshBoxPoint(i) + boxes[i].getLength()/2. * getWorldBoxTransform(i, boxes[i].getTangent()) + boxes[i].getHeight()/2. * getWorldBoxTransform(i, boxes[i].getBinormal()) + boxes[i].getWidth()/2. * getWorldBoxTransform(i, boxes[i].getNormal());
+       boxManipulators[i]->setOrigin(p);
+       boxManipulators[i]->setDisplayScale(boxes[i].getLength()/5.);
+    }
+}
+
+void Polyline::activateBoxManipulators(){
+    // Don't activate the first and the last - these boxes don't count
+    for(unsigned int i=1; i<boxManipulators.size()-1; i++) boxManipulators[i]->switchStates();
+}
+
 // Update the points locations without updating their orientations
 void Polyline::updatePoints(const std::vector<Vec> &newPoints){
     points.clear();
@@ -141,6 +197,7 @@ void Polyline::updatePoints(const std::vector<Vec> &newPoints){
     for(unsigned int i=0; i<boxes.size(); i++){
         resetBox(i);
         boxes[i].restoreRotation();
+        // setManipulatorsToBoxes();
     }
 }
 
@@ -169,6 +226,7 @@ void Polyline::resetBox(unsigned int index){
     boxes[index].setFrameFromBasis(-cross(n,b),b,n);
     double length = euclideanDistance(points[index], points[index+1]);
     boxes[index].setLength(length);
+    setManipulatorsToBoxes();
 }
 
 void Polyline::bend(unsigned int index, Vec &newPosition, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals){
@@ -274,8 +332,12 @@ void Polyline::getCuttingAngles(std::vector<Vec>& planeNormals, std::vector<Vec>
 void Polyline::getDistances(std::vector<double> &distances){
     distances.clear();
 
-    for(unsigned int i=0; i<points.size()-1; i++){
+    /*for(unsigned int i=0; i<points.size()-1; i++){
         distances.push_back(euclideanDistance(points[i], points[i+1]));
+    }*/
+
+    for(unsigned int i=0; i<boxes.size(); i++){
+        distances.push_back(boxes[i].getLength());
     }
 
     distances[0] = 0.0001;       // We don't want an offet in the fibula, so set the first box to nearly zero (null vector if zero)
@@ -304,7 +366,6 @@ void Polyline::rotateBox(unsigned int i, double angle){
 void Polyline::restoreBoxRotations(){
     for(unsigned int i=0; i<boxes.size(); i++) boxes[i].restoreRotation();
 }
-
 
 // Convert the vectors from the box frame to the world frame
 void Polyline::getRelatvieNormals(std::vector<Vec> &relativeNorms){
@@ -341,10 +402,13 @@ void Polyline::getDirections(std::vector<Vec> &directions){
     for(unsigned int i=0; i<boxes.size(); i++) directions.push_back(getWorldTransform(boxes[i].worldTangent()));
 }
 
-
 // Move the entire polyline
 void Polyline::lowerPolyline(Vec localDirection, double distance){
     Vec p = frame.position();
     Vec worldDirection = getWorldTransform(localDirection);     // convert to world coordinates
     frame.setPosition(p+worldDirection*distance);
+}
+
+void Polyline::adjustBoxLength(unsigned int i, double &distShift){
+    boxes[i].setLength(distShift);
 }

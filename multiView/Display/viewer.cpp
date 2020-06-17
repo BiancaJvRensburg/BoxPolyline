@@ -36,16 +36,23 @@ void Viewer::draw() {
              ghostPlanes[i]->draw();
          }
 
-         glPointSize(2.);
+         /*glPointSize(2.);
          glBegin(GL_POINTS);
          for(unsigned int i=0; i<testPoints.size(); i++){
              glColor3f(0., 0., 1.);
              glVertex3f(testPoints[i].x, testPoints[i].y, testPoints[i].z);
          }
-         glEnd();
+         glEnd();*/
 
          curve.draw();
+
      }
+
+     /*glPointSize(10.);
+     glBegin(GL_POINTS);
+     glColor3d(1,0,0);
+     glVertex3d(projPoint.x, projPoint.y, projPoint.z);
+     glEnd();*/
 
     if(isPoly) poly.draw();
 
@@ -186,10 +193,13 @@ void Viewer::initGhostPlanes(Movable s){
     }
 
     // Connect all planes' movement (except the two end planes which we don't see). If a plane is moved, bend the polyline.
-    connect(&(leftPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolylineManually);
+    /*connect(&(leftPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolylineManually);
     connect(&(rightPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolylineManually);
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) connect(&(ghostPlanes[i]->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolylineManually);*/        // connnect the ghost planes
 
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) connect(&(ghostPlanes[i]->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolylineManually);        // connnect the ghost planes
+    connect(&(leftPlane->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);
+    connect(&(rightPlane->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) connect(&(ghostPlanes[i]->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);        // connnect the ghost planes
 }
 
 void Viewer::updateCamera(const Vec& center, float radius){
@@ -225,11 +235,13 @@ void Viewer::placePlanes(const std::vector<Vec> &polyPoints){
     for(unsigned int i=0; i<poly.getNbPoints()-1; i++) simpleBend(i, polyPoints[i], norms, binorms);        // Bend the polyline point by point WITHOUT updating rest
     bendPolyline(poly.getNbPoints()-1, polyPoints[poly.getNbPoints()-1]);       // update the fibula and set the planes for all points on the last point
     toggleIsPolyline();     // Change the polyline from going through the centre of the planes to going through the corner
+
+    poly.resetBoxes();      // Set the boxes to the polyline
+
     std::vector<double> distances;
     poly.getDistances(distances);
     Q_EMIT toUpdateDistances(distances);        // the distances are no longer the same because the polyline has been lowered, so update it in the fibula
 
-    poly.resetBoxes();      // Set the boxes to the polyline
     sendNewNorms();
 }
 
@@ -383,6 +395,8 @@ void Viewer::cutMesh(){
     constructPolyline(polylinePoints);
 
     cut();
+
+    for(unsigned int i=1; i<poly.getNbPoints()-2; i++) connect(poly.getBoxManipulator(i), &SimpleManipulator::moved, this, &Viewer::setBoxToManipulator);
 
     update();
 }
@@ -629,4 +643,60 @@ void Viewer::recieveFromFibulaMesh(std::vector<int> &planes, std::vector<Vec> ve
     }
 
     Q_EMIT sendFibulaToMesh(verticies, triangles, colours, normals, nbColours);
+}
+
+void Viewer::toggleEditPlaneMode(){
+    leftPlane->toggleEditMode();
+    rightPlane->toggleEditMode();
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->toggleEditMode();
+    update();
+}
+
+Plane& Viewer::getPlaneFromID(unsigned int id){
+    int idOffset = static_cast<int>(id) - static_cast<int>(ghostPlanes[0]->getID());
+    if(idOffset < 0) return *leftPlane;
+    return *ghostPlanes[static_cast<unsigned int>(idOffset)];
+}
+
+Plane& Viewer::getOppositePlaneFromID(unsigned int id){
+    int idOffset = static_cast<int>(id) - static_cast<int>(leftPlane->getID());
+    if(idOffset >= static_cast<int>(ghostPlanes.size())) return *rightPlane;
+    return *ghostPlanes[static_cast<unsigned int>(idOffset)];
+}
+
+void Viewer::setBoxToManipulator(unsigned int id, Vec manipulatorPosition){
+    poly.setBoxToManipulator(id, manipulatorPosition);
+
+    double distShift;
+    Vec projPoint = projectBoxToPlane(getPlaneFromID(id), getOppositePlaneFromID(id), distShift);
+    poly.setBoxToProjectionPoint(id, projPoint);
+    poly.adjustBoxLength(id, distShift); // Shift the box size
+
+    sendNewNorms();     // Need to send new norms and the new rotation of the box - here its the opposite of before -- don't update on this side but send the update to the fibula correspondance
+    std::vector<double> distances;
+    poly.getDistances(distances);
+    Q_EMIT toReinitBox(id, distances);
+    update();
+}
+
+void Viewer::toggleEditBoxMode(){
+    poly.activateBoxManipulators();
+    update();
+}
+
+Vec Viewer::projectBoxToPlane(Plane &p, Plane &endP, double &distShift){
+    unsigned int boxIndex = p.getID();
+    Vec worldBox = poly.getMeshBoxPoint(boxIndex);
+    Vec worldProjectionAxis = worldBox - poly.getMeshBoxEnd(boxIndex);
+    Vec projPoint = p.getAxisProjection(worldBox, worldProjectionAxis);
+
+    Vec worldBoxEnd = poly.getMeshBoxEnd(boxIndex);
+    Vec projEnd = endP.getAxisProjection(worldBoxEnd, -worldProjectionAxis);
+    distShift = euclideanDistance(projPoint, projEnd);
+
+    return projPoint;
+}
+
+double Viewer::euclideanDistance(const Vec &a, const Vec &b){
+    return sqrt(pow(a.x-b.x, 2.) + pow(a.y-b.y, 2.) + pow(a.z-b.z, 2.));
 }

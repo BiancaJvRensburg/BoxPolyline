@@ -38,6 +38,9 @@ public Q_SLOTS:
     void toggleWireframe();
     void recieveFromFibulaMesh(std::vector<int>&, std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
     void sendNewNorms();
+    void toggleEditPlaneMode();
+    void setBoxToManipulator(unsigned int, Vec);
+    void toggleEditBoxMode();
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
@@ -50,6 +53,7 @@ Q_SIGNALS:
     void sendFibulaToMesh(std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
     void cutFibula();
     void uncutFibula();
+    void toReinitBox(unsigned int, std::vector<double>&);
 
 protected:
     void draw();
@@ -75,6 +79,8 @@ protected:
     void simpleBend(const unsigned int &pointIndex, Vec v, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
     void lowerPoints(double size, Vec localDirection);
     void changePlaneDisplaySize(double width, double height);
+    Vec projectBoxToPlane(Plane &p, Plane &endP, double& distShift);
+    double euclideanDistance(const Vec &a, const Vec &b);
 
 
     double angle(Vec a, Vec b);
@@ -107,14 +113,17 @@ protected:
     std::vector<Vec> segmentPoints;
 
     // temporary for testing
-    std::vector<Vec> testPoints;
+   // std::vector<Vec> testPoints;
     Vec camCentre;
+   // Vec projPoint;
 
 private:
     void constructPolyline(const std::vector<Vec>& polyPoints);
     void movePlane(Plane *p, unsigned int curveIndex);
     void setPlaneOrientation(Plane& p, std::vector<Vec>& norms, std::vector<Vec>& binorms);
     void setPlaneOrientations(std::vector<Vec>& norms, std::vector<Vec>& binorms);
+    Plane& getPlaneFromID(unsigned int id);
+    Plane& getOppositePlaneFromID(unsigned int id);
 
 };
 

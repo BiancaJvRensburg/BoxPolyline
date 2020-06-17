@@ -4,6 +4,7 @@
 #include "Planes/curvepoint.h"
 #include "box.h"
 #include "Planes/plane.h"
+#include "Manipulator/simplemanipulator.h"
 
 class Polyline
 {
@@ -65,6 +66,15 @@ public:
 
     void toggleIsWireframe(){ isWireframe = !isWireframe; }
 
+    void setBoxToManipulator(unsigned int id, Vec manipulatorPosition);
+    void setBoxToProjectionPoint(unsigned int id, Vec projPoint);
+    void setManipulatorsToBoxes();
+    void activateBoxManipulators();
+
+    SimpleManipulator* getBoxManipulator(unsigned int i){ return boxManipulators[i]; }
+
+    void adjustBoxLength(unsigned int i, double &distShift);
+
 private:
     Vec projection(Vec &a, Vec &planeNormal);
     double angle(const Vec &a, const Vec &b);
@@ -74,6 +84,8 @@ private:
     void getCuttingAngles(std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals);
     double euclideanDistance(const Vec &a, const Vec &b);
     void resetBox(unsigned int index);
+    void initManipulators();
+    void deleteManipulators();
 
     Frame frame;
     const Vec tangent = Vec(1,0,0);
@@ -84,8 +96,9 @@ private:
     std::vector<Vec> segmentBinormals;
     std::vector<Vec> cuttingLines;
     std::vector<Vec> cuttingBinormals;
-    float boxTransparency = 1.f;
+    float boxTransparency = 0.5f;
     std::vector<Box> boxes;
+    std::vector<SimpleManipulator*> boxManipulators;     // a manipulator for each box
     bool isWireframe = true;
 };
 

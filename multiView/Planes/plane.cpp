@@ -14,6 +14,9 @@ Plane::Plane(double s, Movable status, float alpha, unsigned int id) : cp(id)
     this->isPoly = false;
     this->id = id;
     this->displayDimensions = Vec(s,s,0);
+    manipulator.setDisplayScale(size/3.);
+    manipulator.deactivate();
+    manipulator.setID(id);
 
     initBasePlane();
 }
@@ -95,13 +98,15 @@ void Plane::draw(){
     glColor3f(1,1,1);
     QGLViewer::drawAxis(size/2.);
 
-    if(status==Movable::DYNAMIC){
+    /*if(status==Movable::DYNAMIC){
         cp.toggleSwitchFrames();
         cp.draw();
         cp.toggleSwitchFrames();
-    }
+    }*/
 
     glPopMatrix();
+
+    manipulator.draw();
 }
 
 void Plane::rotatePlane(Vec axis, double theta){
@@ -114,6 +119,17 @@ void Plane::setPlaneRotation(Vec axis, double theta){
 
 void Plane::setPosition(Vec pos){
     cp.setPosition(pos);
+    manipulator.setOrigin(pos);
+}
+
+void Plane::setManipulatorToOrientation(){
+    Vec x,y,z;
+    x = cp.getFrame().localInverseTransformOf(Vec(1,0,0));
+    y = cp.getFrame().localInverseTransformOf(Vec(0,1,0));
+    z = cp.getFrame().localInverseTransformOf(Vec(0,0,1));
+    manipulator.setRepX(x);
+    manipulator.setRepY(y);
+    manipulator.setRepZ(z);
 }
 
 // Set the base from a basis x,y,z
@@ -126,6 +142,7 @@ Quaternion Plane::fromRotatedBasis(Vec x, Vec y, Vec z){
 // Actually set the orientation from the basis x,y,z
 void Plane::setFrameFromBasis(Vec x, Vec y, Vec z){
     cp.getFrame().setOrientation(fromRotatedBasis(x,y,z));
+    setManipulatorToOrientation();
 }
 
 void Plane::rotatePlaneXY(double percentage){
@@ -190,6 +207,14 @@ Vec Plane::getProjection(Vec p){
     double alpha = (localP * normal);
     Vec newP = localP - normal *alpha;
     return cp.getFrame().localInverseCoordinatesOf(newP);   // convert back into original coordinate system
+}
+
+Vec Plane::getAxisProjection(Vec p, Vec axis){
+    const Vec &localP = cp.getFrame().localCoordinatesOf(p);       // convert into local coordinates
+    Vec localAxis = cp.getFrame().localTransformOf(axis);
+    double alpha = localP.z / localAxis.z;
+    Vec newP = localP - alpha*localAxis;
+    return cp.getFrame().localInverseCoordinatesOf(newP);
 }
 
 // Project coordinates onto the plane (coordinates in terms of the plane)

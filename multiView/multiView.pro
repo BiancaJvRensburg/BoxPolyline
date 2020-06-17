@@ -16,7 +16,11 @@ HEADERS  = \
     Tools/triangle.h \
     Tools/vec3D.h \
     Display/viewer.h \
-    Display/viewerfibula.h
+    Display/viewerfibula.h \
+    Manipulator/PCATools.h \
+    Manipulator/RectangleSelection.h \
+    Tools/GLUtilityMethods.h \
+    Manipulator/simplemanipulator.h
 SOURCES  = main.cpp \
     Polyline/box.cpp \
     Curve/controlpoint.cpp \
@@ -28,7 +32,9 @@ SOURCES  = main.cpp \
     Polyline/polyline.cpp \
     Tools/standardcamera.cpp \
     Display/viewer.cpp \
-    Display/viewerfibula.cpp
+    Display/viewerfibula.cpp \
+    Tools/GLUtilityMethods.cpp \
+    Manipulator/simplemanipulator.cpp
 
 include( ../baseInclude.pri )
 INCLUDEPATH += "..\eigen-3.3.7\Eigen"

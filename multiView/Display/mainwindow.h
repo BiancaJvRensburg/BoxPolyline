@@ -32,8 +32,17 @@ private:
 private Q_SLOTS:
     void openMandJSON();
     void openFibJSON();
+    /*void transitionUncutToCut();
+    void transitionCutToUncut();
+    void transitionUncutToEdit();
+    void transitionCutToEdit();
+    void transitionEditToUncut();
+    void transitionEditToCut();*/
 
 private:
+    void uncutStage();
+    void cutStage();
+    void editStage();
     int sliderMax = 100;
     int fibulaOffsetMax;
 };
