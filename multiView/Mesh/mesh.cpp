@@ -6,6 +6,7 @@ void Mesh::init(){
     collectOneRing(oneRing);
     collectTriangleOneRing(oneTriangleRing);
     mat = pointsToMatrix(vertices, 3);
+    tree.index->buildIndex();
     update();
 }
 
@@ -484,17 +485,17 @@ void Mesh::floodNeighbour(unsigned int index, int id, std::vector<int> &planeNei
             }
         }
 
-        else if(flood == id) continue;      // stop if the vertex is already flooded with the same value
+        //else if(flood == id) continue;      // stop if the vertex is already flooded with the same value
 
-        else if(flood==id+static_cast<int>(planes.size()) || id==flood+static_cast<int>(planes.size())) continue;     // stop if we've found our own neg/pos side
+        //else if(flood==id+static_cast<int>(planes.size()) || id==flood+static_cast<int>(planes.size())) continue;     // stop if we've found our own neg/pos side
 
-        else{       // else it already belongs to a different plane
+        /*else{       // else it already belongs to a different plane
             if(planeNeighbours[static_cast<unsigned int>(id)]== -1 && !isSharedVertex[static_cast<unsigned int>(index)]){       // They're not already neighbours
                 planeNeighbours[static_cast<unsigned int>(id)] = flooding[index];     // equal to the old value
                 planeNeighbours[static_cast<unsigned int>(flooding[index])] = id;
             }
             //return;     // They're already neighbours
-        }
+        }*/
     }
 
 }
@@ -647,7 +648,10 @@ void Mesh::draw()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_DEPTH);
 
+    // glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
+
     glBegin (GL_TRIANGLES);
+
 
     if(!isCut){
         for(unsigned int i=0; i<triangles.size(); i++){
@@ -667,6 +671,28 @@ void Mesh::draw()
     }
 
     glEnd();
+
+   /* glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+
+    glPointSize(2.);
+    glBegin(GL_POINTS);
+    if(!isCut){
+        for(unsigned int i=0; i<triangles.size(); i++){
+            glTriangle(i);
+        }
+    }
+    else{
+        std::vector<int> coloursIndicies;
+        fillColours(coloursIndicies, planes.size()*2);
+        for(unsigned int i=0; i<trianglesCut.size(); i++){
+            glTriangleSmooth(trianglesCut[i], coloursIndicies);
+        }
+
+        for(unsigned int i=0; i<fibInMandTriangles.size(); i++){
+            glTriangleFibInMand(i, coloursIndicies);
+        }
+    }
+    glEnd();*/
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_DEPTH);
@@ -812,8 +838,8 @@ void Mesh::mlsProjection(const std::vector<Vec> &inputPoints, std::vector<Vec> &
 
     // define the kd-tree from the matrix
     const int dimension = 3;
-    KDTree tree(dimension, mat, 10);
-    tree.index->buildIndex();       // build the tree
+    /*KDTree tree(dimension, mat, 10);
+    tree.index->buildIndex();*/       // build the tree
 
     for(unsigned int i=0; i<inputPoints.size(); i++){
         HPSS(tree, dimension, inputPoints[i], outputPoints[i], outputNormal, 1, 100.);

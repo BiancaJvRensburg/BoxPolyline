@@ -95,7 +95,7 @@ void Plane::draw(){
         glDisable(GL_DEPTH_TEST);
     }
 
-    /*glColor3f(1,1,1);
+    glColor3f(1,1,1);
     QGLViewer::drawAxis(size/2.);
 
     /*if(status==Movable::DYNAMIC){

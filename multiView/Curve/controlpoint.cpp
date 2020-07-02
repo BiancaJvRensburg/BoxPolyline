@@ -25,7 +25,7 @@ ControlPoint::ControlPoint(double x, double y, double z)
 
 // Set the manipulated frame (may be activated at a later stage)
 void ControlPoint::initialise(){
-    mf = ManipulatedFrame();
+    mf = Frame();
     mf.setPosition(this->p.x, this->p.y, this->p.z);
     //connect(&mf, &ManipulatedFrame::manipulated, this, &ControlPoint::cntrlMoved);
 }

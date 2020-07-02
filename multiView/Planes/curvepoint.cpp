@@ -5,7 +5,7 @@ CurvePoint::CurvePoint(const unsigned int &id) : ControlPoint ()
 {
     this->mf = ManipulatedFrame();
     this->id = id;
-    connect(&mf, &ManipulatedFrame::manipulated, this, &ControlPoint::cntrlMoved);
+    //connect(&mf, &ManipulatedFrame::manipulated, this, &ControlPoint::cntrlMoved);
 }
 
 void CurvePoint::draw(){
@@ -14,8 +14,8 @@ void CurvePoint::draw(){
         glMultMatrixd(mf.matrix());
     }
 
-    if(mf.grabsMouse()) glColor3f(0, 1, 1);
-    else glColor3f(0.6f, 0, 0.4f);
+    /*if(mf.grabsMouse()) glColor3f(0, 1, 1);
+    else glColor3f(0.6f, 0, 0.4f);*/
 
     glPointSize(10.0);
     glBegin(GL_POINTS);
