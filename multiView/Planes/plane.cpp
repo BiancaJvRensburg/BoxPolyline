@@ -17,6 +17,7 @@ Plane::Plane(double s, Movable status, float alpha, unsigned int id) : cp(id)
     manipulator.setDisplayScale(size/3.);
     manipulator.deactivate();
     manipulator.setID(id);
+    manipulator.setRotationActivated(false);
 
     initBasePlane();
 }

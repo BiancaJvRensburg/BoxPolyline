@@ -331,76 +331,78 @@ void SimpleManipulator::draw()
             glVertex3f(p[0],p[1],p[2]);
             glEnd();
 
-            float teta;
-            glBegin( GL_LINE_LOOP );
-            if(mode_modification == 4)
-                glColor3fv( Selection );
-            else
-                glColor3fv( CX );
+            if(isRotationActivated){
+                float teta;
+                glBegin( GL_LINE_LOOP );
+                if(mode_modification == 4)
+                    glColor3fv( Selection );
+                else
+                    glColor3fv( CX );
 
-            for(int i=0; i<360; i+=5)
-            {
-                teta = (float)(i) * 3.1415927 / float(180);
-                p = Origin + display_scale*cosf(teta)*RepY + display_scale*sinf(teta)*RepZ;
-                glVertex3f(p[0],p[1],p[2]);
+                for(int i=0; i<360; i+=5)
+                {
+                    teta = (float)(i) * 3.1415927 / float(180);
+                    p = Origin + display_scale*cosf(teta)*RepY + display_scale*sinf(teta)*RepZ;
+                    glVertex3f(p[0],p[1],p[2]);
+                }
+                glEnd();
+
+                glBegin( GL_LINE_LOOP );
+                if(mode_modification == 5)
+                    glColor3fv( Selection );
+                else
+                    glColor3fv( CY );
+                for(int i=0; i<360; i+=5)
+                {
+                    teta = (float)(i) * 3.1415927 / float(180);
+                    p = Origin + display_scale*cosf(teta)*RepX + display_scale*sinf(teta)*RepZ;
+                    glVertex3f(p[0],p[1],p[2]);
+                }
+                glEnd();
+
+
+                glBegin( GL_LINE_LOOP );
+                if(mode_modification == 6)
+                    glColor3fv( Selection );
+                else
+                    glColor3fv( CZ );
+                for(int i=0; i<360; i+=5)
+                {
+                    teta = (float)(i) * 3.1415927 / float(180);
+                    p = Origin + display_scale*cosf(teta)*RepY + display_scale*sinf(teta)*RepX;
+                    glVertex3f(p[0],p[1],p[2]);
+                }
+                glEnd();
+
+                if(mode_modification == 7 || mode_modification == -7)
+                    glColor3fv( Selection );
+                else
+                    glColor3fv( CX );
+                p = Origin + (1.5 * Xscale * display_scale) * RepX;
+                BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
+                p = Origin - (1.5 * Xscale * display_scale) * RepX;
+                BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
+
+
+                if(mode_modification == 8 || mode_modification == -8)
+                    glColor3fv( Selection );
+                else
+                    glColor3fv( CY );
+                p = Origin + (1.5 * Yscale * display_scale) * RepY;
+                BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
+                p = Origin - (1.5 * Yscale * display_scale) * RepY;
+                BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
+
+
+                if(mode_modification == 9 || mode_modification == -9)
+                    glColor3fv( Selection );
+                else
+                    glColor3fv( CZ );
+                p = Origin + (1.5 * Zscale * display_scale) * RepZ;
+                BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
+                p = Origin - (1.5 * Zscale * display_scale) * RepZ;
+                BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
             }
-            glEnd();
-
-            glBegin( GL_LINE_LOOP );
-            if(mode_modification == 5)
-                glColor3fv( Selection );
-            else
-                glColor3fv( CY );
-            for(int i=0; i<360; i+=5)
-            {
-                teta = (float)(i) * 3.1415927 / float(180);
-                p = Origin + display_scale*cosf(teta)*RepX + display_scale*sinf(teta)*RepZ;
-                glVertex3f(p[0],p[1],p[2]);
-            }
-            glEnd();
-
-            glBegin( GL_LINE_LOOP );
-            if(mode_modification == 6)
-                glColor3fv( Selection );
-            else
-                glColor3fv( CZ );
-            for(int i=0; i<360; i+=5)
-            {
-                teta = (float)(i) * 3.1415927 / float(180);
-                p = Origin + display_scale*cosf(teta)*RepY + display_scale*sinf(teta)*RepX;
-                glVertex3f(p[0],p[1],p[2]);
-            }
-            glEnd();
-
-
-            if(mode_modification == 7 || mode_modification == -7)
-                glColor3fv( Selection );
-            else
-                glColor3fv( CX );
-            p = Origin + (1.5 * Xscale * display_scale) * RepX;
-            BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
-            p = Origin - (1.5 * Xscale * display_scale) * RepX;
-            BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
-
-
-            if(mode_modification == 8 || mode_modification == -8)
-                glColor3fv( Selection );
-            else
-                glColor3fv( CY );
-            p = Origin + (1.5 * Yscale * display_scale) * RepY;
-            BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
-            p = Origin - (1.5 * Yscale * display_scale) * RepY;
-            BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
-
-
-            if(mode_modification == 9 || mode_modification == -9)
-                glColor3fv( Selection );
-            else
-                glColor3fv( CZ );
-            p = Origin + (1.5 * Zscale * display_scale) * RepZ;
-            BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
-            p = Origin - (1.5 * Zscale * display_scale) * RepZ;
-            BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
 
             glEnable(GL_LIGHTING);
         }
