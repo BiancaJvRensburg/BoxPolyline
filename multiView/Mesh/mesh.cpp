@@ -83,7 +83,7 @@ void Mesh::setIsCut(Side s, bool isCut, bool isUpdate){
     this->cuttingSide = s;
     if(!isCut) deleteGhostPlanes();
     if(isUpdate) updatePlaneIntersections();
-    trianglesExtracted.clear();
+    //trianglesExtracted.clear();
 }
 
 void Mesh::computeVerticesNormals(){
@@ -671,6 +671,8 @@ void Mesh::draw()
         for(unsigned int i=0; i<fibInMandTriangles.size(); i++){
             glTriangleFibInMand(i, coloursIndicies);
         }
+
+        if(cuttingSide == Side::EXTERIOR) drawCut();
     }
 
     glEnd();
@@ -699,13 +701,11 @@ void Mesh::draw()
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_DEPTH);
-
-    if(cuttingSide == Side::EXTERIOR) drawCut();
 }
 
 void Mesh::drawCut(){
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_DEPTH);
+    /*glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH);*/
 
     //glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
 
@@ -721,8 +721,8 @@ void Mesh::drawCut(){
 
     //glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_DEPTH);
+    /*glDisable(GL_DEPTH_TEST);
+    glDisable(GL_DEPTH);*/
 }
 
 std::vector<unsigned int> Mesh::getVerticesOnPlane(unsigned int planeNb, Plane *p){

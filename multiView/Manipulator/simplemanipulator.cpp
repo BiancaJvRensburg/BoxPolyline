@@ -292,23 +292,27 @@ void SimpleManipulator::draw()
 
             float CX[3] = {0.f , 1.f , 0.f};
             float CY[3] = {0.f , 0.f , 1.f};
-            float CZ[3] = {1.f , 1.f , 0.f};
-            float Selection[3] = {1.f , 0.f , 0.f};
+            float CZ[3] = {1.f , 0.f , 0.f};
+            float Selection[3] = {1.f , 1.f , 0.f};
 
             glDisable(GL_LIGHTING);
 
             glLineWidth( 2.f );
             qglviewer::Vec p;
             glBegin( GL_LINES );
-            if(mode_modification == 1)
-                glColor3fv( Selection );
-            else
-                glColor3fv( CX );
 
-            p = Origin - 2 * display_scale * RepX;
-            glVertex3f(p[0],p[1],p[2]);
-            p = Origin + 2 * display_scale * RepX;
-            glVertex3f(p[0],p[1],p[2]);
+            if(!isRotationActivated){
+                if(mode_modification == 1)
+                    glColor3fv( Selection );
+                else
+                    glColor3fv( CX );
+
+                p = Origin - 2 * display_scale * RepX;
+                glVertex3f(p[0],p[1],p[2]);
+                // p = Origin + 2 * display_scale * RepX;
+                p = Origin;
+                glVertex3f(p[0],p[1],p[2]);
+            }
 
             if(mode_modification == 2)
                 glColor3fv( Selection );
@@ -317,7 +321,8 @@ void SimpleManipulator::draw()
 
             p = Origin - 2 * display_scale * RepY;
             glVertex3f(p[0],p[1],p[2]);
-            p = Origin + 2 * display_scale * RepY;
+            // p = Origin + 2 * display_scale * RepY;
+            p = Origin;
             glVertex3f(p[0],p[1],p[2]);
 
             if(mode_modification == 3)
@@ -327,7 +332,8 @@ void SimpleManipulator::draw()
 
             p = Origin - 2 * display_scale * RepZ;
             glVertex3f(p[0],p[1],p[2]);
-            p = Origin + 2 * display_scale * RepZ;
+            //p = Origin + 2 * display_scale * RepZ;
+            p = Origin;
             glVertex3f(p[0],p[1],p[2]);
             glEnd();
 
@@ -374,7 +380,7 @@ void SimpleManipulator::draw()
                 }
                 glEnd();
 
-                if(mode_modification == 7 || mode_modification == -7)
+                /*if(mode_modification == 7 || mode_modification == -7)
                     glColor3fv( Selection );
                 else
                     glColor3fv( CX );
@@ -401,7 +407,7 @@ void SimpleManipulator::draw()
                 p = Origin + (1.5 * Zscale * display_scale) * RepZ;
                 BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
                 p = Origin - (1.5 * Zscale * display_scale) * RepZ;
-                BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
+                BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);*/
             }
 
             glEnable(GL_LIGHTING);
