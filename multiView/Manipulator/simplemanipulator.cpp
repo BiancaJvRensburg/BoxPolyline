@@ -142,16 +142,12 @@ void SimpleManipulator::checkIfGrabsMouse(int x, int y, const qglviewer::Camera 
             }
 
 
-
-
-
-
-
             ///////////////////////////////////////  Rotations:   ///////////////////////////////////////
 
             // Check on rx :
             lambda = ( ( Origin - Eye )*( RepX ) )/( ( Dir )*( RepX ) );
             X = Eye + lambda*Dir;
+
             if( fabs( ( (X-Origin)*(X-Origin) )/(display_scale*display_scale) - 1 ) < epsilon_rotation_detect )
             {
                 mode_modification = 4;
@@ -162,6 +158,7 @@ void SimpleManipulator::checkIfGrabsMouse(int x, int y, const qglviewer::Camera 
             // Check on ry :
             lambda = ( ( Origin - Eye )*( RepY ) )/( ( Dir )*( RepY ) );
             X = Eye + lambda*Dir;
+
             if( fabs( ( (X-Origin)*(X-Origin) )/(display_scale*display_scale) - 1 ) < epsilon_rotation_detect )
             {
                 mode_modification = 5;
@@ -172,15 +169,13 @@ void SimpleManipulator::checkIfGrabsMouse(int x, int y, const qglviewer::Camera 
             // Check on rz :
             lambda = ( ( Origin - Eye )*( RepZ ) )/( ( Dir )*( RepZ ) );
             X = Eye + lambda*Dir;
+
             if( fabs( ( (X-Origin)*(X-Origin) )/(display_scale*display_scale) - 1 ) < epsilon_rotation_detect )
             {
                 mode_modification = 6;
                 setGrabsMouse(true);
                 return;
             }
-
-
-
 
 
 
@@ -339,6 +334,7 @@ void SimpleManipulator::draw()
 
             if(isRotationActivated){
                 float teta;
+
                 glBegin( GL_LINE_LOOP );
                 if(mode_modification == 4)
                     glColor3fv( Selection );
@@ -473,12 +469,12 @@ void SimpleManipulator::mousePressEvent( QMouseEvent* const event  , qglviewer::
 
     if( mode_grabbing == 1 )
     {
-        if( event->buttons() & Qt::RightButton )
+        /*if( event->buttons() & Qt::RightButton )
         {
             mouse_released = true;
             this->clear();
             this->setState( 0 );
-        }
+        }*/
 
         if( mode_modification > 6 || mode_modification < -6 )
         {

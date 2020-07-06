@@ -51,6 +51,7 @@ public:
     void sendToMandible();
     void setIsCut(Side s, bool isCut, bool isUpdate);
     void drawCut();
+    void drawCutMand();
     bool getIsCut(){ return isCut; }
 
     void setAlpha(float a){ alphaTransparency = a; }

@@ -672,7 +672,12 @@ void Mesh::draw()
             glTriangleFibInMand(i, coloursIndicies);
         }
 
-        if(cuttingSide == Side::EXTERIOR) drawCut();
+        if(cuttingSide == Side::EXTERIOR){
+            for(unsigned int i = 0 ; i < trianglesExtracted.size(); i++){
+                glTriangleSmooth(trianglesExtracted[i], coloursIndicies);
+            }
+        }
+
     }
 
     glEnd();
@@ -723,6 +728,35 @@ void Mesh::drawCut(){
 
     /*glDisable(GL_DEPTH_TEST);
     glDisable(GL_DEPTH);*/
+}
+
+void Mesh::drawCutMand(){
+    if(!isCut) return;
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH);
+
+    //glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
+
+    double alphaBefore = alphaTransparency;
+    alphaTransparency = 0.5;
+
+    glBegin (GL_TRIANGLES);
+    std::vector<int> coloursIndicies;
+    fillColours(coloursIndicies, planes.size()*2);
+
+    for(unsigned int i = 0 ; i < trianglesExtracted.size(); i++){
+        glTriangleSmooth(trianglesExtracted[i], coloursIndicies);
+    }
+
+    glEnd();
+
+    alphaTransparency = alphaBefore;
+
+    //glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_DEPTH);
 }
 
 std::vector<unsigned int> Mesh::getVerticesOnPlane(unsigned int planeNb, Plane *p){

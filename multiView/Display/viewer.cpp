@@ -10,7 +10,7 @@ Viewer::Viewer(QWidget *parent, StandardCamera *cam, int sliderMax) : QGLViewer(
     isCurve = false;
     this->sliderMax = sliderMax;
     this->isCut = false;
-    this->isDrawMesh = true;
+    this->isDrawMesh = false;
     this->isPoly = false;
 }
 
@@ -23,7 +23,7 @@ void Viewer::draw() {
     glPushMatrix();
     glMultMatrixd(viewerFrame->matrix());
 
-    if(isDrawMesh) mesh.draw();
+     mesh.draw();
 
      if(isCurve){
          glColor4f(0., 1., 0., leftPlane->getAlpha());
@@ -47,6 +47,8 @@ void Viewer::draw() {
          curve.draw();
 
      }
+
+     if(isDrawMesh) mesh.drawCutMand();
 
      /*glPointSize(10.);
      glBegin(GL_POINTS);
