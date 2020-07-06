@@ -83,6 +83,7 @@ void Mesh::setIsCut(Side s, bool isCut, bool isUpdate){
     this->cuttingSide = s;
     if(!isCut) deleteGhostPlanes();
     if(isUpdate) updatePlaneIntersections();
+    trianglesExtracted.clear();
 }
 
 void Mesh::computeVerticesNormals(){

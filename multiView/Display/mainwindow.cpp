@@ -104,12 +104,12 @@ void MainWindow::initDisplayDockWidgets(){
     //connect(rotatePolylineMandible, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::rotatePolylineOnAxis);
     //connect(rotatePoly, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::rotatePolylineOnAxe);
 
-    QSlider *meshAlphaSlider = new QSlider(Qt::Horizontal);
+    /*QSlider *meshAlphaSlider = new QSlider(Qt::Horizontal);
     meshAlphaSlider->setMaximum(100);
     meshAlphaSlider->setSliderPosition(100);
     contentLayoutMand->addRow("Mesh transparency", meshAlphaSlider);
     connect(meshAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::setMeshAlpha);
-    connect(meshAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::setMeshAlpha);
+    connect(meshAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::setMeshAlpha);*/
 
 
     QSlider *planeAlphaSlider = new QSlider(Qt::Horizontal);
@@ -119,12 +119,12 @@ void MainWindow::initDisplayDockWidgets(){
     connect(planeAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::setPlaneAlpha);
     connect(planeAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::setPlaneAlpha);
 
-    QSlider *boxAlphaSlider = new QSlider(Qt::Horizontal);
+    /*QSlider *boxAlphaSlider = new QSlider(Qt::Horizontal);
     boxAlphaSlider->setMaximum(100);
     boxAlphaSlider->setSliderPosition(50);
     contentLayoutMand->addRow("Box transparency", boxAlphaSlider);
     connect(boxAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::setBoxAlpha);
-    connect(boxAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::setBoxAlpha);
+    connect(boxAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::setBoxAlpha);*/
 
 
     // Connect the two views
