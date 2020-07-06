@@ -243,6 +243,7 @@ void Mesh::updatePlaneIntersections(){
 
 void Mesh::cutMesh(std::vector<std::vector<unsigned int>> &intersectionTriangles, const std::vector<int> &planeNeighbours){
     trianglesCut.clear();
+    trianglesExtracted.clear();
 
     bool truthTriangles[triangles.size()];  // keeps a record of the triangles who are already added
     for(unsigned int i=0; i<triangles.size(); i++) truthTriangles[i] = false;
@@ -257,11 +258,6 @@ void Mesh::cutMesh(std::vector<std::vector<unsigned int>> &intersectionTriangles
         break;
     }
 
-    /*trianglesExtracted.clear();     // Store the rest of the triangles
-    for(unsigned int i=0; i<triangles.size(); i++){
-        if(!truthTriangles[i]) trianglesExtracted.push_back(i);
-    }*/
-
     // ! Conserve this order
     createSmoothedTriangles(intersectionTriangles, planeNeighbours);
 
@@ -269,6 +265,11 @@ void Mesh::cutMesh(std::vector<std::vector<unsigned int>> &intersectionTriangles
         if(isTransfer){
             sendToMandible();
         }
+    }
+
+        // Store the rest of the triangles
+    for(unsigned int i=0; i<triangles.size(); i++){
+        if(!truthTriangles[i]) trianglesExtracted.push_back(i);
     }
 }
 
@@ -288,6 +289,7 @@ void Mesh::cutFibula(bool* truthTriangles, std::vector <std::vector <unsigned in
             const std::vector<unsigned int> &v = intersectionTriangles[j];
             for(unsigned int k=0; k<v.size(); k++) {
                 truthTriangles[v[k]] = true;
+                trianglesExtracted.push_back(v[k]);
         }
     }
 
@@ -696,13 +698,15 @@ void Mesh::draw()
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_DEPTH);
+
+    if(cuttingSide == Side::EXTERIOR) drawCut();
 }
 
 void Mesh::drawCut(){
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_DEPTH);
 
-    glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
 
     glBegin (GL_TRIANGLES);
     std::vector<int> coloursIndicies;
@@ -714,7 +718,7 @@ void Mesh::drawCut(){
 
     glEnd();
 
-    glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+    //glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_DEPTH);

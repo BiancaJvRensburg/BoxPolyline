@@ -37,7 +37,7 @@ void Polyline::reinit(unsigned int nbPoints){
 }
 
 void Polyline::draw(){
-    glEnable(GL_DEPTH_TEST);
+    /*glEnable(GL_DEPTH_TEST);
     glEnable(GL_DEPTH);
 
     glPushMatrix();
@@ -78,7 +78,7 @@ void Polyline::draw(){
         }
     }
 
-    glPopMatrix();
+    glPopMatrix();*/
 
     for(unsigned int i=0; i<boxManipulators.size(); i++) boxManipulators[i]->draw();
 
@@ -160,7 +160,7 @@ void Polyline::setBoxToManipulator(unsigned int id, Vec manipulatorPosition){
     Vec x,y,z;
     boxManipulators[id]->getOrientation(x,y,z);
 
-    const Vec& n = segmentNormals[id];
+    /*const Vec& n = segmentNormals[id];
     const Vec& b = segmentBinormals[id];
     Vec t  =-cross(n,b);
 
@@ -169,21 +169,21 @@ void Polyline::setBoxToManipulator(unsigned int id, Vec manipulatorPosition){
     double bTheta = angle(b,y);
     double tTheta = angle(t,x);
 
-    double epsilon = M_PI / 8.;
+    double epsilon = M_PI / 8.;*/
 
-    if(nTheta <= epsilon && bTheta <= epsilon && tTheta <= epsilon){    // If the angle isn't too great
+   // if(nTheta <= epsilon && bTheta <= epsilon && tTheta <= epsilon){    // If the angle isn't too great
          boxes[id].setFrameFromBasis(x,y,z);
 
         // Set box to the manipulator position - half the length
         Vec p = getLocalCoordinates(manipulatorPosition - (boxes[id].getLength()/2. * getWorldBoxTransform(id, boxes[id].getTangent()) + boxes[id].getHeight()/2. * getWorldBoxTransform(id, boxes[id].getBinormal()) + boxes[id].getWidth()/2. * getWorldBoxTransform(id, boxes[id].getNormal())));
         boxes[id].setPosition(p);
-    }
+    /*}
     else{       // Else don't move the box and reset the orientation of the manipulator to the box  TODO set both to the greatest angle possible
         boxes[id].getOrientation(x,y,z);
         boxManipulators[id]->setRepX(x);
         boxManipulators[id]->setRepY(y);
         boxManipulators[id]->setRepZ(z);
-    }
+    }*/
 
 }
 

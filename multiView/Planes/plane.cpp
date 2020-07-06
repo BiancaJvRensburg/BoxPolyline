@@ -97,7 +97,7 @@ void Plane::draw(){
     }
 
     glColor3f(1,1,1);
-    QGLViewer::drawAxis(size/2.);
+    //QGLViewer::drawAxis(size/2.);
 
     /*if(status==Movable::DYNAMIC){
         cp.toggleSwitchFrames();
