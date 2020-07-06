@@ -216,6 +216,7 @@ void MainWindow::initToolBars () {
 void MainWindow::readJSON(const QJsonObject &json, Viewer *v){
     if(json.contains("mesh file") && json["mesh file"].isString()){
         QString fileName = json["mesh file"].toString();
+        fileName = QDir().relativeFilePath(fileName);
         v->openOFF(fileName);
     }
     if(json.contains("control points") && json["control points"].isArray()){
@@ -230,11 +231,10 @@ void MainWindow::openJSON(Viewer *v){
     QString fileFilter = "JSON (*.json)";
     QString filename = QFileDialog::getOpenFileName(this, tr("Select a mesh"), openFileNameLabel, fileFilter, &selectedFilter);
 
-
     QFile loadFile(filename);
 
     if (!loadFile.open(QIODevice::ReadOnly)) {
-        qWarning("Couldn't open save file.");
+        qWarning("Couldn't open file.");
         return;
     }
 

@@ -159,11 +159,32 @@ void Polyline::setBoxToManipulator(unsigned int id, Vec manipulatorPosition){
     // Set the orientation
     Vec x,y,z;
     boxManipulators[id]->getOrientation(x,y,z);
-    boxes[id].setFrameFromBasis(x,y,z);
 
-    // Set box to the manipulator position - half the length
-    Vec p = getLocalCoordinates(manipulatorPosition - (boxes[id].getLength()/2. * getWorldBoxTransform(id, boxes[id].getTangent()) + boxes[id].getHeight()/2. * getWorldBoxTransform(id, boxes[id].getBinormal()) + boxes[id].getWidth()/2. * getWorldBoxTransform(id, boxes[id].getNormal())));
-    boxes[id].setPosition(p);
+    const Vec& n = segmentNormals[id];
+    const Vec& b = segmentBinormals[id];
+    Vec t  =-cross(n,b);
+
+    // x -> t, y -> b, z -> n
+    double nTheta = angle(n,z);
+    double bTheta = angle(b,y);
+    double tTheta = angle(t,x);
+
+    double epsilon = M_PI / 8.;
+
+    if(nTheta <= epsilon && bTheta <= epsilon && tTheta <= epsilon){    // If the angle isn't too great
+         boxes[id].setFrameFromBasis(x,y,z);
+
+        // Set box to the manipulator position - half the length
+        Vec p = getLocalCoordinates(manipulatorPosition - (boxes[id].getLength()/2. * getWorldBoxTransform(id, boxes[id].getTangent()) + boxes[id].getHeight()/2. * getWorldBoxTransform(id, boxes[id].getBinormal()) + boxes[id].getWidth()/2. * getWorldBoxTransform(id, boxes[id].getNormal())));
+        boxes[id].setPosition(p);
+    }
+    else{       // Else don't move the box and reset the orientation of the manipulator to the box  TODO set both to the greatest angle possible
+        boxes[id].getOrientation(x,y,z);
+        boxManipulators[id]->setRepX(x);
+        boxManipulators[id]->setRepY(y);
+        boxManipulators[id]->setRepZ(z);
+    }
+
 }
 
 void Polyline::setBoxToProjectionPoint(unsigned int id, Vec projPoint){
