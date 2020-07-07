@@ -26,7 +26,7 @@ private:
     void initFileMenu();
     void initToolBars();
     void initFileActions();
-
+    void initEditMenu();
 
     void readJSON(const QJsonObject &json, Viewer *v);
     void openJSON(Viewer* v);
@@ -34,10 +34,11 @@ private:
 private Q_SLOTS:
     void openMandJSON();
     void openFibJSON();
-    void initEditMenu();
     void setFragRadios();
     void enableFragmentEditing();
     void disableFragmentEditing();
+    void displayEditMenu();
+    void hideEditMenu();
     /*void transitionUncutToCut();
     void transitionCutToUncut();
     void transitionUncutToEdit();

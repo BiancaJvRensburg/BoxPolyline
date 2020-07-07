@@ -162,8 +162,17 @@ void MainWindow::initEditMenu(){
     controlWidget->setLayout(layout);
 
     editMenuWidget->setWidget(controlWidget);
-
     this->addDockWidget(Qt::RightDockWidgetArea, editMenuWidget);
+
+    editMenuWidget->setVisible(false);
+}
+
+void MainWindow::displayEditMenu(){
+    editMenuWidget->setVisible(true);
+}
+
+void MainWindow::hideEditMenu(){
+    editMenuWidget->setVisible(false);
 }
 
 void MainWindow::enableFragmentEditing(){
@@ -173,9 +182,13 @@ void MainWindow::enableFragmentEditing(){
     radioFrag1->setCheckable(true);
     radioFrag2->setCheckable(true);
     radioFrag3->setCheckable(true);
+
+    groupRadioBox->setVisible(true);
 }
 
 void MainWindow::disableFragmentEditing(){
+    groupRadioBox->setVisible(false);
+
     groupRadioBox->setCheckable(false);
 
     radioFrag1->setCheckable(false);
@@ -210,7 +223,10 @@ void MainWindow::initFileActions(){
     connect(openJsonFibFileAction, &QAction::triggered, this, &MainWindow::openFibJSON);
 
     QAction *editPlanesAction = new QAction("Edit menu", this);
-    connect(editPlanesAction, &QAction::triggered, this, &MainWindow::initEditMenu);
+    connect(editPlanesAction, &QAction::triggered, this, &MainWindow::displayEditMenu);
+
+    QAction *editHideAction = new QAction("Edit hide", this);
+    connect(editHideAction, &QAction::triggered, this, &MainWindow::hideEditMenu);
 
     QAction *cutMeshAction = new QAction("Cut", this);
     connect(cutMeshAction, &QAction::triggered, skullViewer, &Viewer::cutMesh);
@@ -222,6 +238,7 @@ void MainWindow::initFileActions(){
     fileActionGroup->addAction(openJsonFileAction);
     fileActionGroup->addAction(openJsonFibFileAction);
     fileActionGroup->addAction(editPlanesAction);
+    fileActionGroup->addAction(editHideAction);
     fileActionGroup->addAction(cutMeshAction);
     fileActionGroup->addAction(uncutMeshAction);
 
