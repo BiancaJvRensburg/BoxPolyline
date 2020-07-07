@@ -142,16 +142,12 @@ void SimpleManipulator::checkIfGrabsMouse(int x, int y, const qglviewer::Camera 
             }
 
 
-
-
-
-
-
             ///////////////////////////////////////  Rotations:   ///////////////////////////////////////
 
             // Check on rx :
             lambda = ( ( Origin - Eye )*( RepX ) )/( ( Dir )*( RepX ) );
             X = Eye + lambda*Dir;
+
             if( fabs( ( (X-Origin)*(X-Origin) )/(display_scale*display_scale) - 1 ) < epsilon_rotation_detect )
             {
                 mode_modification = 4;
@@ -162,6 +158,7 @@ void SimpleManipulator::checkIfGrabsMouse(int x, int y, const qglviewer::Camera 
             // Check on ry :
             lambda = ( ( Origin - Eye )*( RepY ) )/( ( Dir )*( RepY ) );
             X = Eye + lambda*Dir;
+
             if( fabs( ( (X-Origin)*(X-Origin) )/(display_scale*display_scale) - 1 ) < epsilon_rotation_detect )
             {
                 mode_modification = 5;
@@ -172,15 +169,13 @@ void SimpleManipulator::checkIfGrabsMouse(int x, int y, const qglviewer::Camera 
             // Check on rz :
             lambda = ( ( Origin - Eye )*( RepZ ) )/( ( Dir )*( RepZ ) );
             X = Eye + lambda*Dir;
+
             if( fabs( ( (X-Origin)*(X-Origin) )/(display_scale*display_scale) - 1 ) < epsilon_rotation_detect )
             {
                 mode_modification = 6;
                 setGrabsMouse(true);
                 return;
             }
-
-
-
 
 
 
@@ -292,23 +287,27 @@ void SimpleManipulator::draw()
 
             float CX[3] = {0.f , 1.f , 0.f};
             float CY[3] = {0.f , 0.f , 1.f};
-            float CZ[3] = {1.f , 1.f , 0.f};
-            float Selection[3] = {1.f , 0.f , 0.f};
+            float CZ[3] = {1.f , 0.f , 0.f};
+            float Selection[3] = {1.f , 1.f , 0.f};
 
             glDisable(GL_LIGHTING);
 
             glLineWidth( 2.f );
             qglviewer::Vec p;
             glBegin( GL_LINES );
-            if(mode_modification == 1)
-                glColor3fv( Selection );
-            else
-                glColor3fv( CX );
 
-            p = Origin - 2 * display_scale * RepX;
-            glVertex3f(p[0],p[1],p[2]);
-            p = Origin + 2 * display_scale * RepX;
-            glVertex3f(p[0],p[1],p[2]);
+            if(!isRotationActivated){
+                if(mode_modification == 1)
+                    glColor3fv( Selection );
+                else
+                    glColor3fv( CX );
+
+                p = Origin - 2 * display_scale * RepX;
+                glVertex3f(p[0],p[1],p[2]);
+                // p = Origin + 2 * display_scale * RepX;
+                p = Origin;
+                glVertex3f(p[0],p[1],p[2]);
+            }
 
             if(mode_modification == 2)
                 glColor3fv( Selection );
@@ -317,7 +316,8 @@ void SimpleManipulator::draw()
 
             p = Origin - 2 * display_scale * RepY;
             glVertex3f(p[0],p[1],p[2]);
-            p = Origin + 2 * display_scale * RepY;
+            // p = Origin + 2 * display_scale * RepY;
+            p = Origin;
             glVertex3f(p[0],p[1],p[2]);
 
             if(mode_modification == 3)
@@ -327,80 +327,84 @@ void SimpleManipulator::draw()
 
             p = Origin - 2 * display_scale * RepZ;
             glVertex3f(p[0],p[1],p[2]);
-            p = Origin + 2 * display_scale * RepZ;
+            //p = Origin + 2 * display_scale * RepZ;
+            p = Origin;
             glVertex3f(p[0],p[1],p[2]);
             glEnd();
 
-            float teta;
-            glBegin( GL_LINE_LOOP );
-            if(mode_modification == 4)
-                glColor3fv( Selection );
-            else
-                glColor3fv( CX );
+            if(isRotationActivated){
+                float teta;
 
-            for(int i=0; i<360; i+=5)
-            {
-                teta = (float)(i) * 3.1415927 / float(180);
-                p = Origin + display_scale*cosf(teta)*RepY + display_scale*sinf(teta)*RepZ;
-                glVertex3f(p[0],p[1],p[2]);
+                glBegin( GL_LINE_LOOP );
+                if(mode_modification == 4)
+                    glColor3fv( Selection );
+                else
+                    glColor3fv( CX );
+
+                for(int i=0; i<360; i+=5)
+                {
+                    teta = (float)(i) * 3.1415927 / float(180);
+                    p = Origin + display_scale*cosf(teta)*RepY + display_scale*sinf(teta)*RepZ;
+                    glVertex3f(p[0],p[1],p[2]);
+                }
+                glEnd();
+
+                glBegin( GL_LINE_LOOP );
+                if(mode_modification == 5)
+                    glColor3fv( Selection );
+                else
+                    glColor3fv( CY );
+                for(int i=0; i<360; i+=5)
+                {
+                    teta = (float)(i) * 3.1415927 / float(180);
+                    p = Origin + display_scale*cosf(teta)*RepX + display_scale*sinf(teta)*RepZ;
+                    glVertex3f(p[0],p[1],p[2]);
+                }
+                glEnd();
+
+
+                glBegin( GL_LINE_LOOP );
+                if(mode_modification == 6)
+                    glColor3fv( Selection );
+                else
+                    glColor3fv( CZ );
+                for(int i=0; i<360; i+=5)
+                {
+                    teta = (float)(i) * 3.1415927 / float(180);
+                    p = Origin + display_scale*cosf(teta)*RepY + display_scale*sinf(teta)*RepX;
+                    glVertex3f(p[0],p[1],p[2]);
+                }
+                glEnd();
+
+                /*if(mode_modification == 7 || mode_modification == -7)
+                    glColor3fv( Selection );
+                else
+                    glColor3fv( CX );
+                p = Origin + (1.5 * Xscale * display_scale) * RepX;
+                BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
+                p = Origin - (1.5 * Xscale * display_scale) * RepX;
+                BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
+
+
+                if(mode_modification == 8 || mode_modification == -8)
+                    glColor3fv( Selection );
+                else
+                    glColor3fv( CY );
+                p = Origin + (1.5 * Yscale * display_scale) * RepY;
+                BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
+                p = Origin - (1.5 * Yscale * display_scale) * RepY;
+                BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
+
+
+                if(mode_modification == 9 || mode_modification == -9)
+                    glColor3fv( Selection );
+                else
+                    glColor3fv( CZ );
+                p = Origin + (1.5 * Zscale * display_scale) * RepZ;
+                BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
+                p = Origin - (1.5 * Zscale * display_scale) * RepZ;
+                BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);*/
             }
-            glEnd();
-
-            glBegin( GL_LINE_LOOP );
-            if(mode_modification == 5)
-                glColor3fv( Selection );
-            else
-                glColor3fv( CY );
-            for(int i=0; i<360; i+=5)
-            {
-                teta = (float)(i) * 3.1415927 / float(180);
-                p = Origin + display_scale*cosf(teta)*RepX + display_scale*sinf(teta)*RepZ;
-                glVertex3f(p[0],p[1],p[2]);
-            }
-            glEnd();
-
-            glBegin( GL_LINE_LOOP );
-            if(mode_modification == 6)
-                glColor3fv( Selection );
-            else
-                glColor3fv( CZ );
-            for(int i=0; i<360; i+=5)
-            {
-                teta = (float)(i) * 3.1415927 / float(180);
-                p = Origin + display_scale*cosf(teta)*RepY + display_scale*sinf(teta)*RepX;
-                glVertex3f(p[0],p[1],p[2]);
-            }
-            glEnd();
-
-
-            if(mode_modification == 7 || mode_modification == -7)
-                glColor3fv( Selection );
-            else
-                glColor3fv( CX );
-            p = Origin + (1.5 * Xscale * display_scale) * RepX;
-            BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
-            p = Origin - (1.5 * Xscale * display_scale) * RepX;
-            BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
-
-
-            if(mode_modification == 8 || mode_modification == -8)
-                glColor3fv( Selection );
-            else
-                glColor3fv( CY );
-            p = Origin + (1.5 * Yscale * display_scale) * RepY;
-            BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
-            p = Origin - (1.5 * Yscale * display_scale) * RepY;
-            BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
-
-
-            if(mode_modification == 9 || mode_modification == -9)
-                glColor3fv( Selection );
-            else
-                glColor3fv( CZ );
-            p = Origin + (1.5 * Zscale * display_scale) * RepZ;
-            BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
-            p = Origin - (1.5 * Zscale * display_scale) * RepZ;
-            BasicGL::drawSphere(p[0],p[1],p[2],display_scale/15,5,5);
 
             glEnable(GL_LIGHTING);
         }
@@ -458,20 +462,11 @@ void SimpleManipulator::mousePressEvent( QMouseEvent* const event  , qglviewer::
         cam->getProjectedCoordinatesOf( origin , p_cam );
         m_xx_default = event->x() - p_cam[0];
         m_yy_default = event->y() - p_cam[1];
-
-        //    emit needUpdateGL();
     }
 
 
     if( mode_grabbing == 1 )
     {
-        if( event->buttons() & Qt::RightButton )
-        {
-            mouse_released = true;
-            this->clear();
-            this->setState( 0 );
-        }
-
         if( mode_modification > 6 || mode_modification < -6 )
         {
             return;

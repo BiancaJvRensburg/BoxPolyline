@@ -67,11 +67,14 @@ public:
     void toggleIsWireframe(){ isWireframe = !isWireframe; }
 
     void setBoxToManipulator(unsigned int id, Vec manipulatorPosition);
+     void setBoxToCornerManipulator(unsigned int id, Vec manipulatorPosition);
     void setBoxToProjectionPoint(unsigned int id, Vec projPoint);
     void setManipulatorsToBoxes();
+    void setCornerManipulatorsToBoxes();
     void activateBoxManipulators();
 
     SimpleManipulator* getBoxManipulator(unsigned int i){ return boxManipulators[i]; }
+    SimpleManipulator* getCornerManipulator(unsigned int i){ return cornerManipulators[i]; }
 
     void adjustBoxLength(unsigned int i, double &distShift);
 
@@ -85,7 +88,10 @@ private:
     double euclideanDistance(const Vec &a, const Vec &b);
     void resetBox(unsigned int index);
     void initManipulators();
+    void initCornerManipulators();
     void deleteManipulators();
+    void deleteCornerManipulators();
+    void reorientateBox(unsigned int index, const Vec &start, const Vec &end);
 
     Frame frame;
     const Vec tangent = Vec(1,0,0);
@@ -99,6 +105,7 @@ private:
     float boxTransparency = 0.5f;
     std::vector<Box> boxes;
     std::vector<SimpleManipulator*> boxManipulators;     // a manipulator for each box
+    std::vector<SimpleManipulator*> cornerManipulators;   // 2 manipulators per box - modifies the tangent
     bool isWireframe = true;
 };
 

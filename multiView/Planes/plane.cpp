@@ -17,6 +17,7 @@ Plane::Plane(double s, Movable status, float alpha, unsigned int id) : cp(id)
     manipulator.setDisplayScale(size/3.);
     manipulator.deactivate();
     manipulator.setID(id);
+    manipulator.setRotationActivated(false);
 
     initBasePlane();
 }
@@ -96,7 +97,7 @@ void Plane::draw(){
     }
 
     glColor3f(1,1,1);
-    QGLViewer::drawAxis(size/2.);
+    //QGLViewer::drawAxis(size/2.);
 
     /*if(status==Movable::DYNAMIC){
         cp.toggleSwitchFrames();

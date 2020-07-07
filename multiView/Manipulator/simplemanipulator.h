@@ -32,6 +32,8 @@ public:
     void setRepY( qglviewer::Vec const & p ){ RepY = p; }
     void setRepZ( qglviewer::Vec const & p ){ RepZ = p; }
 
+    void setRotationActivated(bool b){ isRotationActivated = b; }
+
     const qglviewer::Vec& getPosition(){ return Origin; }
     void getOrientation(qglviewer::Vec &x, qglviewer::Vec &y, qglviewer::Vec &z){
         x = RepX;
@@ -104,6 +106,7 @@ private:
     float m_xx_default , m_yy_default;
 
     unsigned int id;        // same as the plane's id
+    bool isRotationActivated = true;
 };
 
 #endif // SIMPLEMANIPULATOR_H

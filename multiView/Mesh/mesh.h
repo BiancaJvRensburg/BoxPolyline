@@ -18,8 +18,8 @@ class Mesh : public QObject
 
 public:
 
-    Mesh():normalDirection(1.){}
-    Mesh(std::vector<Vec3Df> &vertices, std::vector<Triangle> &triangles): vertices(vertices), triangles(triangles), normalDirection(1.){
+    Mesh():normalDirection(1.),mat(0,3),tree(3, mat, 10){}
+    Mesh(std::vector<Vec3Df> &vertices, std::vector<Triangle> &triangles):vertices(vertices), triangles(triangles), normalDirection(1.),mat(0,3),tree(3, mat, 10){
         update();
     }
     ~Mesh(){}
@@ -51,6 +51,7 @@ public:
     void sendToMandible();
     void setIsCut(Side s, bool isCut, bool isUpdate);
     void drawCut();
+    void drawCutMand();
     bool getIsCut(){ return isCut; }
 
     void setAlpha(float a){ alphaTransparency = a; }
@@ -138,6 +139,8 @@ protected:
     Eigen::MatrixXd mat;
     void HPSS(KDTree &tree, const int dimension, Vec inputPoint, Vec &outputPoint , Vec &outputNormal, double radius, unsigned int nbIterations=10, unsigned int knn=20, double s=1.0);
     void weightGauss(Vec x, std::vector<double> &weights, unsigned int knn, std::vector<size_t> const &id_nearest_neighbors, std::vector<double> const &square_distances_to_neighbors, double h);
+
+    KDTree tree;
 };
 
 #endif // MESH_H

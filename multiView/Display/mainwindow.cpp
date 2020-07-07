@@ -86,9 +86,9 @@ void MainWindow::initDisplayDockWidgets(){
     rightPlaneSlider->setMaximum(sliderMax);
     contentLayoutMand->addRow("Right slider", rightPlaneSlider);
 
-    QSlider *rotatePolylineMandible = new QSlider(Qt::Horizontal);
+    /*QSlider *rotatePolylineMandible = new QSlider(Qt::Horizontal);
     rotatePolylineMandible->setMaximum(360);
-    contentLayoutMand->addRow("Rotate planes", rotatePolylineMandible);
+    contentLayoutMand->addRow("Rotate planes", rotatePolylineMandible);*/
 
     /*QSlider *rotatePoly = new QSlider(Qt::Horizontal);
     rotatePolylineMandible->setMaximum(360);
@@ -101,15 +101,15 @@ void MainWindow::initDisplayDockWidgets(){
     connect(leftPlaneSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::moveLeftPlane);
     connect(rightPlaneSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::moveRightPlane);
     //connect(rotatePolylineFibula, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::rotatePolylineOnAxis);
-    connect(rotatePolylineMandible, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::rotatePolylineOnAxis);
+    //connect(rotatePolylineMandible, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::rotatePolylineOnAxis);
     //connect(rotatePoly, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::rotatePolylineOnAxe);
 
-    QSlider *meshAlphaSlider = new QSlider(Qt::Horizontal);
+    /*QSlider *meshAlphaSlider = new QSlider(Qt::Horizontal);
     meshAlphaSlider->setMaximum(100);
     meshAlphaSlider->setSliderPosition(100);
     contentLayoutMand->addRow("Mesh transparency", meshAlphaSlider);
     connect(meshAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::setMeshAlpha);
-    connect(meshAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::setMeshAlpha);
+    connect(meshAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::setMeshAlpha);*/
 
 
     QSlider *planeAlphaSlider = new QSlider(Qt::Horizontal);
@@ -119,12 +119,12 @@ void MainWindow::initDisplayDockWidgets(){
     connect(planeAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::setPlaneAlpha);
     connect(planeAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::setPlaneAlpha);
 
-    QSlider *boxAlphaSlider = new QSlider(Qt::Horizontal);
+    /*QSlider *boxAlphaSlider = new QSlider(Qt::Horizontal);
     boxAlphaSlider->setMaximum(100);
     boxAlphaSlider->setSliderPosition(50);
     contentLayoutMand->addRow("Box transparency", boxAlphaSlider);
     connect(boxAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::setBoxAlpha);
-    connect(boxAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::setBoxAlpha);
+    connect(boxAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::setBoxAlpha);*/
 
 
     // Connect the two views
@@ -197,6 +197,7 @@ void MainWindow::initFileActions(){
     connect(skullViewer, &Viewer::cutFibula, fibulaViewer, &ViewerFibula::cut);
     connect(skullViewer, &Viewer::uncutFibula, fibulaViewer, &ViewerFibula::uncut);
     connect(skullViewer, &Viewer::toReinitBox, fibulaViewer, &ViewerFibula::reinitBox);
+    connect(skullViewer, &Viewer::toReinitPoly, fibulaViewer, &ViewerFibula::reinitPoly);
 }
 
 void MainWindow::initFileMenu(){
@@ -215,6 +216,7 @@ void MainWindow::initToolBars () {
 void MainWindow::readJSON(const QJsonObject &json, Viewer *v){
     if(json.contains("mesh file") && json["mesh file"].isString()){
         QString fileName = json["mesh file"].toString();
+        fileName = QDir().relativeFilePath(fileName);
         v->openOFF(fileName);
     }
     if(json.contains("control points") && json["control points"].isArray()){
@@ -229,11 +231,10 @@ void MainWindow::openJSON(Viewer *v){
     QString fileFilter = "JSON (*.json)";
     QString filename = QFileDialog::getOpenFileName(this, tr("Select a mesh"), openFileNameLabel, fileFilter, &selectedFilter);
 
-
     QFile loadFile(filename);
 
     if (!loadFile.open(QIODevice::ReadOnly)) {
-        qWarning("Couldn't open save file.");
+        qWarning("Couldn't open file.");
         return;
     }
 

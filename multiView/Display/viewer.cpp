@@ -5,12 +5,10 @@
 Viewer::Viewer(QWidget *parent, StandardCamera *cam, int sliderMax) : QGLViewer(parent) {
     Camera *c = camera();       // switch the cameras
     setCamera(c);
-    //setCamera(cam);
-    //delete c;
     isCurve = false;
     this->sliderMax = sliderMax;
     this->isCut = false;
-    this->isDrawMesh = true;
+    this->isDrawMesh = false;
     this->isPoly = false;
 }
 
@@ -23,7 +21,7 @@ void Viewer::draw() {
     glPushMatrix();
     glMultMatrixd(viewerFrame->matrix());
 
-    if(isDrawMesh) mesh.draw();
+     mesh.draw();
 
      if(isCurve){
          glColor4f(0., 1., 0., leftPlane->getAlpha());
@@ -35,24 +33,10 @@ void Viewer::draw() {
              glColor4f(0., 1., 1., ghostPlanes[i]->getAlpha());
              ghostPlanes[i]->draw();
          }
-
-         /*glPointSize(2.);
-         glBegin(GL_POINTS);
-         for(unsigned int i=0; i<testPoints.size(); i++){
-             glColor3f(0., 0., 1.);
-             glVertex3f(testPoints[i].x, testPoints[i].y, testPoints[i].z);
-         }
-         glEnd();*/
-
          curve.draw();
-
      }
 
-     /*glPointSize(10.);
-     glBegin(GL_POINTS);
-     glColor3d(1,0,0);
-     glVertex3d(projPoint.x, projPoint.y, projPoint.z);
-     glEnd();*/
+     if(isDrawMesh) mesh.drawCutMand();
 
     if(isPoly) poly.draw();
 
@@ -192,11 +176,6 @@ void Viewer::initGhostPlanes(Movable s){
         ghostPlanes.push_back(p);
     }
 
-    // Connect all planes' movement (except the two end planes which we don't see). If a plane is moved, bend the polyline.
-    /*connect(&(leftPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolylineManually);
-    connect(&(rightPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolylineManually);
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) connect(&(ghostPlanes[i]->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolylineManually);*/        // connnect the ghost planes
-
     connect(&(leftPlane->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);
     connect(&(rightPlane->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);
     for(unsigned int i=0; i<ghostPlanes.size(); i++) connect(&(ghostPlanes[i]->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);        // connnect the ghost planes
@@ -283,6 +262,7 @@ void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
 void Viewer::bendPolylineManually(unsigned int pointIndex, Vec v){
     bool isOriginallyCut = isCut;
     if(isOriginallyCut) uncut();
+    Q_EMIT toReinitPoly(poly.getNbPoints());
     bendPolyline(pointIndex, v);
     if(isOriginallyCut) cut();
 }
@@ -382,21 +362,27 @@ void Viewer::cutMesh(){
 
     // Construct the polyline : First and last planes are immovable and are at the ends of the meshes
     std::vector<Vec> polylinePoints;
-    polylinePoints.push_back(curve.getPoint(0));        // the start of the curve
+    //polylinePoints.push_back(curve.getPoint(0));        // the start of the curve
+    unsigned int boxSize = 10;
+    if(boxSize>curveIndexL) polylinePoints.push_back(curve.getPoint(0));
+    else polylinePoints.push_back(curve.getPoint(curveIndexL-boxSize));
     polylinePoints.push_back(curve.getPoint(curveIndexL));  // the left plane
 
     std::vector<unsigned int> ghostLocations;
     findGhostLocations(nbGhostPlanes, ghostLocations);      // find the curve indexes on which the ghost planes must be placed
     for(unsigned int i=0; i<ghostLocations.size(); i++) polylinePoints.push_back(curve.getPoint(ghostLocations[i]));        // get the world location of these indexes
 
-    polylinePoints.push_back(curve.getPoint(curveIndexR));      // the right plane
-    polylinePoints.push_back(curve.getPoint(nbU-1));        // the end of the curve
+    if(boxSize+curveIndexL >= nbU) polylinePoints.push_back(curve.getPoint(nbU-1));
+    else polylinePoints.push_back(curve.getPoint(curveIndexR));      // the right plane
+    polylinePoints.push_back(curve.getPoint(curveIndexR+boxSize));
+    //polylinePoints.push_back(curve.getPoint(nbU-1));        // the end of the curve
 
     constructPolyline(polylinePoints);
 
     cut();
 
     for(unsigned int i=1; i<poly.getNbPoints()-2; i++) connect(poly.getBoxManipulator(i), &SimpleManipulator::moved, this, &Viewer::setBoxToManipulator);
+    for(unsigned int i=1; i<(poly.getNbPoints()-2)*2; i++) connect(poly.getCornerManipulator(i), &SimpleManipulator::moved, this, &Viewer::setBoxToCornerManipulator);
 
     update();
 }
@@ -485,6 +471,7 @@ void Viewer::quicksort(std::vector<unsigned int>& sorted, int start, int end){
 
 // Find where the ghost planes should be placed
 void Viewer::findGhostLocations(unsigned int nbGhostPlanes, std::vector<unsigned int>& ghostLocation){
+    if(nbGhostPlanes==0) return;
     unsigned int finalNb = nbGhostPlanes;        // the number we can actually fit in
     std::vector<unsigned int> maxIndicies(nbGhostPlanes);
 
@@ -652,15 +639,47 @@ void Viewer::toggleEditPlaneMode(){
     update();
 }
 
+Plane& Viewer::getPlaneFromID(unsigned int id){
+    int idOffset = static_cast<int>(id) - static_cast<int>(ghostPlanes[0]->getID());
+    if(idOffset < 0) return *leftPlane;
+    return *ghostPlanes[static_cast<unsigned int>(idOffset)];
+}
+
+Plane& Viewer::getOppositePlaneFromID(unsigned int id){
+    int idOffset = static_cast<int>(id) - static_cast<int>(leftPlane->getID());
+    if(idOffset >= static_cast<int>(ghostPlanes.size())) return *rightPlane;
+    return *ghostPlanes[static_cast<unsigned int>(idOffset)];
+}
+
 void Viewer::setBoxToManipulator(unsigned int id, Vec manipulatorPosition){
     poly.setBoxToManipulator(id, manipulatorPosition);
-    if(id == ghostPlanes[0]->getID()) {
-        double distShift;
-        projPoint = projectBoxToPlane(ghostPlanes[0]->getID(), *ghostPlanes[0], *ghostPlanes[1], distShift);
-        poly.setBoxToProjectionPoint(id, projPoint);
-        // Shift the box size
-        poly.adjustBoxLength(ghostPlanes[0]->getID(), distShift);
-    }
+
+    double distShift;
+    Vec projPoint;
+    if(ghostPlanes.size() == 0) projPoint = projectBoxToPlane(*leftPlane, *rightPlane, distShift);
+    else projPoint = projectBoxToPlane(getPlaneFromID(id), getOppositePlaneFromID(id), distShift);
+    poly.setBoxToProjectionPoint(id, projPoint);
+    poly.adjustBoxLength(id, distShift); // Shift the box size
+
+    sendNewNorms();     // Need to send new norms and the new rotation of the box - here its the opposite of before -- don't update on this side but send the update to the fibula correspondance
+    std::vector<double> distances;
+    poly.getDistances(distances);
+    Q_EMIT toReinitBox(id, distances);
+    update();
+}
+
+void Viewer::setBoxToCornerManipulator(unsigned int id, Vec manipulatorPosition){
+    poly.setBoxToCornerManipulator(id, manipulatorPosition);
+
+    id = id/2;
+
+    double distShift;
+    Vec projPoint;
+    if(ghostPlanes.size() == 0) projPoint = projectBoxToPlane(*leftPlane, *rightPlane, distShift);
+    else projPoint = projectBoxToPlane(getPlaneFromID(id), getOppositePlaneFromID(id), distShift);
+    poly.setBoxToProjectionPoint(id, projPoint);
+    poly.adjustBoxLength(id, distShift); // Shift the box size
+
     sendNewNorms();     // Need to send new norms and the new rotation of the box - here its the opposite of before -- don't update on this side but send the update to the fibula correspondance
     std::vector<double> distances;
     poly.getDistances(distances);
@@ -673,7 +692,8 @@ void Viewer::toggleEditBoxMode(){
     update();
 }
 
-Vec Viewer::projectBoxToPlane(unsigned int boxIndex, Plane &p, Plane &endP, double &distShift){
+Vec Viewer::projectBoxToPlane(Plane &p, Plane &endP, double &distShift){
+    unsigned int boxIndex = p.getID();
     Vec worldBox = poly.getMeshBoxPoint(boxIndex);
     Vec worldProjectionAxis = worldBox - poly.getMeshBoxEnd(boxIndex);
     Vec projPoint = p.getAxisProjection(worldBox, worldProjectionAxis);

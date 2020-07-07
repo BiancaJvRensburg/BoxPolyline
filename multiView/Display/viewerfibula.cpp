@@ -235,6 +235,10 @@ void ViewerFibula::reinitBox(unsigned int id, std::vector<double>& distances){
     update();
 }
 
+void ViewerFibula::reinitPoly(unsigned int nb){
+    poly.reinit(nb);
+}
+
 // TODO this doesn't work yet
 void ViewerFibula::rotatePolylineOnAxe(double r){
     bool isOriginallyCut = isCut;

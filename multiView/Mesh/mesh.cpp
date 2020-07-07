@@ -6,6 +6,7 @@ void Mesh::init(){
     collectOneRing(oneRing);
     collectTriangleOneRing(oneTriangleRing);
     mat = pointsToMatrix(vertices, 3);
+    tree.index->buildIndex();
     update();
 }
 
@@ -82,6 +83,7 @@ void Mesh::setIsCut(Side s, bool isCut, bool isUpdate){
     this->cuttingSide = s;
     if(!isCut) deleteGhostPlanes();
     if(isUpdate) updatePlaneIntersections();
+    //trianglesExtracted.clear();
 }
 
 void Mesh::computeVerticesNormals(){
@@ -242,6 +244,7 @@ void Mesh::updatePlaneIntersections(){
 
 void Mesh::cutMesh(std::vector<std::vector<unsigned int>> &intersectionTriangles, const std::vector<int> &planeNeighbours){
     trianglesCut.clear();
+    trianglesExtracted.clear();
 
     bool truthTriangles[triangles.size()];  // keeps a record of the triangles who are already added
     for(unsigned int i=0; i<triangles.size(); i++) truthTriangles[i] = false;
@@ -256,11 +259,6 @@ void Mesh::cutMesh(std::vector<std::vector<unsigned int>> &intersectionTriangles
         break;
     }
 
-    /*trianglesExtracted.clear();     // Store the rest of the triangles
-    for(unsigned int i=0; i<triangles.size(); i++){
-        if(!truthTriangles[i]) trianglesExtracted.push_back(i);
-    }*/
-
     // ! Conserve this order
     createSmoothedTriangles(intersectionTriangles, planeNeighbours);
 
@@ -268,6 +266,11 @@ void Mesh::cutMesh(std::vector<std::vector<unsigned int>> &intersectionTriangles
         if(isTransfer){
             sendToMandible();
         }
+    }
+
+        // Store the rest of the triangles
+    for(unsigned int i=0; i<triangles.size(); i++){
+        if(!truthTriangles[i]) trianglesExtracted.push_back(i);
     }
 }
 
@@ -287,6 +290,7 @@ void Mesh::cutFibula(bool* truthTriangles, std::vector <std::vector <unsigned in
             const std::vector<unsigned int> &v = intersectionTriangles[j];
             for(unsigned int k=0; k<v.size(); k++) {
                 truthTriangles[v[k]] = true;
+                trianglesExtracted.push_back(v[k]);
         }
     }
 
@@ -484,17 +488,17 @@ void Mesh::floodNeighbour(unsigned int index, int id, std::vector<int> &planeNei
             }
         }
 
-        else if(flood == id) continue;      // stop if the vertex is already flooded with the same value
+        //else if(flood == id) continue;      // stop if the vertex is already flooded with the same value
 
-        else if(flood==id+static_cast<int>(planes.size()) || id==flood+static_cast<int>(planes.size())) continue;     // stop if we've found our own neg/pos side
+        //else if(flood==id+static_cast<int>(planes.size()) || id==flood+static_cast<int>(planes.size())) continue;     // stop if we've found our own neg/pos side
 
-        else{       // else it already belongs to a different plane
+        /*else{       // else it already belongs to a different plane
             if(planeNeighbours[static_cast<unsigned int>(id)]== -1 && !isSharedVertex[static_cast<unsigned int>(index)]){       // They're not already neighbours
                 planeNeighbours[static_cast<unsigned int>(id)] = flooding[index];     // equal to the old value
                 planeNeighbours[static_cast<unsigned int>(flooding[index])] = id;
             }
             //return;     // They're already neighbours
-        }
+        }*/
     }
 
 }
@@ -647,7 +651,10 @@ void Mesh::draw()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_DEPTH);
 
+    // glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
+
     glBegin (GL_TRIANGLES);
+
 
     if(!isCut){
         for(unsigned int i=0; i<triangles.size(); i++){
@@ -664,19 +671,48 @@ void Mesh::draw()
         for(unsigned int i=0; i<fibInMandTriangles.size(); i++){
             glTriangleFibInMand(i, coloursIndicies);
         }
+
+        if(cuttingSide == Side::EXTERIOR){
+            for(unsigned int i = 0 ; i < trianglesExtracted.size(); i++){
+                glTriangleSmooth(trianglesExtracted[i], coloursIndicies);
+            }
+        }
+
     }
 
     glEnd();
+
+   /* glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+
+    glPointSize(2.);
+    glBegin(GL_POINTS);
+    if(!isCut){
+        for(unsigned int i=0; i<triangles.size(); i++){
+            glTriangle(i);
+        }
+    }
+    else{
+        std::vector<int> coloursIndicies;
+        fillColours(coloursIndicies, planes.size()*2);
+        for(unsigned int i=0; i<trianglesCut.size(); i++){
+            glTriangleSmooth(trianglesCut[i], coloursIndicies);
+        }
+
+        for(unsigned int i=0; i<fibInMandTriangles.size(); i++){
+            glTriangleFibInMand(i, coloursIndicies);
+        }
+    }
+    glEnd();*/
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_DEPTH);
 }
 
 void Mesh::drawCut(){
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_DEPTH);
+    /*glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH);*/
 
-    glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
 
     glBegin (GL_TRIANGLES);
     std::vector<int> coloursIndicies;
@@ -688,7 +724,36 @@ void Mesh::drawCut(){
 
     glEnd();
 
-    glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+    //glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+
+    /*glDisable(GL_DEPTH_TEST);
+    glDisable(GL_DEPTH);*/
+}
+
+void Mesh::drawCutMand(){
+    if(!isCut) return;
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH);
+
+    //glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
+
+    double alphaBefore = alphaTransparency;
+    alphaTransparency = 0.5;
+
+    glBegin (GL_TRIANGLES);
+    std::vector<int> coloursIndicies;
+    fillColours(coloursIndicies, planes.size()*2);
+
+    for(unsigned int i = 0 ; i < trianglesExtracted.size(); i++){
+        glTriangleSmooth(trianglesExtracted[i], coloursIndicies);
+    }
+
+    glEnd();
+
+    alphaTransparency = alphaBefore;
+
+    //glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_DEPTH);
@@ -812,8 +877,8 @@ void Mesh::mlsProjection(const std::vector<Vec> &inputPoints, std::vector<Vec> &
 
     // define the kd-tree from the matrix
     const int dimension = 3;
-    KDTree tree(dimension, mat, 10);
-    tree.index->buildIndex();       // build the tree
+    /*KDTree tree(dimension, mat, 10);
+    tree.index->buildIndex();*/       // build the tree
 
     for(unsigned int i=0; i<inputPoints.size(); i++){
         HPSS(tree, dimension, inputPoints[i], outputPoints[i], outputNormal, 1, 100.);
