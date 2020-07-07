@@ -692,6 +692,16 @@ void Viewer::toggleEditBoxMode(){
     update();
 }
 
+void Viewer::toggleEditFirstCorner(){
+    poly.activateFirstCornerManipulators();
+    update();
+}
+
+void Viewer::toggleEditEndCorner(){
+    poly.activateEndCornerManipulators();
+    update();
+}
+
 Vec Viewer::projectBoxToPlane(Plane &p, Plane &endP, double &distShift){
     unsigned int boxIndex = p.getID();
     Vec worldBox = poly.getMeshBoxPoint(boxIndex);

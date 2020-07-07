@@ -72,6 +72,9 @@ public:
     void setManipulatorsToBoxes();
     void setCornerManipulatorsToBoxes();
     void activateBoxManipulators();
+    void activateFirstCornerManipulators();
+    void activateEndCornerManipulators();
+
 
     SimpleManipulator* getBoxManipulator(unsigned int i){ return boxManipulators[i]; }
     SimpleManipulator* getCornerManipulator(unsigned int i){ return cornerManipulators[i]; }

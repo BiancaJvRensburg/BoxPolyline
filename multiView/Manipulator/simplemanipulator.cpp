@@ -9,7 +9,7 @@ SimpleManipulator::SimpleManipulator()
     display_scale = 1.;
     mode_modification = 0.f;
     Xscale = Yscale = Zscale = 1.;
-    mode_grabbing = 1;
+    mode_grabbing = 0;
     id = 0;
 }
 

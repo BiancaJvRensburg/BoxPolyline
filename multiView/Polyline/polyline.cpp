@@ -278,7 +278,15 @@ void Polyline::setCornerManipulatorsToBoxes(){
 void Polyline::activateBoxManipulators(){
     // Don't activate the first and the last - these boxes don't count
     for(unsigned int i=1; i<boxManipulators.size()-1; i++) boxManipulators[i]->switchStates();
-    for(unsigned int i=2; i<cornerManipulators.size()-2; i++) cornerManipulators[i]->switchStates();
+
+}
+
+void Polyline::activateFirstCornerManipulators(){
+    for(unsigned int i=2; i<cornerManipulators.size()-2; i+=2) cornerManipulators[i]->switchStates();
+}
+
+void Polyline::activateEndCornerManipulators(){
+    for(unsigned int i=3; i<cornerManipulators.size()-2; i+=2) cornerManipulators[i]->switchStates();
 }
 
 // Update the points locations without updating their orientations

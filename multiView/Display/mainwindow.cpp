@@ -156,6 +156,12 @@ void MainWindow::initFileActions(){
     QAction *editBoxAction = new QAction("Edit segments", this);
     connect(editBoxAction, &QAction::triggered, skullViewer, &Viewer::toggleEditBoxMode);
 
+    QAction *editCornerAction = new QAction("Edit corner", this);
+    connect(editCornerAction, &QAction::triggered, skullViewer, &Viewer::toggleEditFirstCorner);
+
+    QAction *editEndAction = new QAction("Edit end", this);
+    connect(editEndAction, &QAction::triggered, skullViewer, &Viewer::toggleEditEndCorner);
+
     QAction *cutMeshAction = new QAction("Cut", this);
     connect(cutMeshAction, &QAction::triggered, skullViewer, &Viewer::cutMesh);
 
@@ -180,6 +186,8 @@ void MainWindow::initFileActions(){
     fileActionGroup->addAction(openJsonFibFileAction);
     fileActionGroup->addAction(editPlanesAction);
     fileActionGroup->addAction(editBoxAction);
+    fileActionGroup->addAction(editCornerAction);
+    fileActionGroup->addAction(editEndAction);
     fileActionGroup->addAction(cutMeshAction);
     fileActionGroup->addAction(uncutMeshAction);
     fileActionGroup->addAction(drawMeshAction);

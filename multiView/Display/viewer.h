@@ -42,6 +42,8 @@ public Q_SLOTS:
     void setBoxToManipulator(unsigned int, Vec);
     void setBoxToCornerManipulator(unsigned int, Vec);
     void toggleEditBoxMode();
+    void toggleEditFirstCorner();
+    void toggleEditEndCorner();
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
