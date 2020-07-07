@@ -53,6 +53,7 @@ MainWindow::MainWindow(QWidget *parent)
     initDisplayDockWidgets();
     initFileMenu();
     initToolBars();
+    initEditMenu();
 
     this->setWindowTitle("MedMax");
 }
@@ -86,31 +87,8 @@ void MainWindow::initDisplayDockWidgets(){
     rightPlaneSlider->setMaximum(sliderMax);
     contentLayoutMand->addRow("Right slider", rightPlaneSlider);
 
-    /*QSlider *rotatePolylineMandible = new QSlider(Qt::Horizontal);
-    rotatePolylineMandible->setMaximum(360);
-    contentLayoutMand->addRow("Rotate planes", rotatePolylineMandible);*/
-
-    /*QSlider *rotatePoly = new QSlider(Qt::Horizontal);
-    rotatePolylineMandible->setMaximum(360);
-    contentLayoutMand->addRow("Rotate polyline", rotatePoly);*/
-
-    /*QSlider *rotatePolylineFibula = new QSlider(Qt::Horizontal);
-    rotatePolylineFibula->setMaximum(360);
-    contentLayoutMand->addRow("Rotate planes (fibula)", rotatePolylineFibula);*/
-
     connect(leftPlaneSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::moveLeftPlane);
     connect(rightPlaneSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::moveRightPlane);
-    //connect(rotatePolylineFibula, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::rotatePolylineOnAxis);
-    //connect(rotatePolylineMandible, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::rotatePolylineOnAxis);
-    //connect(rotatePoly, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::rotatePolylineOnAxe);
-
-    /*QSlider *meshAlphaSlider = new QSlider(Qt::Horizontal);
-    meshAlphaSlider->setMaximum(100);
-    meshAlphaSlider->setSliderPosition(100);
-    contentLayoutMand->addRow("Mesh transparency", meshAlphaSlider);
-    connect(meshAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::setMeshAlpha);
-    connect(meshAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::setMeshAlpha);*/
-
 
     QSlider *planeAlphaSlider = new QSlider(Qt::Horizontal);
     planeAlphaSlider->setMaximum(100);
@@ -118,14 +96,6 @@ void MainWindow::initDisplayDockWidgets(){
     contentLayoutMand->addRow("Plane transparency", planeAlphaSlider);
     connect(planeAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::setPlaneAlpha);
     connect(planeAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::setPlaneAlpha);
-
-    /*QSlider *boxAlphaSlider = new QSlider(Qt::Horizontal);
-    boxAlphaSlider->setMaximum(100);
-    boxAlphaSlider->setSliderPosition(50);
-    contentLayoutMand->addRow("Box transparency", boxAlphaSlider);
-    connect(boxAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::setBoxAlpha);
-    connect(boxAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::setBoxAlpha);*/
-
 
     // Connect the two views
     connect(skullViewer, &Viewer::polylineBent, fibulaViewer, &ViewerFibula::bendPolylineNormals);
@@ -141,6 +111,95 @@ void MainWindow::initDisplayDockWidgets(){
     this->addDockWidget(Qt::BottomDockWidgetArea, skullDockWidget);
 }
 
+void MainWindow::initEditMenu(){
+    editMenuWidget = new QDockWidget("Edit Menu");
+
+    QVBoxLayout* layout = new QVBoxLayout();
+
+    groupRadioBox = new QGroupBox(tr("Edit fragments"));
+
+    radioFrag1 = new QRadioButton(tr("&Radio button 1"));
+    radioFrag2 = new QRadioButton(tr("R&adio button 2"));
+    radioFrag3 = new QRadioButton(tr("Ra&dio button 3"));
+
+    connect(skullViewer, &Viewer::enableFragmentEditing, this, &MainWindow::enableFragmentEditing);
+    connect(skullViewer, &Viewer::disableFragmentEditing, this, &MainWindow::disableFragmentEditing);
+
+    disableFragmentEditing();
+
+    connect(radioFrag1, &QRadioButton::toggled, skullViewer, &Viewer::toggleEditBoxMode);
+    connect(radioFrag2, &QRadioButton::toggled, skullViewer, &Viewer::toggleEditFirstCorner);
+    connect(radioFrag3, &QRadioButton::toggled, skullViewer, &Viewer::toggleEditEndCorner);
+
+    QVBoxLayout *vbox = new QVBoxLayout;
+
+    vbox->addWidget(radioFrag1);
+    vbox->addWidget(radioFrag2);
+    vbox->addWidget(radioFrag3);
+    vbox->addStretch(1);
+    groupRadioBox->setLayout(vbox);
+
+    connect(groupRadioBox, &QGroupBox::clicked, this, &MainWindow::setFragRadios);
+
+    QPushButton *toggleDrawMeshButton = new QPushButton(tr("&Draw mesh"));
+    toggleDrawMeshButton->setCheckable(true);
+    toggleDrawMeshButton->setChecked(false);
+
+    connect(toggleDrawMeshButton, &QPushButton::released, skullViewer, &Viewer::toggleDrawMesh);
+
+    QPushButton *toggleDrawPlanesButton = new QPushButton(tr("&Draw planes"));
+    toggleDrawPlanesButton->setCheckable(true);
+    toggleDrawPlanesButton->setChecked(true);
+
+    connect(toggleDrawPlanesButton, &QPushButton::released, skullViewer, &Viewer::toggleDrawPlane);
+    connect(toggleDrawPlanesButton, &QPushButton::released, fibulaViewer, &ViewerFibula::toggleDrawPlane);
+
+    layout->addWidget(toggleDrawPlanesButton);
+    layout->addWidget(toggleDrawMeshButton);
+    layout->addWidget(groupRadioBox);
+
+    QWidget* controlWidget = new QWidget();
+    controlWidget->setLayout(layout);
+
+    editMenuWidget->setWidget(controlWidget);
+
+    this->addDockWidget(Qt::RightDockWidgetArea, editMenuWidget);
+}
+
+void MainWindow::enableFragmentEditing(){
+    groupRadioBox->setCheckable(true);
+    groupRadioBox->setChecked(false);
+
+    radioFrag1->setCheckable(true);
+    radioFrag2->setCheckable(true);
+    radioFrag3->setCheckable(true);
+}
+
+void MainWindow::disableFragmentEditing(){
+    groupRadioBox->setCheckable(false);
+
+    radioFrag1->setCheckable(false);
+    radioFrag2->setCheckable(false);
+    radioFrag3->setCheckable(false);
+}
+
+void MainWindow::setFragRadios(){
+    if(!groupRadioBox->isChecked()){
+        radioFrag1->setAutoExclusive(false);
+        radioFrag1->setChecked(false);
+        radioFrag2->setAutoExclusive(false);
+        radioFrag2->setChecked(false);
+        radioFrag3->setAutoExclusive(false);
+        radioFrag3->setChecked(false);
+    }
+    else{
+        radioFrag1->setAutoExclusive(true);
+        radioFrag1->setChecked(true);
+        radioFrag2->setAutoExclusive(true);
+        radioFrag3->setAutoExclusive(true);
+    }
+}
+
 void MainWindow::initFileActions(){
     fileActionGroup = new QActionGroup(this);
 
@@ -150,17 +209,8 @@ void MainWindow::initFileActions(){
     QAction *openJsonFibFileAction = new QAction("Open fibula JSON", this);
     connect(openJsonFibFileAction, &QAction::triggered, this, &MainWindow::openFibJSON);
 
-    QAction *editPlanesAction = new QAction("Edit planes", this);
-    connect(editPlanesAction, &QAction::triggered, skullViewer, &Viewer::toggleEditPlaneMode);
-
-    QAction *editBoxAction = new QAction("Edit segments", this);
-    connect(editBoxAction, &QAction::triggered, skullViewer, &Viewer::toggleEditBoxMode);
-
-    QAction *editCornerAction = new QAction("Edit corner", this);
-    connect(editCornerAction, &QAction::triggered, skullViewer, &Viewer::toggleEditFirstCorner);
-
-    QAction *editEndAction = new QAction("Edit end", this);
-    connect(editEndAction, &QAction::triggered, skullViewer, &Viewer::toggleEditEndCorner);
+    QAction *editPlanesAction = new QAction("Edit menu", this);
+    connect(editPlanesAction, &QAction::triggered, this, &MainWindow::initEditMenu);
 
     QAction *cutMeshAction = new QAction("Cut", this);
     connect(cutMeshAction, &QAction::triggered, skullViewer, &Viewer::cutMesh);
@@ -169,30 +219,11 @@ void MainWindow::initFileActions(){
     connect(uncutMeshAction, &QAction::triggered, skullViewer, &Viewer::uncutMesh);
     connect(uncutMeshAction, &QAction::triggered, fibulaViewer, &Viewer::uncutMesh);
 
-    QAction *drawMeshAction = new QAction("Draw mesh", this);
-    connect(drawMeshAction, &QAction::triggered, skullViewer, &Viewer::toggleDrawMesh);
-    connect(drawMeshAction, &QAction::triggered, fibulaViewer, &ViewerFibula::toggleDrawMesh);
-
-    QAction *drawPlanesAction = new QAction("Draw planes", this);
-    connect(drawPlanesAction, &QAction::triggered, skullViewer, &Viewer::toggleDrawPlane);
-    connect(drawPlanesAction, &QAction::triggered, fibulaViewer, &ViewerFibula::toggleDrawPlane);
-
-    /*QAction *wireframeAction = new QAction("Box wireframe", this);
-    connect(wireframeAction, &QAction::triggered, skullViewer, &Viewer::toggleWireframe);
-    connect(wireframeAction, &QAction::triggered, fibulaViewer, &ViewerFibula::toggleWireframe);*/
-
-
     fileActionGroup->addAction(openJsonFileAction);
     fileActionGroup->addAction(openJsonFibFileAction);
     fileActionGroup->addAction(editPlanesAction);
-    fileActionGroup->addAction(editBoxAction);
-    fileActionGroup->addAction(editCornerAction);
-    fileActionGroup->addAction(editEndAction);
     fileActionGroup->addAction(cutMeshAction);
     fileActionGroup->addAction(uncutMeshAction);
-    fileActionGroup->addAction(drawMeshAction);
-    fileActionGroup->addAction(drawPlanesAction);
-    //fileActionGroup->addAction(wireframeAction);
 
     connect(skullViewer, &Viewer::constructPoly, fibulaViewer, &ViewerFibula::constructPolyline);
     connect(fibulaViewer, &ViewerFibula::okToPlacePlanes, skullViewer, &Viewer::placePlanes);

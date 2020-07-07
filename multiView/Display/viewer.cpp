@@ -384,6 +384,7 @@ void Viewer::cutMesh(){
     for(unsigned int i=1; i<poly.getNbPoints()-2; i++) connect(poly.getBoxManipulator(i), &SimpleManipulator::moved, this, &Viewer::setBoxToManipulator);
     for(unsigned int i=1; i<(poly.getNbPoints()-2)*2; i++) connect(poly.getCornerManipulator(i), &SimpleManipulator::moved, this, &Viewer::setBoxToCornerManipulator);
 
+    Q_EMIT enableFragmentEditing();
     update();
 }
 
@@ -393,6 +394,8 @@ void Viewer::uncutMesh(){
     isCut = false;
     isPoly = false;
     deconstructPolyline();
+
+    Q_EMIT disableFragmentEditing();
     //update();
 }
 
@@ -687,32 +690,51 @@ void Viewer::setBoxToCornerManipulator(unsigned int id, Vec manipulatorPosition)
     update();
 }
 
-void Viewer::toggleEditBoxMode(){
-    poly.activateBoxManipulators();
+void Viewer::toggleEditBoxMode(bool b){
+    poly.activateBoxManipulators(b);
     update();
 }
 
-void Viewer::toggleEditFirstCorner(){
-    poly.activateFirstCornerManipulators();
+void Viewer::toggleEditFirstCorner(bool b){
+    poly.activateFirstCornerManipulators(b);
     update();
 }
 
-void Viewer::toggleEditEndCorner(){
-    poly.activateEndCornerManipulators();
+void Viewer::toggleEditEndCorner(bool b){
+    poly.activateEndCornerManipulators(b);
     update();
 }
 
 Vec Viewer::projectBoxToPlane(Plane &p, Plane &endP, double &distShift){
     unsigned int boxIndex = p.getID();
+
+    // Side one projection
     Vec worldBox = poly.getMeshBoxPoint(boxIndex);
     Vec worldProjectionAxis = worldBox - poly.getMeshBoxEnd(boxIndex);
     Vec projPoint = p.getAxisProjection(worldBox, worldProjectionAxis);
 
+    // Side two projection
     Vec worldBoxEnd = poly.getMeshBoxEnd(boxIndex);
     Vec projEnd = endP.getAxisProjection(worldBoxEnd, -worldProjectionAxis);
+
+    // High projection
+    /*Vec worldBoxHighPoint = poly.getMeshBoxHighPoint(boxIndex);
+    Vec projHighPoint = p.getAxisProjection(worldBoxHighPoint, worldProjectionAxis);
+
+    // High end projection
+    Vec worldBoxHighEnd = poly.getMeshBoxHighEnd(boxIndex);
+    Vec projHighEnd = endP.getAxisProjection(worldBoxHighEnd, -worldProjectionAxis);
+
+    distShift = maxDouble(euclideanDistance(projPoint, projEnd), euclideanDistance(projHighPoint, projHighEnd));*/
+
     distShift = euclideanDistance(projPoint, projEnd);
 
     return projPoint;
+}
+
+double Viewer::maxDouble(double a, double b){
+    if(a>b) return a;
+    else return b;
 }
 
 double Viewer::euclideanDistance(const Vec &a, const Vec &b){

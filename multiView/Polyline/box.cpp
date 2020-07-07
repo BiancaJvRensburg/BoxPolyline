@@ -93,6 +93,15 @@ void Box::draw(double offset){
         glVertex3d(p4.x, p4.y, p4.z);
     glEnd();
 
+    glColor3f(1,1,0);
+    Vec pTest = normal*getHeight();
+    Vec pTest2 = normal*getHeight() + tangent*getLength();
+    glPointSize(10.);
+    glBegin(GL_POINTS);
+    glVertex3d(pTest.x, pTest.y, pTest.z);
+    glVertex3d(pTest2.x, pTest2.y, pTest2.z);
+    glEnd();
+
     glPopMatrix();
 }
 
@@ -132,6 +141,16 @@ Vec Box::getMidPoint(){
     Vec m = binormal*getWidth();
 
     return worldCoordinates(m);
+}
+
+Vec Box::getHighPoint(){
+    Vec h = normal*getHeight();
+
+    return worldCoordinates(h);
+}
+
+Vec Box::getHighEnd(){
+    return getHighPoint() + getEnd();
 }
 
 void Box::getOrientation(Vec &x, Vec &y, Vec &z){

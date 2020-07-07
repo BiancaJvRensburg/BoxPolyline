@@ -275,18 +275,18 @@ void Polyline::setCornerManipulatorsToBoxes(){
 
 }
 
-void Polyline::activateBoxManipulators(){
+void Polyline::activateBoxManipulators(const bool &b){
     // Don't activate the first and the last - these boxes don't count
-    for(unsigned int i=1; i<boxManipulators.size()-1; i++) boxManipulators[i]->switchStates();
+    for(unsigned int i=1; i<boxManipulators.size()-1; i++) boxManipulators[i]->setState(b);
 
 }
 
-void Polyline::activateFirstCornerManipulators(){
-    for(unsigned int i=2; i<cornerManipulators.size()-2; i+=2) cornerManipulators[i]->switchStates();
+void Polyline::activateFirstCornerManipulators(const bool &b){
+    for(unsigned int i=2; i<cornerManipulators.size()-2; i+=2) cornerManipulators[i]->setState(b);
 }
 
-void Polyline::activateEndCornerManipulators(){
-    for(unsigned int i=3; i<cornerManipulators.size()-2; i+=2) cornerManipulators[i]->switchStates();
+void Polyline::activateEndCornerManipulators(const bool &b){
+    for(unsigned int i=3; i<cornerManipulators.size()-2; i+=2) cornerManipulators[i]->setState(b);
 }
 
 // Update the points locations without updating their orientations

@@ -41,9 +41,9 @@ public Q_SLOTS:
     void toggleEditPlaneMode();
     void setBoxToManipulator(unsigned int, Vec);
     void setBoxToCornerManipulator(unsigned int, Vec);
-    void toggleEditBoxMode();
-    void toggleEditFirstCorner();
-    void toggleEditEndCorner();
+    void toggleEditBoxMode(bool b);
+    void toggleEditFirstCorner(bool b);
+    void toggleEditEndCorner(bool b);
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
@@ -58,6 +58,8 @@ Q_SIGNALS:
     void uncutFibula();
     void toReinitBox(unsigned int, std::vector<double>&);
     void toReinitPoly(unsigned int);
+    void enableFragmentEditing();
+    void disableFragmentEditing();
 
 protected:
     void draw();
@@ -128,6 +130,7 @@ private:
     void setPlaneOrientations(std::vector<Vec>& norms, std::vector<Vec>& binorms);
     Plane& getPlaneFromID(unsigned int id);
     Plane& getOppositePlaneFromID(unsigned int id);
+    double maxDouble(double a, double b);
 
 };
 

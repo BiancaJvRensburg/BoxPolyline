@@ -25,6 +25,8 @@ public:
     Vec getMeshBoxTransform(unsigned int i, Vec v){ return getWorldTransform(boxes[i].worldTransform(v)); }
     Vec getMeshBoxMiddle(unsigned int i){ return getWorldCoordinates(boxes[i].getMidPoint()); }
     Vec getMeshBoxEnd(unsigned int i){ return getWorldCoordinates(boxes[i].getEnd()); }
+    Vec getMeshBoxHighPoint(unsigned int i){ return getWorldCoordinates(boxes[i].getHighPoint()); }
+     Vec getMeshBoxHighEnd(unsigned int i){ return getWorldCoordinates(boxes[i].getHighEnd()); }
 
     void setBoxLocation(unsigned int i, const Vec& v){ boxes[i].setPosition(v); }
 
@@ -71,9 +73,9 @@ public:
     void setBoxToProjectionPoint(unsigned int id, Vec projPoint);
     void setManipulatorsToBoxes();
     void setCornerManipulatorsToBoxes();
-    void activateBoxManipulators();
-    void activateFirstCornerManipulators();
-    void activateEndCornerManipulators();
+    void activateBoxManipulators(const bool &b);
+    void activateFirstCornerManipulators(const bool &b);
+    void activateEndCornerManipulators(const bool &b);
 
 
     SimpleManipulator* getBoxManipulator(unsigned int i){ return boxManipulators[i]; }

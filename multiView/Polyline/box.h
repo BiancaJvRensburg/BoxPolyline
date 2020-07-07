@@ -33,6 +33,8 @@ public:
     Vec getLocation();
     Vec getEnd();
     Vec getMidPoint();
+    Vec getHighPoint();
+    Vec getHighEnd();
     const Vec& getNormal(){ return normal; }
     const Vec& getBinormal(){ return binormal; }
     const Vec& getTangent(){ return tangent; }
