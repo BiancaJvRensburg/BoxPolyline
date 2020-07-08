@@ -52,6 +52,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     initDisplayDockWidgets();
     initEditMenu();
+    initEditFragmentsMenu();
     initFileMenu();
     initToolBars();
 
@@ -111,38 +112,6 @@ void MainWindow::initEditMenu(){
 
     QVBoxLayout* layout = new QVBoxLayout();
 
-    groupRadioBox = new QGroupBox(tr("Edit fragments"));
-
-    radioFrag1 = new QRadioButton("Centre", this);
-    radioFrag2 = new QRadioButton("Left", this);
-    radioFrag3 = new QRadioButton("Right", this);
-
-    connect(radioFrag1, &QRadioButton::toggled, skullViewer, &Viewer::toggleEditBoxMode);
-    connect(radioFrag2, &QRadioButton::toggled, skullViewer, &Viewer::toggleEditFirstCorner);
-    connect(radioFrag3, &QRadioButton::toggled, skullViewer, &Viewer::toggleEditEndCorner);
-
-    QVBoxLayout *vbox = new QVBoxLayout;
-
-    vbox->addWidget(radioFrag1);
-    vbox->addWidget(radioFrag2);
-    vbox->addWidget(radioFrag3);
-    vbox->addStretch(1);
-    groupRadioBox->setLayout(vbox);
-
-    connect(groupRadioBox, &QGroupBox::clicked, this, &MainWindow::setFragRadios);
-
-    editPlaneButton = new QPushButton(tr("&Edit planes"));
-    editPlaneButton->setCheckable(true);
-    editPlaneButton->setChecked(false);
-
-    connect(editPlaneButton, &QPushButton::released, skullViewer, &Viewer::toggleEditPlaneMode);
-
-    toggleDrawMeshButton = new QPushButton(tr("&Draw mesh"));
-    toggleDrawMeshButton->setCheckable(true);
-    toggleDrawMeshButton->setChecked(false);
-
-    connect(toggleDrawMeshButton, &QPushButton::released, skullViewer, &Viewer::toggleDrawMesh);
-
     QPushButton *toggleDrawPlanesButton = new QPushButton(tr("&Draw planes"));
     toggleDrawPlanesButton->setCheckable(true);
     toggleDrawPlanesButton->setChecked(true);
@@ -188,9 +157,6 @@ void MainWindow::initEditMenu(){
 
     layout->addWidget(toggleDrawPlanesButton);
     layout->addWidget(sliderBox);
-    layout->addWidget(toggleDrawMeshButton);
-    layout->addWidget(editPlaneButton);
-    layout->addWidget(groupRadioBox);
 
     QWidget* controlWidget = new QWidget();
     controlWidget->setLayout(layout);
@@ -201,12 +167,68 @@ void MainWindow::initEditMenu(){
     connect(skullViewer, &Viewer::enableFragmentEditing, this, &MainWindow::enableFragmentEditing);
     connect(skullViewer, &Viewer::disableFragmentEditing, this, &MainWindow::disableFragmentEditing);
 
+    editMenuWidget->setVisible(false);
+}
+
+void MainWindow::initEditFragmentsMenu(){
+    editFragmentDockWidget = new QDockWidget("Edit Fragments");
+    editFragmentDockWidget->setFeatures(QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetMovable);
+
+    QVBoxLayout* layout = new QVBoxLayout();
+
+    groupRadioBox = new QGroupBox(tr("Edit fragments"));
+
+    radioFrag1 = new QRadioButton("Centre", this);
+    radioFrag2 = new QRadioButton("Left", this);
+    radioFrag3 = new QRadioButton("Right", this);
+
+    connect(radioFrag1, &QRadioButton::toggled, skullViewer, &Viewer::toggleEditBoxMode);
+    connect(radioFrag2, &QRadioButton::toggled, skullViewer, &Viewer::toggleEditFirstCorner);
+    connect(radioFrag3, &QRadioButton::toggled, skullViewer, &Viewer::toggleEditEndCorner);
+
+    QVBoxLayout *vbox = new QVBoxLayout;
+
+    vbox->addWidget(radioFrag1);
+    vbox->addWidget(radioFrag2);
+    vbox->addWidget(radioFrag3);
+    vbox->addStretch(1);
+    groupRadioBox->setLayout(vbox);
+
+    connect(groupRadioBox, &QGroupBox::clicked, this, &MainWindow::setFragRadios);
+
+    editPlaneButton = new QPushButton(tr("&Edit planes"));
+    editPlaneButton->setCheckable(true);
+    editPlaneButton->setChecked(false);
+
+    connect(editPlaneButton, &QPushButton::released, skullViewer, &Viewer::toggleEditPlaneMode);
+
+    toggleDrawMeshButton = new QPushButton(tr("&Draw mesh"));
+    toggleDrawMeshButton->setCheckable(true);
+    toggleDrawMeshButton->setChecked(false);
+
+    connect(toggleDrawMeshButton, &QPushButton::released, skullViewer, &Viewer::toggleDrawMesh);
+
+    layout->addWidget(toggleDrawMeshButton);
+    layout->addWidget(editPlaneButton);
+    layout->addWidget(groupRadioBox);
+
+    QWidget *controlWidget = new QWidget();
+    controlWidget->setLayout(layout);
+
+    editFragmentDockWidget->setWidget(controlWidget);
+    this->addDockWidget(Qt::RightDockWidgetArea, editFragmentDockWidget);
+
     disableFragmentEditing();
 }
 
 void MainWindow::displayEditMenu(){
     if(editMenuWidget->isVisible()) editMenuWidget->setVisible(false);
     else editMenuWidget->setVisible(true);
+}
+
+void MainWindow::displayEditFragmentMenu(){
+    if(editFragmentDockWidget->isVisible()) editFragmentDockWidget->setVisible(false);
+    else editFragmentDockWidget->setVisible(true);
 }
 
 void MainWindow::enableFragmentEditing(){
@@ -217,14 +239,16 @@ void MainWindow::enableFragmentEditing(){
     radioFrag2->setCheckable(true);
     radioFrag3->setCheckable(true);
 
-    groupRadioBox->setVisible(true);
+    /*groupRadioBox->setVisible(true);
     editPlaneButton->setVisible(true);
-    toggleDrawMeshButton->setVisible(true);
+    toggleDrawMeshButton->setVisible(true);*/
+    editFragmentDockWidget->setVisible(true);
 }
 
 void MainWindow::disableFragmentEditing(){
-    groupRadioBox->setVisible(false);
+    /*groupRadioBox->setVisible(false);
     editPlaneButton->setVisible(false);
+    toggleDrawMeshButton->setVisible(false);*/
 
     groupRadioBox->setCheckable(false);
 
@@ -232,7 +256,7 @@ void MainWindow::disableFragmentEditing(){
     radioFrag2->setCheckable(false);
     radioFrag3->setCheckable(false);
 
-    toggleDrawMeshButton->setVisible(false);
+    editFragmentDockWidget->setVisible(false);
 }
 
 void MainWindow::setFragRadios(){
@@ -252,6 +276,15 @@ void MainWindow::setFragRadios(){
     }
 }
 
+void MainWindow::displayFragmentMenuButton(){
+    editFragmentMenuButton->setVisible(true);
+    editFragmentMenuButton->setChecked(true);
+}
+
+void MainWindow::hideFragmentMenuButton(){
+    editFragmentMenuButton->setVisible(false);
+}
+
 void MainWindow::initFileActions(){
     fileActionGroup = new QActionGroup(this);
 
@@ -263,10 +296,12 @@ void MainWindow::initFileActions(){
 
     QAction *cutMeshAction = new QAction("Cut", this);
     connect(cutMeshAction, &QAction::triggered, skullViewer, &Viewer::cutMesh);
+    // connect(cutMeshAction, &QAction::triggered, this, &MainWindow::displayFragmentMenuButton);
 
     QAction *uncutMeshAction = new QAction("Undo cut", this);
     connect(uncutMeshAction, &QAction::triggered, skullViewer, &Viewer::uncutMesh);
     connect(uncutMeshAction, &QAction::triggered, fibulaViewer, &Viewer::uncutMesh);
+    // connect(uncutMeshAction, &QAction::triggered, this, &MainWindow::hideFragmentMenuButton);
 
     fileActionGroup->addAction(openJsonFileAction);
     fileActionGroup->addAction(openJsonFibFileAction);
@@ -298,12 +333,19 @@ void MainWindow::initToolBars () {
     QToolBar *fileToolBar = new QToolBar(this);
     fileToolBar->addActions(fileActionGroup->actions());
 
-    editMenuButton = new QPushButton("Edit menu", this);
+    editMenuButton = new QPushButton("Edit Graphics", this);
     connect(editMenuButton, &QPushButton::clicked, this, &MainWindow::displayEditMenu);
     editMenuButton->setCheckable(true);
-    editMenuButton->setChecked(true);
+    editMenuButton->setChecked(false);
+
+    editFragmentMenuButton = new QPushButton("Edit Fragments", this);
+    connect(editFragmentMenuButton, &QPushButton::clicked, this, &MainWindow::displayEditFragmentMenu);
+    editFragmentMenuButton->setCheckable(true);
+    editFragmentMenuButton->setChecked(false);
+    //editFragmentMenuButton->setVisible(false);
 
     fileToolBar->addWidget(editMenuButton);
+    fileToolBar->addWidget(editFragmentMenuButton);
 
     addToolBar(fileToolBar);
 }
