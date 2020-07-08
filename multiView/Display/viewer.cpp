@@ -5,8 +5,6 @@
 Viewer::Viewer(QWidget *parent, StandardCamera *cam, int sliderMax) : QGLViewer(parent) {
     Camera *c = camera();       // switch the cameras
     setCamera(c);
-    //setCamera(cam);
-    //delete c;
     isCurve = false;
     this->sliderMax = sliderMax;
     this->isCut = false;
@@ -35,26 +33,10 @@ void Viewer::draw() {
              glColor4f(0., 1., 1., ghostPlanes[i]->getAlpha());
              ghostPlanes[i]->draw();
          }
-
-         /*glPointSize(2.);
-         glBegin(GL_POINTS);
-         for(unsigned int i=0; i<testPoints.size(); i++){
-             glColor3f(0., 0., 1.);
-             glVertex3f(testPoints[i].x, testPoints[i].y, testPoints[i].z);
-         }
-         glEnd();*/
-
          curve.draw();
-
      }
 
      if(isDrawMesh) mesh.drawCutMand();
-
-     /*glPointSize(10.);
-     glBegin(GL_POINTS);
-     glColor3d(1,0,0);
-     glVertex3d(projPoint.x, projPoint.y, projPoint.z);
-     glEnd();*/
 
     if(isPoly) poly.draw();
 
@@ -193,11 +175,6 @@ void Viewer::initGhostPlanes(Movable s){
         p->setFrameFromBasis(Vec(0,0,1), Vec(0,-1,0), Vec(1,0,0));
         ghostPlanes.push_back(p);
     }
-
-    // Connect all planes' movement (except the two end planes which we don't see). If a plane is moved, bend the polyline.
-    /*connect(&(leftPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolylineManually);
-    connect(&(rightPlane->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolylineManually);
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) connect(&(ghostPlanes[i]->getCurvePoint()), &CurvePoint::curvePointTranslated, this, &Viewer::bendPolylineManually);*/        // connnect the ghost planes
 
     connect(&(leftPlane->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);
     connect(&(rightPlane->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);
@@ -405,7 +382,9 @@ void Viewer::cutMesh(){
     cut();
 
     for(unsigned int i=1; i<poly.getNbPoints()-2; i++) connect(poly.getBoxManipulator(i), &SimpleManipulator::moved, this, &Viewer::setBoxToManipulator);
+    for(unsigned int i=1; i<(poly.getNbPoints()-2)*2; i++) connect(poly.getCornerManipulator(i), &SimpleManipulator::moved, this, &Viewer::setBoxToCornerManipulator);
 
+    Q_EMIT enableFragmentEditing();
     update();
 }
 
@@ -415,6 +394,8 @@ void Viewer::uncutMesh(){
     isCut = false;
     isPoly = false;
     deconstructPolyline();
+
+    Q_EMIT disableFragmentEditing();
     //update();
 }
 
@@ -690,22 +671,70 @@ void Viewer::setBoxToManipulator(unsigned int id, Vec manipulatorPosition){
     update();
 }
 
-void Viewer::toggleEditBoxMode(){
-    poly.activateBoxManipulators();
+void Viewer::setBoxToCornerManipulator(unsigned int id, Vec manipulatorPosition){
+    poly.setBoxToCornerManipulator(id, manipulatorPosition);
+
+    id = id/2;
+
+    double distShift;
+    Vec projPoint;
+    if(ghostPlanes.size() == 0) projPoint = projectBoxToPlane(*leftPlane, *rightPlane, distShift);
+    else projPoint = projectBoxToPlane(getPlaneFromID(id), getOppositePlaneFromID(id), distShift);
+    poly.setBoxToProjectionPoint(id, projPoint);
+    poly.adjustBoxLength(id, distShift); // Shift the box size
+
+    sendNewNorms();     // Need to send new norms and the new rotation of the box - here its the opposite of before -- don't update on this side but send the update to the fibula correspondance
+    std::vector<double> distances;
+    poly.getDistances(distances);
+    Q_EMIT toReinitBox(id, distances);
+    update();
+}
+
+void Viewer::toggleEditBoxMode(bool b){
+    poly.activateBoxManipulators(b);
+    update();
+}
+
+void Viewer::toggleEditFirstCorner(bool b){
+    poly.activateFirstCornerManipulators(b);
+    update();
+}
+
+void Viewer::toggleEditEndCorner(bool b){
+    poly.activateEndCornerManipulators(b);
     update();
 }
 
 Vec Viewer::projectBoxToPlane(Plane &p, Plane &endP, double &distShift){
     unsigned int boxIndex = p.getID();
+
+    // Side one projection
     Vec worldBox = poly.getMeshBoxPoint(boxIndex);
     Vec worldProjectionAxis = worldBox - poly.getMeshBoxEnd(boxIndex);
     Vec projPoint = p.getAxisProjection(worldBox, worldProjectionAxis);
 
+    // Side two projection
     Vec worldBoxEnd = poly.getMeshBoxEnd(boxIndex);
     Vec projEnd = endP.getAxisProjection(worldBoxEnd, -worldProjectionAxis);
+
+    // High projection
+    /*Vec worldBoxHighPoint = poly.getMeshBoxHighPoint(boxIndex);
+    Vec projHighPoint = p.getAxisProjection(worldBoxHighPoint, worldProjectionAxis);
+
+    // High end projection
+    Vec worldBoxHighEnd = poly.getMeshBoxHighEnd(boxIndex);
+    Vec projHighEnd = endP.getAxisProjection(worldBoxHighEnd, -worldProjectionAxis);
+
+    distShift = maxDouble(euclideanDistance(projPoint, projEnd), euclideanDistance(projHighPoint, projHighEnd));*/
+
     distShift = euclideanDistance(projPoint, projEnd);
 
     return projPoint;
+}
+
+double Viewer::maxDouble(double a, double b){
+    if(a>b) return a;
+    else return b;
 }
 
 double Viewer::euclideanDistance(const Vec &a, const Vec &b){

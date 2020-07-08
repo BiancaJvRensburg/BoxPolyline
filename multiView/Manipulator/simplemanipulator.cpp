@@ -9,7 +9,7 @@ SimpleManipulator::SimpleManipulator()
     display_scale = 1.;
     mode_modification = 0.f;
     Xscale = Yscale = Zscale = 1.;
-    mode_grabbing = 1;
+    mode_grabbing = 0;
     id = 0;
 }
 
@@ -462,20 +462,11 @@ void SimpleManipulator::mousePressEvent( QMouseEvent* const event  , qglviewer::
         cam->getProjectedCoordinatesOf( origin , p_cam );
         m_xx_default = event->x() - p_cam[0];
         m_yy_default = event->y() - p_cam[1];
-
-        //    emit needUpdateGL();
     }
 
 
     if( mode_grabbing == 1 )
     {
-        /*if( event->buttons() & Qt::RightButton )
-        {
-            mouse_released = true;
-            this->clear();
-            this->setState( 0 );
-        }*/
-
         if( mode_modification > 6 || mode_modification < -6 )
         {
             return;

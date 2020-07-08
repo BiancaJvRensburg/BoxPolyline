@@ -34,10 +34,11 @@ void Polyline::reinit(unsigned int nbPoints){
         boxes[i].init(frame.referenceFrame());
     }
     initManipulators();
+    initCornerManipulators();
 }
 
 void Polyline::draw(){
-    /*glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST);
     glEnable(GL_DEPTH);
 
     glPushMatrix();
@@ -78,9 +79,10 @@ void Polyline::draw(){
         }
     }
 
-    glPopMatrix();*/
+    glPopMatrix();
 
     for(unsigned int i=0; i<boxManipulators.size(); i++) boxManipulators[i]->draw();
+    for(unsigned int i=0; i<cornerManipulators.size(); i++) cornerManipulators[i]->draw();
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_DEPTH);
@@ -142,6 +144,11 @@ void Polyline::deleteManipulators(){
     boxManipulators.clear();
 }
 
+void Polyline::deleteCornerManipulators(){
+    for(unsigned int i=0; i<cornerManipulators.size(); i++) delete cornerManipulators[i];
+    cornerManipulators.clear();
+}
+
 void Polyline::initManipulators(){
     deleteManipulators();
 
@@ -153,6 +160,20 @@ void Polyline::initManipulators(){
     }
 
     setManipulatorsToBoxes();
+}
+
+void Polyline::initCornerManipulators(){
+    deleteCornerManipulators();
+
+    for(unsigned int i=0; i<boxes.size()*2; i++){
+        cornerManipulators.push_back(new SimpleManipulator);
+        cornerManipulators[i]->deactivate();
+        cornerManipulators[i]->setDisplayScale(boxes[i].getLength()/5.);
+        cornerManipulators[i]->setID(i);
+        cornerManipulators[i]->setRotationActivated(false);
+    }
+
+    setCornerManipulatorsToBoxes();
 }
 
 void Polyline::setBoxToManipulator(unsigned int id, Vec manipulatorPosition){
@@ -185,6 +206,32 @@ void Polyline::setBoxToManipulator(unsigned int id, Vec manipulatorPosition){
         boxManipulators[id]->setRepZ(z);
     }*/
 
+        setCornerManipulatorsToBoxes();
+
+}
+
+void Polyline::setBoxToCornerManipulator(unsigned int id, Vec manipulatorPosition){
+    //if(id%2==0) boxes[id/2].setPosition(manipulatorPosition);       // TODO block the end and recalculate the box
+    //else boxes[id/2].setPosition(p);
+    unsigned int boxID = id/2;
+    if(id%2==0){
+        reorientateBox(boxID, manipulatorPosition, getMeshBoxEnd(boxID));
+        boxes[boxID].setPosition(manipulatorPosition);
+    }
+    else{
+        reorientateBox(boxID, getMeshBoxPoint(boxID), manipulatorPosition);
+    }
+
+    setManipulatorsToBoxes();
+}
+
+void Polyline::reorientateBox(unsigned int index, const Vec &start, const Vec &end){
+    recalculateBinormal(index, start, end);
+
+    const Vec& n = segmentNormals[index];
+    const Vec& b = segmentBinormals[index];
+
+    boxes[index].setFrameFromBasis(-cross(n,b),b,n);
 }
 
 void Polyline::setBoxToProjectionPoint(unsigned int id, Vec projPoint){
@@ -206,9 +253,40 @@ void Polyline::setManipulatorsToBoxes(){
     }
 }
 
-void Polyline::activateBoxManipulators(){
+void Polyline::setCornerManipulatorsToBoxes(){
+    Vec x,y,z;
+    for(unsigned int i=0; i<boxes.size(); i++){
+       boxes[i].getOrientation(x,y,z);
+       cornerManipulators[i*2]->setRepX(x);
+       cornerManipulators[i*2]->setRepY(y);
+       cornerManipulators[i*2]->setRepZ(z);
+
+       cornerManipulators[i*2+1]->setRepX(x);
+       cornerManipulators[i*2+1]->setRepY(y);
+       cornerManipulators[i*2+1]->setRepZ(z);
+
+       cornerManipulators[i*2]->setOrigin(getMeshBoxPoint(i));
+       cornerManipulators[i*2]->setDisplayScale(boxes[i].getLength()/5.);
+
+       //Vec p = getMeshBoxPoint(i) + boxes[i].getLength()/2. * getWorldBoxTransform(i, boxes[i].getTangent()) + boxes[i].getHeight()/2. * getWorldBoxTransform(i, boxes[i].getBinormal()) + boxes[i].getWidth()/2. * getWorldBoxTransform(i, boxes[i].getNormal());
+       cornerManipulators[i*2+1]->setOrigin(getMeshBoxEnd(i));
+       cornerManipulators[i*2+1]->setDisplayScale(boxes[i].getLength()/5.);
+    }
+
+}
+
+void Polyline::activateBoxManipulators(const bool &b){
     // Don't activate the first and the last - these boxes don't count
-    for(unsigned int i=1; i<boxManipulators.size()-1; i++) boxManipulators[i]->switchStates();
+    for(unsigned int i=1; i<boxManipulators.size()-1; i++) boxManipulators[i]->setState(b);
+
+}
+
+void Polyline::activateFirstCornerManipulators(const bool &b){
+    for(unsigned int i=2; i<cornerManipulators.size()-2; i+=2) cornerManipulators[i]->setState(b);
+}
+
+void Polyline::activateEndCornerManipulators(const bool &b){
+    for(unsigned int i=3; i<cornerManipulators.size()-2; i+=2) cornerManipulators[i]->setState(b);
 }
 
 // Update the points locations without updating their orientations
@@ -248,6 +326,7 @@ void Polyline::resetBox(unsigned int index){
     double length = euclideanDistance(points[index], points[index+1]);
     boxes[index].setLength(length);
     setManipulatorsToBoxes();
+    setCornerManipulatorsToBoxes();
 }
 
 void Polyline::bend(unsigned int index, Vec &newPosition, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals){

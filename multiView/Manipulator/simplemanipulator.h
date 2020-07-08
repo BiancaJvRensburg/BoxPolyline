@@ -25,6 +25,7 @@ public:
     void activate(){ this->setState(1); }
     void deactivate(){ this->setState(0); }
     void switchStates(){ if(getState()==0) activate(); else deactivate(); }
+    void setState(const bool &b){ if(b) activate(); else deactivate(); }
     void setID(unsigned int i){ id = i; }
 
     void setOrigin( qglviewer::Vec const & p ){ Origin = p; }

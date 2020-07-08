@@ -134,6 +134,16 @@ Vec Box::getMidPoint(){
     return worldCoordinates(m);
 }
 
+Vec Box::getHighPoint(){
+    Vec h = normal*getHeight();
+
+    return worldCoordinates(h);
+}
+
+Vec Box::getHighEnd(){
+    return getHighPoint() + getEnd();
+}
+
 void Box::getOrientation(Vec &x, Vec &y, Vec &z){
     Vec a(1,0,0);
     Vec b(0,1,0);

@@ -18,6 +18,7 @@ private:
     Viewer *skullViewer;
     ViewerFibula *fibulaViewer;
     QDockWidget *skullDockWidget;
+    QDockWidget *editMenuWidget;
     void initDisplayDockWidgets();
 
     // File menu
@@ -25,6 +26,7 @@ private:
     void initFileMenu();
     void initToolBars();
     void initFileActions();
+    void initEditMenu();
 
     void readJSON(const QJsonObject &json, Viewer *v);
     void openJSON(Viewer* v);
@@ -32,19 +34,17 @@ private:
 private Q_SLOTS:
     void openMandJSON();
     void openFibJSON();
-    /*void transitionUncutToCut();
-    void transitionCutToUncut();
-    void transitionUncutToEdit();
-    void transitionCutToEdit();
-    void transitionEditToUncut();
-    void transitionEditToCut();*/
+    void setFragRadios();
+    void enableFragmentEditing();
+    void disableFragmentEditing();
+    void displayEditMenu();
 
 private:
-    void uncutStage();
-    void cutStage();
-    void editStage();
     int sliderMax = 100;
     int fibulaOffsetMax;
+    QRadioButton *radioFrag1, *radioFrag2, *radioFrag3;
+    QGroupBox *groupRadioBox;
+    QPushButton *editPlaneButton, *editMenuButton;
 };
 
 #endif // MAINWINDOW_H
