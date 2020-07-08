@@ -82,21 +82,14 @@ void MainWindow::initDisplayDockWidgets(){
 
     QSlider *leftPlaneSlider = new QSlider(Qt::Horizontal);
     leftPlaneSlider->setMaximum(sliderMax);
-    contentLayoutMand->addRow("Left slider", leftPlaneSlider);
+    contentLayoutMand->addRow("Green", leftPlaneSlider);
 
     QSlider *rightPlaneSlider = new QSlider(Qt::Horizontal);
     rightPlaneSlider->setMaximum(sliderMax);
-    contentLayoutMand->addRow("Right slider", rightPlaneSlider);
+    contentLayoutMand->addRow("Red", rightPlaneSlider);
 
     connect(leftPlaneSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::moveLeftPlane);
     connect(rightPlaneSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::moveRightPlane);
-
-    QSlider *planeAlphaSlider = new QSlider(Qt::Horizontal);
-    planeAlphaSlider->setMaximum(100);
-    planeAlphaSlider->setSliderPosition(50);
-    contentLayoutMand->addRow("Plane transparency", planeAlphaSlider);
-    connect(planeAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::setPlaneAlpha);
-    connect(planeAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::setPlaneAlpha);
 
     // Connect the two views
     connect(skullViewer, &Viewer::polylineBent, fibulaViewer, &ViewerFibula::bendPolylineNormals);
@@ -124,11 +117,6 @@ void MainWindow::initEditMenu(){
     radioFrag2 = new QRadioButton("Left", this);
     radioFrag3 = new QRadioButton("Right", this);
 
-    connect(skullViewer, &Viewer::enableFragmentEditing, this, &MainWindow::enableFragmentEditing);
-    connect(skullViewer, &Viewer::disableFragmentEditing, this, &MainWindow::disableFragmentEditing);
-
-    disableFragmentEditing();
-
     connect(radioFrag1, &QRadioButton::toggled, skullViewer, &Viewer::toggleEditBoxMode);
     connect(radioFrag2, &QRadioButton::toggled, skullViewer, &Viewer::toggleEditFirstCorner);
     connect(radioFrag3, &QRadioButton::toggled, skullViewer, &Viewer::toggleEditEndCorner);
@@ -143,13 +131,13 @@ void MainWindow::initEditMenu(){
 
     connect(groupRadioBox, &QGroupBox::clicked, this, &MainWindow::setFragRadios);
 
-    /*editPlaneButton = new QPushButton(tr("&Edit planes"));
+    editPlaneButton = new QPushButton(tr("&Edit planes"));
     editPlaneButton->setCheckable(true);
     editPlaneButton->setChecked(false);
 
-    connect(editPlaneButton, &QPushButton::released, skullViewer, &Viewer::toggleEditPlaneMode);*/
+    connect(editPlaneButton, &QPushButton::released, skullViewer, &Viewer::toggleEditPlaneMode);
 
-    QPushButton *toggleDrawMeshButton = new QPushButton(tr("&Draw mesh"));
+    toggleDrawMeshButton = new QPushButton(tr("&Draw mesh"));
     toggleDrawMeshButton->setCheckable(true);
     toggleDrawMeshButton->setChecked(false);
 
@@ -162,9 +150,46 @@ void MainWindow::initEditMenu(){
     connect(toggleDrawPlanesButton, &QPushButton::released, skullViewer, &Viewer::toggleDrawPlane);
     connect(toggleDrawPlanesButton, &QPushButton::released, fibulaViewer, &ViewerFibula::toggleDrawPlane);
 
+    // Adjust the plane transparency
+    QGroupBox *sliderBox = new QGroupBox("Transparencies", this);
+    QHBoxLayout *sliderBoxLayout = new QHBoxLayout();
+
+    QSlider *planeAlphaSlider = new QSlider(Qt::Vertical);
+    planeAlphaSlider->setMaximum(100);
+    planeAlphaSlider->setSliderPosition(50);
+    connect(planeAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::setPlaneAlpha);
+    connect(planeAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::setPlaneAlpha);
+
+    QGroupBox *planeBox = new QGroupBox();
+    QVBoxLayout *planeBoxLayout = new QVBoxLayout();
+    QLabel *planeLabel = new QLabel();
+    planeLabel->setText("Planes");
+    planeBoxLayout->addWidget(planeLabel);
+    planeBoxLayout->addWidget(planeAlphaSlider);
+    planeBox->setLayout(planeBoxLayout);
+
+    QSlider *meshAlphaSlider = new QSlider(Qt::Vertical);
+    meshAlphaSlider->setMaximum(100);
+    meshAlphaSlider->setSliderPosition(100);
+    connect(meshAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::setMeshAlpha);
+    connect(meshAlphaSlider, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::setMeshAlpha);
+
+    QGroupBox *meshBox = new QGroupBox();
+    QVBoxLayout *meshBoxLayout = new QVBoxLayout();
+    QLabel *meshLabel = new QLabel();
+    meshLabel->setText("Mesh");
+    meshBoxLayout->addWidget(meshLabel);
+    meshBoxLayout->addWidget(meshAlphaSlider);
+    meshBox->setLayout(meshBoxLayout);
+
+    sliderBoxLayout->addWidget(planeBox);
+    sliderBoxLayout->addWidget(meshBox);
+    sliderBox->setLayout(sliderBoxLayout);
+
     layout->addWidget(toggleDrawPlanesButton);
+    layout->addWidget(sliderBox);
     layout->addWidget(toggleDrawMeshButton);
-    //layout->addWidget(editPlaneButton);
+    layout->addWidget(editPlaneButton);
     layout->addWidget(groupRadioBox);
 
     QWidget* controlWidget = new QWidget();
@@ -173,7 +198,10 @@ void MainWindow::initEditMenu(){
     editMenuWidget->setWidget(controlWidget);
     this->addDockWidget(Qt::RightDockWidgetArea, editMenuWidget);
 
-    editMenuWidget->setVisible(false);
+    connect(skullViewer, &Viewer::enableFragmentEditing, this, &MainWindow::enableFragmentEditing);
+    connect(skullViewer, &Viewer::disableFragmentEditing, this, &MainWindow::disableFragmentEditing);
+
+    disableFragmentEditing();
 }
 
 void MainWindow::displayEditMenu(){
@@ -190,18 +218,21 @@ void MainWindow::enableFragmentEditing(){
     radioFrag3->setCheckable(true);
 
     groupRadioBox->setVisible(true);
-    //editPlaneButton->setVisible(true);
+    editPlaneButton->setVisible(true);
+    toggleDrawMeshButton->setVisible(true);
 }
 
 void MainWindow::disableFragmentEditing(){
     groupRadioBox->setVisible(false);
-    //editPlaneButton->setVisible(false);
+    editPlaneButton->setVisible(false);
 
     groupRadioBox->setCheckable(false);
 
     radioFrag1->setCheckable(false);
     radioFrag2->setCheckable(false);
     radioFrag3->setCheckable(false);
+
+    toggleDrawMeshButton->setVisible(false);
 }
 
 void MainWindow::setFragRadios(){
@@ -270,7 +301,7 @@ void MainWindow::initToolBars () {
     editMenuButton = new QPushButton("Edit menu", this);
     connect(editMenuButton, &QPushButton::clicked, this, &MainWindow::displayEditMenu);
     editMenuButton->setCheckable(true);
-    editMenuButton->setChecked(false);
+    editMenuButton->setChecked(true);
 
     fileToolBar->addWidget(editMenuButton);
 

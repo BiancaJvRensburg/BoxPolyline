@@ -44,7 +44,7 @@ private:
     int fibulaOffsetMax;
     QRadioButton *radioFrag1, *radioFrag2, *radioFrag3;
     QGroupBox *groupRadioBox;
-    QPushButton *editPlaneButton, *editMenuButton;
+    QPushButton *editPlaneButton, *editMenuButton, *toggleDrawMeshButton;
 };
 
 #endif // MAINWINDOW_H
