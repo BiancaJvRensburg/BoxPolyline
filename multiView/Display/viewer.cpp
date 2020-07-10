@@ -9,6 +9,7 @@ Viewer::Viewer(QWidget *parent, StandardCamera *cam, int sliderMax) : QGLViewer(
     this->sliderMax = sliderMax;
     this->isCut = false;
     this->isDrawMesh = false;
+    this->isDrawCurve = false;
     this->isPoly = false;
 }
 
@@ -33,7 +34,7 @@ void Viewer::draw() {
              glColor4f(0., 1., 1., ghostPlanes[i]->getAlpha());
              ghostPlanes[i]->draw();
          }
-         curve.draw();
+         if(isDrawCurve) curve.draw();
      }
 
      if(isDrawMesh) mesh.drawCutMand();
@@ -712,6 +713,11 @@ void Viewer::toggleDrawBoxes(){
 
 void Viewer::toggleDrawPolyline(){
     poly.toggleDrawLine();
+    update();
+}
+
+void Viewer::toggleDrawCurve(){
+    isDrawCurve = !isDrawCurve;
     update();
 }
 

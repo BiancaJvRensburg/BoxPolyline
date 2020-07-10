@@ -46,6 +46,7 @@ public Q_SLOTS:
     void toggleEditEndCorner(bool b);
     void toggleDrawPolyline();
     void toggleDrawBoxes();
+    void toggleDrawCurve();
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
@@ -114,7 +115,7 @@ protected:
     int sliderMax;
     bool isCut;
     bool isPoly = false;
-    bool isDrawMesh;
+    bool isDrawMesh, isDrawCurve;
 
     int polyRotation;
 

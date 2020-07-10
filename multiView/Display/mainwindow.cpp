@@ -120,6 +120,13 @@ void MainWindow::initEditMenu(){
     connect(toggleDrawPlanesButton, &QPushButton::released, skullViewer, &Viewer::toggleDrawPlane);
     connect(toggleDrawPlanesButton, &QPushButton::released, fibulaViewer, &ViewerFibula::toggleDrawPlane);
 
+    QPushButton *toggleDrawCurveButton = new QPushButton(tr("&Draw curve"));
+    toggleDrawCurveButton->setCheckable(true);
+    toggleDrawCurveButton->setChecked(false);
+
+    connect(toggleDrawCurveButton, &QPushButton::released, skullViewer, &Viewer::toggleDrawCurve);
+    connect(toggleDrawCurveButton, &QPushButton::released, fibulaViewer, &ViewerFibula::toggleDrawCurve);
+
     // Adjust the plane transparency
     QGroupBox *sliderBox = new QGroupBox("Transparencies", this);
     QHBoxLayout *sliderBoxLayout = new QHBoxLayout();
@@ -157,6 +164,7 @@ void MainWindow::initEditMenu(){
     sliderBox->setLayout(sliderBoxLayout);
 
     layout->addWidget(toggleDrawPlanesButton);
+    layout->addWidget(toggleDrawCurveButton);
     layout->addWidget(sliderBox);
 
     QWidget* controlWidget = new QWidget();
