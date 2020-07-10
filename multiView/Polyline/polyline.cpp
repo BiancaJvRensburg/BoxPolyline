@@ -152,7 +152,7 @@ void Polyline::initManipulators(){
     for(unsigned int i=0; i<boxes.size(); i++){
         boxManipulators.push_back(new SimpleManipulator);
         boxManipulators[i]->deactivate();
-        boxManipulators[i]->setDisplayScale(boxes[i].getLength()/5.);
+        boxManipulators[i]->setDisplayScale(manipulatorSize);
         boxManipulators[i]->setID(i);
     }
 
@@ -165,7 +165,7 @@ void Polyline::initCornerManipulators(){
     for(unsigned int i=0; i<boxes.size()*2; i++){
         cornerManipulators.push_back(new SimpleManipulator);
         cornerManipulators[i]->deactivate();
-        cornerManipulators[i]->setDisplayScale(boxes[i].getLength()/5.);
+        cornerManipulators[i]->setDisplayScale(manipulatorSize);
         cornerManipulators[i]->setID(i);
         cornerManipulators[i]->setRotationActivated(false);
     }
@@ -246,7 +246,6 @@ void Polyline::setManipulatorsToBoxes(){
 
        Vec p = getMeshBoxPoint(i) + boxes[i].getLength()/2. * getWorldBoxTransform(i, boxes[i].getTangent()) + boxes[i].getHeight()/2. * getWorldBoxTransform(i, boxes[i].getBinormal()) + boxes[i].getWidth()/2. * getWorldBoxTransform(i, boxes[i].getNormal());
        boxManipulators[i]->setOrigin(p);
-       boxManipulators[i]->setDisplayScale(boxes[i].getLength()/5.);
     }
 }
 
@@ -263,11 +262,9 @@ void Polyline::setCornerManipulatorsToBoxes(){
        cornerManipulators[i*2+1]->setRepZ(z);
 
        cornerManipulators[i*2]->setOrigin(getMeshBoxPoint(i));
-       cornerManipulators[i*2]->setDisplayScale(boxes[i].getLength()/5.);
 
        //Vec p = getMeshBoxPoint(i) + boxes[i].getLength()/2. * getWorldBoxTransform(i, boxes[i].getTangent()) + boxes[i].getHeight()/2. * getWorldBoxTransform(i, boxes[i].getBinormal()) + boxes[i].getWidth()/2. * getWorldBoxTransform(i, boxes[i].getNormal());
        cornerManipulators[i*2+1]->setOrigin(getMeshBoxEnd(i));
-       cornerManipulators[i*2+1]->setDisplayScale(boxes[i].getLength()/5.);
     }
 
 }

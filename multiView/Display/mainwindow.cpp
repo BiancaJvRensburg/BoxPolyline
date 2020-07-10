@@ -96,6 +96,13 @@ void MainWindow::initDisplayDockWidgets(){
     // Connect the two views
     connect(skullViewer, &Viewer::polylineBent, fibulaViewer, &ViewerFibula::bendPolylineNormals);
 
+    QSlider *rotatePolylineMandible = new QSlider(Qt::Horizontal);
+   rotatePolylineMandible->setMaximum(360);
+   contentLayoutMand->addRow("Fibula orientation", rotatePolylineMandible);
+
+    connect(rotatePolylineMandible, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::rotatePolylineOnAxis);
+    connect(skullViewer, &Viewer::toRotatePolylineOnAxis, fibulaViewer, &ViewerFibula::rotatePolylineOnAxisFibula);
+
     layout->addWidget(contentsMand);
     layout->addWidget(contentsFibula);
 
@@ -291,12 +298,12 @@ void MainWindow::setFragRadios(){
 void MainWindow::displayFragmentMenuButton(){
     /*editFragmentMenuButton->setVisible(true);
     editFragmentMenuButton->setChecked(true);*/
-   skullDockWidget->setVisible(false);
+   //skullDockWidget->setVisible(false);
 }
 
 void MainWindow::hideFragmentMenuButton(){
     //editFragmentMenuButton->setVisible(false);
-    skullDockWidget->setVisible(true);
+    //skullDockWidget->setVisible(true);
 }
 
 void MainWindow::initFileActions(){

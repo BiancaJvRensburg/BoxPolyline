@@ -116,6 +116,7 @@ private:
     bool isWireframe = true;
     bool isDrawBoxes = false;
     bool isDrawLine = false;
+    double manipulatorSize = 15.;
 };
 
 #endif // POLYLINE_H
