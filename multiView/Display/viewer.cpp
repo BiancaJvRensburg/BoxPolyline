@@ -44,6 +44,50 @@ void Viewer::draw() {
     glPopMatrix();
 }
 
+void Viewer::drawWithNames(){
+    if(isCurve){
+        glPushName(0);
+        glColor4f(0., 1., 0., leftPlane->getAlpha());
+        leftPlane->draw();
+        glPopName();
+
+        glPushName(1);
+        glColor4f(1., 0, 0., leftPlane->getAlpha());
+        rightPlane->draw();
+        glPopName();
+
+
+        for(unsigned int i=0; i<ghostPlanes.size(); i++){
+            glPushName(i+2);
+            glColor4f(0., 1., 1., ghostPlanes[i]->getAlpha());
+            ghostPlanes[i]->draw();
+            glPopName();
+        }
+
+    }
+}
+
+void Viewer::postSelection(const QPoint &point) {
+  Vec orig, dir;
+  camera()->convertClickToLine(point, orig, dir);
+
+  bool found;
+  Vec selectedPoint = camera()->pointUnderPixel(point, found);
+  selectedPoint -= 0.01f * dir;
+
+  if (selectedName() == -1)
+    QMessageBox::information(this, "No selection",
+                             "No object selected under pixel " +
+                                 QString::number(point.x()) + "," +
+                                 QString::number(point.y()));
+  else
+    QMessageBox::information(
+        this, "Selection",
+        QString::number(selectedName()) +
+            " selected under pixel " + QString::number(point.x()) + "," +
+            QString::number(point.y()));
+}
+
 void Viewer::toUpdate(){
     update();
 }

@@ -66,6 +66,8 @@ Q_SIGNALS:
 
 protected:
     void draw();
+    void drawWithNames();
+    void postSelection(const QPoint &point);
     void init();
     virtual void initSignals();
     virtual void constructCurve();

@@ -98,16 +98,10 @@ void MainWindow::initDisplayDockWidgets(){
 
     QSlider *rotatePolylineMandible = new QSlider(Qt::Horizontal);
    rotatePolylineMandible->setMaximum(360);
-   contentLayoutMand->addRow("Rotate planes", rotatePolylineMandible);
+   contentLayoutMand->addRow("Fibula orientation", rotatePolylineMandible);
 
     connect(rotatePolylineMandible, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), skullViewer, &Viewer::rotatePolylineOnAxis);
     connect(skullViewer, &Viewer::toRotatePolylineOnAxis, fibulaViewer, &ViewerFibula::rotatePolylineOnAxisFibula);
-
-    QSlider *rotatePoly = new QSlider(Qt::Horizontal);
-    rotatePolylineMandible->setMaximum(360);
-    contentLayoutMand->addRow("Rotate polyline", rotatePoly);
-
-    connect(rotatePoly, static_cast<void (QSlider::*)(int)>(&QSlider::sliderMoved), fibulaViewer, &ViewerFibula::rotatePolylineOnAxe);
 
     layout->addWidget(contentsMand);
     layout->addWidget(contentsFibula);

@@ -46,7 +46,7 @@ void Polyline::draw(){
 
     glColor3f(1.,1.,1.);
 
-    QGLViewer::drawAxis(40.);
+    // QGLViewer::drawAxis(40.);
 
     if(isDrawLine){
         // The polyline

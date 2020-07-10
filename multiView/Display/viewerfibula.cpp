@@ -24,8 +24,18 @@ void ViewerFibula::updateDistances(const std::vector<double>& distances){
     positionBoxes();
 }
 
+void ViewerFibula::reprojectToMesh(){
+    projectToMesh(saveDistances);
+    repositionPlanesOnPolyline();
+
+    positionBoxes();
+}
+
 // Re-initialise the polyline to a straight line with corresponding distances
 void ViewerFibula::setDistances(const std::vector<double> &distances){
+    saveDistances.clear();
+    saveDistances = distances;
+
     Vec direction(1,0,0);
 
     std::vector<Vec> newPoints;
@@ -223,6 +233,7 @@ void ViewerFibula::rotatePolylineOnAxisFibula(double r){
     double alpha = r - prevRotation;
     prevRotation = r;
     poly.rotateOnAxis(alpha, curve.getPoint(0));
+    reprojectToMesh();
     if(isOriginallyCut) cut();
     update();
 }
@@ -241,17 +252,6 @@ void ViewerFibula::reinitPoly(unsigned int nb){
     poly.reinit(nb);
 }
 
-// TODO this doesn't work yet
-void ViewerFibula::rotatePolylineOnAxe(double r){
-    bool isOriginallyCut = isCut;
-    if(isOriginallyCut) uncut();
-    r = r*M_PI/180.;
-    r -= prevRotation;
-    prevRotation = r;
-    poly.rotateOnAxis(r, poly.getMeshBoxMiddle(0));
-    if(isOriginallyCut) cut();
-    update();
-}
 
 void ViewerFibula::constructSegmentPoints(unsigned int nbU){
     segmentPoints.clear();
