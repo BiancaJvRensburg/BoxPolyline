@@ -177,8 +177,8 @@ void Viewer::initGhostPlanes(Movable s){
         ghostPlanes.push_back(p);
     }
 
-    connect(&(leftPlane->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);
-    connect(&(rightPlane->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);
+    //connect(&(leftPlane->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);
+    //connect(&(rightPlane->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);
     for(unsigned int i=0; i<ghostPlanes.size(); i++) connect(&(ghostPlanes[i]->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);        // connnect the ghost planes
 }
 
@@ -637,8 +637,8 @@ void Viewer::recieveFromFibulaMesh(std::vector<int> &planes, std::vector<Vec> ve
 }
 
 void Viewer::toggleEditPlaneMode(bool b){
-    leftPlane->toggleEditMode(b);
-    rightPlane->toggleEditMode(b);
+    //leftPlane->toggleEditMode(b);
+    //rightPlane->toggleEditMode(b);
     for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->toggleEditMode(b);
     update();
 }
