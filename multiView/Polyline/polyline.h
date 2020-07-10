@@ -26,7 +26,7 @@ public:
     Vec getMeshBoxMiddle(unsigned int i){ return getWorldCoordinates(boxes[i].getMidPoint()); }
     Vec getMeshBoxEnd(unsigned int i){ return getWorldCoordinates(boxes[i].getEnd()); }
     Vec getMeshBoxHighPoint(unsigned int i){ return getWorldCoordinates(boxes[i].getHighPoint()); }
-     Vec getMeshBoxHighEnd(unsigned int i){ return getWorldCoordinates(boxes[i].getHighEnd()); }
+    Vec getMeshBoxHighEnd(unsigned int i){ return getWorldCoordinates(boxes[i].getHighEnd()); }
 
     void setBoxLocation(unsigned int i, const Vec& v){ boxes[i].setPosition(v); }
 
@@ -76,6 +76,8 @@ public:
     void activateBoxManipulators(const bool &b);
     void activateFirstCornerManipulators(const bool &b);
     void activateEndCornerManipulators(const bool &b);
+    void toggleDrawBoxes(){ isDrawBoxes = !isDrawBoxes; }
+    void toggleDrawLine(){ isDrawLine = !isDrawLine; }
 
 
     SimpleManipulator* getBoxManipulator(unsigned int i){ return boxManipulators[i]; }
@@ -112,6 +114,8 @@ private:
     std::vector<SimpleManipulator*> boxManipulators;     // a manipulator for each box
     std::vector<SimpleManipulator*> cornerManipulators;   // 2 manipulators per box - modifies the tangent
     bool isWireframe = true;
+    bool isDrawBoxes = false;
+    bool isDrawLine = false;
 };
 
 #endif // POLYLINE_H

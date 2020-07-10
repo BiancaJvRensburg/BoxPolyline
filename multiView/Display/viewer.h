@@ -38,12 +38,14 @@ public Q_SLOTS:
     void toggleWireframe();
     void recieveFromFibulaMesh(std::vector<int>&, std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
     void sendNewNorms();
-    void toggleEditPlaneMode();
+    void toggleEditPlaneMode(bool b);
     void setBoxToManipulator(unsigned int, Vec);
     void setBoxToCornerManipulator(unsigned int, Vec);
     void toggleEditBoxMode(bool b);
     void toggleEditFirstCorner(bool b);
     void toggleEditEndCorner(bool b);
+    void toggleDrawPolyline();
+    void toggleDrawBoxes();
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);

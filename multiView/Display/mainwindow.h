@@ -31,7 +31,8 @@ private:
     void initEditFragmentsMenu();
 
     void readJSON(const QJsonObject &json, Viewer *v);
-    void openJSON(Viewer* v);
+    bool openJSON(Viewer* v);
+    void filesOpened();
 
 private Q_SLOTS:
     void openMandJSON();
@@ -47,9 +48,12 @@ private Q_SLOTS:
 private:
     int sliderMax = 100;
     int fibulaOffsetMax;
-    QRadioButton *radioFrag1, *radioFrag2, *radioFrag3;
+    QRadioButton *radioFrag1, *radioFrag2, *radioFrag3, *radioFragPlanes;
     QGroupBox *groupRadioBox;
-    QPushButton *editPlaneButton, *editMenuButton, *editFragmentMenuButton, *toggleDrawMeshButton;
+    QWidget *loadedMeshes;
+    QPushButton *editMenuButton, *editFragmentMenuButton, *toggleDrawMeshButton;
+    bool isOpenMand = false;
+    bool isOpenFib = false;
 };
 
 #endif // MAINWINDOW_H

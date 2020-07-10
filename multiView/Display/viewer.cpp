@@ -635,10 +635,10 @@ void Viewer::recieveFromFibulaMesh(std::vector<int> &planes, std::vector<Vec> ve
     Q_EMIT sendFibulaToMesh(verticies, triangles, colours, normals, nbColours);
 }
 
-void Viewer::toggleEditPlaneMode(){
-    leftPlane->toggleEditMode();
-    rightPlane->toggleEditMode();
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->toggleEditMode();
+void Viewer::toggleEditPlaneMode(bool b){
+    leftPlane->toggleEditMode(b);
+    rightPlane->toggleEditMode(b);
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->toggleEditMode(b);
     update();
 }
 
@@ -702,6 +702,16 @@ void Viewer::toggleEditFirstCorner(bool b){
 
 void Viewer::toggleEditEndCorner(bool b){
     poly.activateEndCornerManipulators(b);
+    update();
+}
+
+void Viewer::toggleDrawBoxes(){
+    poly.toggleDrawBoxes();
+    update();
+}
+
+void Viewer::toggleDrawPolyline(){
+    poly.toggleDrawLine();
     update();
 }
 

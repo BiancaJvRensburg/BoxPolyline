@@ -68,6 +68,7 @@ void MainWindow::initDisplayDockWidgets(){
 
     skullDockWidget = new QDockWidget("Plane controls");
     skullDockWidget->setFeatures(QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetMovable);
+    skullDockWidget->setVisible(false);
 
     QHBoxLayout* layout = new QHBoxLayout();
 
@@ -181,13 +182,16 @@ void MainWindow::initEditFragmentsMenu(){
     radioFrag1 = new QRadioButton("Centre", this);
     radioFrag2 = new QRadioButton("Left", this);
     radioFrag3 = new QRadioButton("Right", this);
+    radioFragPlanes = new QRadioButton("Planes", this);
 
     connect(radioFrag1, &QRadioButton::toggled, skullViewer, &Viewer::toggleEditBoxMode);
     connect(radioFrag2, &QRadioButton::toggled, skullViewer, &Viewer::toggleEditFirstCorner);
     connect(radioFrag3, &QRadioButton::toggled, skullViewer, &Viewer::toggleEditEndCorner);
+    connect(radioFragPlanes, &QPushButton::toggled, skullViewer, &Viewer::toggleEditPlaneMode);
 
     QVBoxLayout *vbox = new QVBoxLayout;
 
+    vbox->addWidget(radioFragPlanes);
     vbox->addWidget(radioFrag1);
     vbox->addWidget(radioFrag2);
     vbox->addWidget(radioFrag3);
@@ -196,20 +200,23 @@ void MainWindow::initEditFragmentsMenu(){
 
     connect(groupRadioBox, &QGroupBox::clicked, this, &MainWindow::setFragRadios);
 
-    editPlaneButton = new QPushButton(tr("&Edit planes"));
-    editPlaneButton->setCheckable(true);
-    editPlaneButton->setChecked(false);
-
-    connect(editPlaneButton, &QPushButton::released, skullViewer, &Viewer::toggleEditPlaneMode);
-
     toggleDrawMeshButton = new QPushButton(tr("&Draw mesh"));
     toggleDrawMeshButton->setCheckable(true);
     toggleDrawMeshButton->setChecked(false);
 
     connect(toggleDrawMeshButton, &QPushButton::released, skullViewer, &Viewer::toggleDrawMesh);
 
+    QPushButton *drawPolylineButton = new QPushButton("Draw Polyline", this);
+    connect(drawPolylineButton, &QPushButton::clicked, skullViewer, &Viewer::toggleDrawPolyline);
+    connect(drawPolylineButton, &QPushButton::clicked, fibulaViewer, &ViewerFibula::toggleDrawPolyline);
+
+    QPushButton *drawBoxesButton = new QPushButton("Draw Boxes", this);
+    connect(drawBoxesButton, &QPushButton::clicked, skullViewer, &Viewer::toggleDrawBoxes);
+    connect(drawBoxesButton, &QPushButton::clicked, fibulaViewer, &ViewerFibula::toggleDrawBoxes);
+
     layout->addWidget(toggleDrawMeshButton);
-    layout->addWidget(editPlaneButton);
+    layout->addWidget(drawPolylineButton);
+    layout->addWidget(drawBoxesButton);
     layout->addWidget(groupRadioBox);
 
     QWidget *controlWidget = new QWidget();
@@ -238,23 +245,17 @@ void MainWindow::enableFragmentEditing(){
     radioFrag1->setCheckable(true);
     radioFrag2->setCheckable(true);
     radioFrag3->setCheckable(true);
-
-    /*groupRadioBox->setVisible(true);
-    editPlaneButton->setVisible(true);
-    toggleDrawMeshButton->setVisible(true);*/
+    radioFragPlanes->setCheckable(true);
     editFragmentDockWidget->setVisible(true);
 }
 
 void MainWindow::disableFragmentEditing(){
-    /*groupRadioBox->setVisible(false);
-    editPlaneButton->setVisible(false);
-    toggleDrawMeshButton->setVisible(false);*/
-
     groupRadioBox->setCheckable(false);
 
     radioFrag1->setCheckable(false);
     radioFrag2->setCheckable(false);
     radioFrag3->setCheckable(false);
+    radioFragPlanes->setCheckable(false);
 
     editFragmentDockWidget->setVisible(false);
 }
@@ -267,46 +268,40 @@ void MainWindow::setFragRadios(){
         radioFrag2->setChecked(false);
         radioFrag3->setAutoExclusive(false);
         radioFrag3->setChecked(false);
+        radioFragPlanes->setAutoExclusive(false);
+        radioFragPlanes->setChecked(false);
     }
     else{
         radioFrag1->setAutoExclusive(true);
-        radioFrag1->setChecked(true);
         radioFrag2->setAutoExclusive(true);
         radioFrag3->setAutoExclusive(true);
+        radioFragPlanes->setAutoExclusive(true);
+        radioFragPlanes->setChecked(true);
     }
 }
 
 void MainWindow::displayFragmentMenuButton(){
-    editFragmentMenuButton->setVisible(true);
-    editFragmentMenuButton->setChecked(true);
+    /*editFragmentMenuButton->setVisible(true);
+    editFragmentMenuButton->setChecked(true);*/
+   skullDockWidget->setVisible(false);
 }
 
 void MainWindow::hideFragmentMenuButton(){
-    editFragmentMenuButton->setVisible(false);
+    //editFragmentMenuButton->setVisible(false);
+    skullDockWidget->setVisible(true);
 }
 
 void MainWindow::initFileActions(){
     fileActionGroup = new QActionGroup(this);
 
-    QAction *openJsonFileAction = new QAction("Open mandible JSON", this);
+    QAction *openJsonFileAction = new QAction("Open Mandible", this);
     connect(openJsonFileAction, &QAction::triggered, this, &MainWindow::openMandJSON);
 
-    QAction *openJsonFibFileAction = new QAction("Open fibula JSON", this);
+    QAction *openJsonFibFileAction = new QAction("Open Fibula", this);
     connect(openJsonFibFileAction, &QAction::triggered, this, &MainWindow::openFibJSON);
-
-    QAction *cutMeshAction = new QAction("Cut", this);
-    connect(cutMeshAction, &QAction::triggered, skullViewer, &Viewer::cutMesh);
-    // connect(cutMeshAction, &QAction::triggered, this, &MainWindow::displayFragmentMenuButton);
-
-    QAction *uncutMeshAction = new QAction("Undo cut", this);
-    connect(uncutMeshAction, &QAction::triggered, skullViewer, &Viewer::uncutMesh);
-    connect(uncutMeshAction, &QAction::triggered, fibulaViewer, &Viewer::uncutMesh);
-    // connect(uncutMeshAction, &QAction::triggered, this, &MainWindow::hideFragmentMenuButton);
 
     fileActionGroup->addAction(openJsonFileAction);
     fileActionGroup->addAction(openJsonFibFileAction);
-    fileActionGroup->addAction(cutMeshAction);
-    fileActionGroup->addAction(uncutMeshAction);
 
     connect(skullViewer, &Viewer::constructPoly, fibulaViewer, &ViewerFibula::constructPolyline);
     connect(fibulaViewer, &ViewerFibula::okToPlacePlanes, skullViewer, &Viewer::placePlanes);
@@ -333,6 +328,18 @@ void MainWindow::initToolBars () {
     QToolBar *fileToolBar = new QToolBar(this);
     fileToolBar->addActions(fileActionGroup->actions());
 
+    loadedMeshes = new QWidget();
+    QHBoxLayout *loadedMeshesLayout = new QHBoxLayout();
+
+    QPushButton *cutMeshAction = new QPushButton("Cut", this);
+    connect(cutMeshAction, &QPushButton::clicked, skullViewer, &Viewer::cutMesh);
+    connect(cutMeshAction, &QPushButton::clicked, this, &MainWindow::displayFragmentMenuButton);
+
+    QPushButton *uncutMeshAction = new QPushButton("Undo Cut", this);
+    connect(uncutMeshAction, &QPushButton::clicked, skullViewer, &Viewer::uncutMesh);
+    connect(uncutMeshAction, &QPushButton::clicked, fibulaViewer, &Viewer::uncutMesh);
+    connect(uncutMeshAction, &QPushButton::clicked, this, &MainWindow::hideFragmentMenuButton);
+
     editMenuButton = new QPushButton("Edit Graphics", this);
     connect(editMenuButton, &QPushButton::clicked, this, &MainWindow::displayEditMenu);
     editMenuButton->setCheckable(true);
@@ -342,10 +349,15 @@ void MainWindow::initToolBars () {
     connect(editFragmentMenuButton, &QPushButton::clicked, this, &MainWindow::displayEditFragmentMenu);
     editFragmentMenuButton->setCheckable(true);
     editFragmentMenuButton->setChecked(false);
-    //editFragmentMenuButton->setVisible(false);
+
+    loadedMeshesLayout->addWidget(cutMeshAction);
+    loadedMeshesLayout->addWidget(uncutMeshAction);
+    loadedMeshesLayout->addWidget(editFragmentMenuButton);
+    loadedMeshes->setLayout(loadedMeshesLayout);
+    // loadedMeshes->setVisible(false);
 
     fileToolBar->addWidget(editMenuButton);
-    fileToolBar->addWidget(editFragmentMenuButton);
+    fileToolBar->addWidget(loadedMeshes);
 
     addToolBar(fileToolBar);
 }
@@ -362,7 +374,7 @@ void MainWindow::readJSON(const QJsonObject &json, Viewer *v){
     }
 }
 
-void MainWindow::openJSON(Viewer *v){
+bool MainWindow::openJSON(Viewer *v){
     QString openFileNameLabel, selectedFilter;
 
     QString fileFilter = "JSON (*.json)";
@@ -372,21 +384,33 @@ void MainWindow::openJSON(Viewer *v){
 
     if (!loadFile.open(QIODevice::ReadOnly)) {
         qWarning("Couldn't open file.");
-        return;
+        return false;
     }
 
     QByteArray saveData = loadFile.readAll();
     QJsonDocument loadDoc(QJsonDocument::fromJson(saveData));
 
     readJSON(loadDoc.object(), v);
+    return true;
 }
 
 void MainWindow::openMandJSON(){
-    openJSON(skullViewer);
+    bool isOpen = openJSON(skullViewer);
+    if(!isOpenMand) isOpenMand = isOpen;
+    filesOpened();
 }
 
 void MainWindow::openFibJSON(){
-    openJSON(fibulaViewer);
+    bool isOpen = openJSON(fibulaViewer);
+    if(!isOpenFib) isOpenFib = isOpen;
+    filesOpened();
+}
+
+void MainWindow::filesOpened(){
+    if(isOpenMand && isOpenFib){
+        //loadedMeshes->setVisible(true);
+        skullDockWidget->setVisible(true);
+    }
 }
 
 

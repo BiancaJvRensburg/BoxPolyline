@@ -48,35 +48,32 @@ void Polyline::draw(){
 
     // QGLViewer::drawAxis(40.);
 
-    // The polyline
-    glLineWidth(5.);
-    glColor3f(0,0,1);
-    glBegin(GL_LINES);
-    for(unsigned int i=0; i<points.size()-1; i++){
-        glVertex3d(points[i].x, points[i].y, points[i].z);
-        glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
-    }
-    glEnd();
-
-    // The points
-    glColor3f(0,1,0);
-    glPointSize(10.);
-    glBegin(GL_POINTS);
-    for(unsigned int i=0; i<points.size(); i++) glVertex3d(points[i].x, points[i].y, points[i].z);
-    glEnd();
-
-    glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
-    for(unsigned int i=1; i<boxes.size()-1; i++){
-        glColor4f(0,0,0, boxTransparency);
-        boxes[i].draw(0);
-    }
-    glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
-
-    if(!isWireframe){
-        for(unsigned int i=0; i<boxes.size(); i++){
-            glColor4f(0,i%2,(i+1)%2, boxTransparency);
-            boxes[i].draw(-0.1);
+    if(isDrawLine){
+        // The polyline
+        glLineWidth(5.);
+        glColor3f(0,0,1);
+        glBegin(GL_LINES);
+        for(unsigned int i=0; i<points.size()-1; i++){
+            glVertex3d(points[i].x, points[i].y, points[i].z);
+            glVertex3d(points[i+1].x, points[i+1].y, points[i+1].z);
         }
+        glEnd();
+
+        // The points
+        glColor3f(0,1,0);
+        glPointSize(10.);
+        glBegin(GL_POINTS);
+        for(unsigned int i=0; i<points.size(); i++) glVertex3d(points[i].x, points[i].y, points[i].z);
+        glEnd();
+    }
+
+    if(isDrawBoxes){
+        glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
+        for(unsigned int i=1; i<boxes.size()-1; i++){
+            glColor4f(0,0,0, boxTransparency);
+            boxes[i].draw(0);
+        }
+        glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
     }
 
     glPopMatrix();
