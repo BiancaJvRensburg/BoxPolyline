@@ -220,7 +220,9 @@ void ViewerFibula::rotatePolyToCurve(){
 void ViewerFibula::rotatePolylineOnAxisFibula(double r){
     bool isOriginallyCut = isCut;
     if(isOriginallyCut) uncut();
-    poly.rotateBox(2,r);
+    double alpha = r - prevRotation;
+    prevRotation = r;
+    poly.rotateOnAxis(alpha, curve.getPoint(0));
     if(isOriginallyCut) cut();
     update();
 }

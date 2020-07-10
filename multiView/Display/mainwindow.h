@@ -19,6 +19,7 @@ private:
     ViewerFibula *fibulaViewer;
     QDockWidget *skullDockWidget;
     QDockWidget *editMenuWidget;
+    QDockWidget *editFragmentDockWidget;
     void initDisplayDockWidgets();
 
     // File menu
@@ -27,9 +28,11 @@ private:
     void initToolBars();
     void initFileActions();
     void initEditMenu();
+    void initEditFragmentsMenu();
 
     void readJSON(const QJsonObject &json, Viewer *v);
-    void openJSON(Viewer* v);
+    bool openJSON(Viewer* v);
+    void filesOpened();
 
 private Q_SLOTS:
     void openMandJSON();
@@ -38,22 +41,19 @@ private Q_SLOTS:
     void enableFragmentEditing();
     void disableFragmentEditing();
     void displayEditMenu();
-    void hideEditMenu();
-    /*void transitionUncutToCut();
-    void transitionCutToUncut();
-    void transitionUncutToEdit();
-    void transitionCutToEdit();
-    void transitionEditToUncut();
-    void transitionEditToCut();*/
+    void displayEditFragmentMenu();
+    void displayFragmentMenuButton();
+    void hideFragmentMenuButton();
 
 private:
-    void uncutStage();
-    void cutStage();
-    void editStage();
     int sliderMax = 100;
     int fibulaOffsetMax;
-    QRadioButton *radioFrag1, *radioFrag2, *radioFrag3;
+    QRadioButton *radioFrag1, *radioFrag2, *radioFrag3, *radioFragPlanes;
     QGroupBox *groupRadioBox;
+    QWidget *loadedMeshes;
+    QPushButton *editMenuButton, *editFragmentMenuButton, *toggleDrawMeshButton;
+    bool isOpenMand = false;
+    bool isOpenFib = false;
 };
 
 #endif // MAINWINDOW_H

@@ -71,7 +71,7 @@ public:
     const double& getSize(){ return size; }
 
     void toggleIsPoly();
-    void toggleEditMode(){ manipulator.switchStates(); }
+    void toggleEditMode(const bool &b){ manipulator.setState(b); }
 
     Movable status;
 

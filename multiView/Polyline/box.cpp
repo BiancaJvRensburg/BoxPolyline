@@ -32,7 +32,7 @@ void Box::draw(double offset){
     glPushMatrix();
     glMultMatrixd(f.matrix());
 
-    // QGLViewer::drawAxis(10.);
+     QGLViewer::drawAxis(10.);
 
     //manipulator.draw();
 
@@ -91,15 +91,6 @@ void Box::draw(double offset){
         glVertex3d(p2.x, p2.y, p2.z);
         glVertex3d(p6.x, p6.y, p6.z);
         glVertex3d(p4.x, p4.y, p4.z);
-    glEnd();
-
-    glColor3f(1,1,0);
-    Vec pTest = normal*getHeight();
-    Vec pTest2 = normal*getHeight() + tangent*getLength();
-    glPointSize(10.);
-    glBegin(GL_POINTS);
-    glVertex3d(pTest.x, pTest.y, pTest.z);
-    glVertex3d(pTest2.x, pTest2.y, pTest2.z);
     glEnd();
 
     glPopMatrix();

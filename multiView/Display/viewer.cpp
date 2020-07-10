@@ -9,6 +9,7 @@ Viewer::Viewer(QWidget *parent, StandardCamera *cam, int sliderMax) : QGLViewer(
     this->sliderMax = sliderMax;
     this->isCut = false;
     this->isDrawMesh = false;
+    this->isDrawCurve = false;
     this->isPoly = false;
 }
 
@@ -33,7 +34,7 @@ void Viewer::draw() {
              glColor4f(0., 1., 1., ghostPlanes[i]->getAlpha());
              ghostPlanes[i]->draw();
          }
-         curve.draw();
+         if(isDrawCurve) curve.draw();
      }
 
      if(isDrawMesh) mesh.drawCutMand();
@@ -176,8 +177,8 @@ void Viewer::initGhostPlanes(Movable s){
         ghostPlanes.push_back(p);
     }
 
-    connect(&(leftPlane->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);
-    connect(&(rightPlane->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);
+    //connect(&(leftPlane->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);
+    //connect(&(rightPlane->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);
     for(unsigned int i=0; i<ghostPlanes.size(); i++) connect(&(ghostPlanes[i]->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);        // connnect the ghost planes
 }
 
@@ -635,10 +636,10 @@ void Viewer::recieveFromFibulaMesh(std::vector<int> &planes, std::vector<Vec> ve
     Q_EMIT sendFibulaToMesh(verticies, triangles, colours, normals, nbColours);
 }
 
-void Viewer::toggleEditPlaneMode(){
-    leftPlane->toggleEditMode();
-    rightPlane->toggleEditMode();
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->toggleEditMode();
+void Viewer::toggleEditPlaneMode(bool b){
+    //leftPlane->toggleEditMode(b);
+    //rightPlane->toggleEditMode(b);
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->toggleEditMode(b);
     update();
 }
 
@@ -702,6 +703,21 @@ void Viewer::toggleEditFirstCorner(bool b){
 
 void Viewer::toggleEditEndCorner(bool b){
     poly.activateEndCornerManipulators(b);
+    update();
+}
+
+void Viewer::toggleDrawBoxes(){
+    poly.toggleDrawBoxes();
+    update();
+}
+
+void Viewer::toggleDrawPolyline(){
+    poly.toggleDrawLine();
+    update();
+}
+
+void Viewer::toggleDrawCurve(){
+    isDrawCurve = !isDrawCurve;
     update();
 }
 
