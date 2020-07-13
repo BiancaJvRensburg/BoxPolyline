@@ -78,7 +78,6 @@ protected:
     void computeVerticesNormals();
     void glTriangle(unsigned int i);
     void glTriangleSmooth(unsigned int i, std::vector <int> &coloursIndicies);
-    void glTriangleFibInMand(unsigned int i, std::vector <int> &coloursIndicies);
     void glTriangleFragment(unsigned int index, unsigned int i, int colour);
     void getColour(unsigned int vertex, std::vector <int> &coloursIndicies);
     void collectOneRing(std::vector<std::vector<unsigned int>> &oneRing);
@@ -124,13 +123,9 @@ protected:
 
     // The fibula in the manible
     std::vector<Vec3Df> fibInMandVerticies;
-    std::vector<Triangle> fibInMandTriangles;
     std::vector<int> fibInMandColour;       // Only the fibula bones will be coloured
     std::vector<Vec3Df> fibInMandNormals;
     int fibInMandNbColours;
-
-    std::vector<std::vector<Vec3Df>> fibulaFragmentVerticies;
-    std::vector<std::vector<Vec3Df>> fibulaFragmentNormals;
     std::vector<std::vector<Triangle>> fibulaFragmentTriangles;
 
     Side cuttingSide = Side::INTERIOR;

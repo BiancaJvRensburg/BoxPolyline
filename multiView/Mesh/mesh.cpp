@@ -127,19 +127,6 @@ void Mesh::glTriangleSmooth(unsigned int i, std::vector <int> &coloursIndicies){
    // glColor3f(1.0, 1.0, 1.0);
 }
 
-void Mesh::glTriangleFibInMand(unsigned int i, std::vector <int> &coloursIndicies){
-    const Triangle &t = fibInMandTriangles[i];
-
-    for(unsigned int j=0 ; j<3 ; j++){
-        getColour(t.getVertex(j), coloursIndicies);
-        glNormal(fibInMandNormals[t.getVertex(j)]*normalDirection);
-        glVertex(fibInMandVerticies[t.getVertex(j)]);
-    }
-
-    glColor4f(1.0, 1.0, 1.0, alphaTransparency);
-   // glColor3f(1.0, 1.0, 1.0);
-}
-
 void Mesh::glTriangleFragment(unsigned int index, unsigned int i, int colour){
     const Triangle &t = fibulaFragmentTriangles[index][i];
 
@@ -634,40 +621,26 @@ void Mesh::sendToMandible(){
 void Mesh::recieveInfoFromFibula(std::vector<int>& planes, std::vector<Vec> convertedVerticies, std::vector<std::vector<int>> &convertedTriangles, std::vector<int> &convertedColours, std::vector<Vec> convertedNormals, int nbColours){
     if(cuttingSide != Side::INTERIOR) return;
 
-    fibInMandTriangles.clear();
     fibInMandVerticies.clear();
     fibInMandColour.clear();
     fibInMandNormals.clear();
 
     fibInMandNbColours = nbColours;
-
-    fibulaFragmentNormals.clear();
     fibulaFragmentTriangles.clear();
-    fibulaFragmentVerticies.clear();
-
-    fibulaFragmentNormals.resize(nbColours);
     fibulaFragmentTriangles.resize(nbColours);
-    fibulaFragmentVerticies.resize(nbColours);
 
 
     for(unsigned int i=0; i<convertedVerticies.size(); i++){
         Vec3Df v = Vec3Df(static_cast<float>(convertedVerticies[i].x), static_cast<float>(convertedVerticies[i].y), static_cast<float>(convertedVerticies[i].z));
-
-        fibulaFragmentVerticies[planes[i]].push_back(v);
-
         fibInMandVerticies.push_back(v);
         fibInMandColour.push_back(convertedColours[i]);
 
         v = Vec3Df(static_cast<float>(convertedNormals[i].x), static_cast<float>(convertedNormals[i].y), static_cast<float>(convertedNormals[i].z));
         fibInMandNormals.push_back(v);
-
-        fibulaFragmentNormals[planes[i]].push_back(v);
     }
 
     for(unsigned int i=0; i<convertedTriangles.size(); i++){
         const Triangle &t = Triangle(static_cast<unsigned int>(convertedTriangles[i][0]), static_cast<unsigned int>(convertedTriangles[i][1]), static_cast<unsigned int>(convertedTriangles[i][2]));
-        fibInMandTriangles.push_back(t);
-
         unsigned int id = planes[convertedTriangles[i][0]];
         fibulaFragmentTriangles[id].push_back(t);
     }
@@ -718,11 +691,6 @@ void Mesh::draw()
             glTriangleSmooth(trianglesCut[i], coloursIndicies);
         }
 
-        /*for(unsigned int i=0; i<fibInMandTriangles.size(); i++){
-            glTriangleFibInMand(i, coloursIndicies);
-        }*/
-        //for(unsigned int i=0; i<fibulaFragmentTriangles.size(); i++) drawFragment(i);
-
         if(cuttingSide == Side::EXTERIOR){
             for(unsigned int i = 0 ; i < trianglesExtracted.size(); i++){
                 glTriangleSmooth(trianglesExtracted[i], coloursIndicies);
@@ -733,38 +701,11 @@ void Mesh::draw()
 
     glEnd();
 
-   /* glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
-
-    glPointSize(2.);
-    glBegin(GL_POINTS);
-    if(!isCut){
-        for(unsigned int i=0; i<triangles.size(); i++){
-            glTriangle(i);
-        }
-    }
-    else{
-        std::vector<int> coloursIndicies;
-        fillColours(coloursIndicies, planes.size()*2);
-        for(unsigned int i=0; i<trianglesCut.size(); i++){
-            glTriangleSmooth(trianglesCut[i], coloursIndicies);
-        }
-
-        for(unsigned int i=0; i<fibInMandTriangles.size(); i++){
-            glTriangleFibInMand(i, coloursIndicies);
-        }
-    }
-    glEnd();*/
-
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_DEPTH);
 }
 
 void Mesh::drawCut(){
-    /*glEnable(GL_DEPTH_TEST);
-    glEnable(GL_DEPTH);*/
-
-    //glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
-
     glBegin (GL_TRIANGLES);
     std::vector<int> coloursIndicies;
     fillColours(coloursIndicies, planes.size()*2);
@@ -774,11 +715,6 @@ void Mesh::drawCut(){
     }
 
     glEnd();
-
-    //glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
-
-    /*glDisable(GL_DEPTH_TEST);
-    glDisable(GL_DEPTH);*/
 }
 
 void Mesh::drawCutMand(){
