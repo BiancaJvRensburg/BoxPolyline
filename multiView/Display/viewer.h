@@ -56,7 +56,7 @@ Q_SIGNALS:
     void toUpdatePlaneOrientations(std::vector<Vec>&);
     void toRotatePolylineOnAxis(double);
     void planeMoved(double);
-    void sendFibulaToMesh(std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
+    void sendFibulaToMesh(std::vector<int>&, std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
     void cutFibula();
     void uncutFibula();
     void toReinitBox(unsigned int, std::vector<double>&);
@@ -118,6 +118,7 @@ protected:
     bool isCut;
     bool isPoly = false;
     bool isDrawMesh, isDrawCurve;
+    bool isFibula;
 
     int polyRotation;
 

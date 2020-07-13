@@ -11,6 +11,7 @@ Viewer::Viewer(QWidget *parent, StandardCamera *cam, int sliderMax) : QGLViewer(
     this->isDrawMesh = false;
     this->isDrawCurve = false;
     this->isPoly = false;
+    this->isFibula = false;
 }
 
 void Viewer::draw() {
@@ -34,6 +35,13 @@ void Viewer::draw() {
              glColor4f(0., 1., 1., ghostPlanes[i]->getAlpha());
              ghostPlanes[i]->draw();
          }
+
+         if(isCut && !isFibula){
+             for(unsigned int i=0; i<ghostPlanes.size()+1; i++){
+                 mesh.drawFragment(i);
+             }
+         }
+
          if(isDrawCurve) curve.draw();
      }
 
@@ -61,6 +69,12 @@ void Viewer::drawWithNames(){
             glPushName(i+2);
             glColor4f(0., 1., 1., ghostPlanes[i]->getAlpha());
             ghostPlanes[i]->draw();
+            glPopName();
+        }
+
+        for(unsigned int i=0; i<ghostPlanes.size()+1; i++){
+            glPushName(ghostPlanes.size()+2+i);
+            mesh.drawFragment(i);
             glPopName();
         }
 
@@ -672,12 +686,13 @@ void Viewer::recieveFromFibulaMesh(std::vector<int> &planes, std::vector<Vec> ve
         }
         else {
             int mandPlane = (planes[i]+2) / 2 - 2;
+            planes[i] = (planes[i]+2) / 2 - 1;
             normals[i] = poly.getWorldBoxTransform(ghostPlanes[static_cast<unsigned int>(mandPlane)]->getID(), normals[i]);
             verticies[i] = poly.getWorldBoxCoordinates(ghostPlanes[static_cast<unsigned int>(mandPlane)]->getID(), verticies[i]);
         }
     }
 
-    Q_EMIT sendFibulaToMesh(verticies, triangles, colours, normals, nbColours);
+    Q_EMIT sendFibulaToMesh(planes, verticies, triangles, colours, normals, nbColours);
 }
 
 void Viewer::toggleEditPlaneMode(bool b){
