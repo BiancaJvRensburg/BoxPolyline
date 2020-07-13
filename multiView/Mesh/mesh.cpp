@@ -144,13 +144,11 @@ void Mesh::glTriangleFragment(unsigned int index, unsigned int i, int colour){
     const Triangle &t = fibulaFragmentTriangles[index][i];
 
     for(unsigned int j=0 ; j<3 ; j++){
-        //getColour(t.getVertex(j), coloursIndicies);
-        glColor3d(1.,0,0);
         glNormal(fibInMandNormals[t.getVertex(j)]*normalDirection);
         glVertex(fibInMandVerticies[t.getVertex(j)]);
     }
 
-    glColor4f(1.0, 1.0, 1.0, alphaTransparency);
+    //glColor4f(1.0, 1.0, 1.0, alphaTransparency);
    // glColor3f(1.0, 1.0, 1.0);
 }
 
@@ -678,6 +676,10 @@ void Mesh::recieveInfoFromFibula(std::vector<int>& planes, std::vector<Vec> conv
 }
 
 void Mesh::drawFragment(unsigned int i){
+    std::vector <int> coloursIndicies;
+    fillColours(coloursIndicies, planes.size()*2);
+    getColour(fibulaFragmentTriangles[i][0].getVertex(0), coloursIndicies);
+
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_DEPTH);
 
