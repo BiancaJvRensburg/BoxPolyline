@@ -89,17 +89,12 @@ void Viewer::postSelection(const QPoint &point) {
   Vec selectedPoint = camera()->pointUnderPixel(point, found);
   selectedPoint -= 0.01f * dir;
 
-  if (selectedName() == -1)
-    QMessageBox::information(this, "No selection",
-                             "No object selected under pixel " +
-                                 QString::number(point.x()) + "," +
-                                 QString::number(point.y()));
-  else
-    QMessageBox::information(
-        this, "Selection",
-        QString::number(selectedName()) +
-            " selected under pixel " + QString::number(point.x()) + "," +
-            QString::number(point.y()));
+  int name = selectedName();
+
+  if(name == 0) leftPlane->toggleEditMode(true);
+  else if(name == 1) rightPlane->toggleEditMode(true);
+  else if(name < ghostPlanes.size() + 2) ghostPlanes[name-2]->toggleEditMode(true);
+  else if (name != -1) poly.toggleBoxManipulators(selectedName()-ghostPlanes.size()-1, true);
 }
 
 void Viewer::toUpdate(){
