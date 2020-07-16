@@ -20,6 +20,7 @@ MainWindow::MainWindow(QWidget *parent)
     StandardCamera *sc = new StandardCamera();
     skullViewer = new Viewer(this, sc, sliderMax);
 
+
     // The fibula viewer
     //QString fibulaFilename = "C:\\Users\\Medmax\\Documents\\Project\\Fibula_G.off";
     StandardCamera *scFibula = new StandardCamera();
@@ -199,10 +200,10 @@ void MainWindow::initEditFragmentsMenu(){
     radioFrag3 = new QRadioButton("Right", this);
     radioFragPlanes = new QRadioButton("Planes", this);
 
-    connect(radioFrag1, &QRadioButton::toggled, skullViewer, &Viewer::toggleEditBoxMode);
-    connect(radioFrag2, &QRadioButton::toggled, skullViewer, &Viewer::toggleEditFirstCorner);
-    connect(radioFrag3, &QRadioButton::toggled, skullViewer, &Viewer::toggleEditEndCorner);
-    connect(radioFragPlanes, &QPushButton::toggled, skullViewer, &Viewer::toggleEditPlaneMode);
+    connect(radioFrag1, &QRadioButton::toggled, this, &MainWindow::toEditBoxCentre);
+    connect(radioFrag2, &QRadioButton::toggled, this, &MainWindow::toEditBoxStart);
+    connect(radioFrag3, &QRadioButton::toggled, this, &MainWindow::toEditBoxEnd);
+    connect(radioFragPlanes, &QPushButton::toggled, this, &MainWindow::toEditPlane);
 
     QVBoxLayout *vbox = new QVBoxLayout;
 
@@ -212,6 +213,9 @@ void MainWindow::initEditFragmentsMenu(){
     vbox->addWidget(radioFrag3);
     vbox->addStretch(1);
     groupRadioBox->setLayout(vbox);
+
+    connect(skullViewer, &Viewer::editPlane, this, &MainWindow::editPlane);
+    connect(skullViewer, &Viewer::editBoxCentre, this, &MainWindow::editBoxCentre);
 
     connect(groupRadioBox, &QGroupBox::clicked, this, &MainWindow::setFragRadios);
 
@@ -299,6 +303,8 @@ void MainWindow::displayFragmentMenuButton(){
     /*editFragmentMenuButton->setVisible(true);
     editFragmentMenuButton->setChecked(true);*/
    //skullDockWidget->setVisible(false);
+    currentPlane = 0;
+    currentBox = 1;
 }
 
 void MainWindow::hideFragmentMenuButton(){
@@ -407,6 +413,50 @@ bool MainWindow::openJSON(Viewer *v){
 
     readJSON(loadDoc.object(), v);
     return true;
+}
+
+void MainWindow::editPlane(unsigned int i){
+    currentPlane = i;
+    radioFragPlanes->setChecked(true);
+    skullViewer->toggleEditPlaneMode(i, true);
+}
+
+void MainWindow::editBoxCentre(unsigned int i){
+    currentBox = i;
+    radioFrag1->setChecked(true);
+    skullViewer->toggleEditBoxMode(i, true);
+}
+
+void MainWindow::editBoxStart(unsigned int i){
+    currentBox = i;
+    radioFrag2->setChecked(true);
+    skullViewer->toggleEditFirstCorner(i, true);
+}
+
+void MainWindow::editBoxEnd(unsigned int i){
+    currentBox = i;
+    radioFrag3->setChecked(true);
+    skullViewer->toggleEditEndCorner(i, true);
+}
+
+void MainWindow::toEditPlane(bool b){
+    if(!b) skullViewer->toggleAllPlanes(b);
+    else skullViewer->toggleEditPlaneMode(currentPlane, b);
+}
+
+void MainWindow::toEditBoxCentre(bool b){
+    if(!b) skullViewer->toggleAllBoxes(b);
+    else skullViewer->toggleEditBoxMode(currentBox, b);
+}
+
+void MainWindow::toEditBoxStart(bool b){
+    if(!b) skullViewer->toggleAllFirstCorners(b);
+    else skullViewer->toggleEditFirstCorner(currentBox, b);
+}
+
+void MainWindow::toEditBoxEnd(bool b){
+    if(!b) skullViewer->toggleAllEndCorners(b);
+    else skullViewer->toggleEditEndCorner(currentBox, b);
 }
 
 void MainWindow::openMandJSON(){

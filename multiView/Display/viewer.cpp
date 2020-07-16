@@ -11,6 +11,7 @@ Viewer::Viewer(QWidget *parent, StandardCamera *cam, int sliderMax) : QGLViewer(
     this->isDrawMesh = false;
     this->isDrawCurve = false;
     this->isPoly = false;
+    this->isFibula = false;
 }
 
 void Viewer::draw() {
@@ -34,6 +35,13 @@ void Viewer::draw() {
              glColor4f(0., 1., 1., ghostPlanes[i]->getAlpha());
              ghostPlanes[i]->draw();
          }
+
+         if(isCut && !isFibula){
+             for(unsigned int i=0; i<ghostPlanes.size()+1; i++){
+                 mesh.drawFragment(i);
+             }
+         }
+
          if(isDrawCurve) curve.draw();
      }
 
@@ -42,6 +50,51 @@ void Viewer::draw() {
     if(isPoly) poly.draw();
 
     glPopMatrix();
+}
+
+void Viewer::drawWithNames(){
+    if(isCurve){
+        glPushName(0);
+        glColor4f(0., 1., 0., leftPlane->getAlpha());
+        leftPlane->draw();
+        glPopName();
+
+        glPushName(1);
+        glColor4f(1., 0, 0., leftPlane->getAlpha());
+        rightPlane->draw();
+        glPopName();
+
+
+        for(unsigned int i=0; i<ghostPlanes.size(); i++){
+            glPushName(i+2);
+            glColor4f(0., 1., 1., ghostPlanes[i]->getAlpha());
+            ghostPlanes[i]->draw();
+            glPopName();
+        }
+
+        for(unsigned int i=0; i<ghostPlanes.size()+1; i++){
+            glPushName(ghostPlanes.size()+2+i);
+            mesh.drawFragment(i);
+            glPopName();
+        }
+
+    }
+}
+
+void Viewer::postSelection(const QPoint &point) {
+  Vec orig, dir;
+  camera()->convertClickToLine(point, orig, dir);
+
+  bool found;
+  Vec selectedPoint = camera()->pointUnderPixel(point, found);
+  selectedPoint -= 0.01f * dir;
+
+  int name = selectedName();
+
+  //if(name == 0) leftPlane->toggleEditMode(true);
+  //else if(name == 1) rightPlane->toggleEditMode(true);
+  if(name < ghostPlanes.size() + 2) Q_EMIT editPlane(name-2); //ghostPlanes[name-2]->toggleEditMode(true);
+  else if (name != -1) Q_EMIT editBoxCentre(name-ghostPlanes.size()-1);// poly.toggleBoxManipulators(name-ghostPlanes.size()-1, true);
 }
 
 void Viewer::toUpdate(){
@@ -628,18 +681,20 @@ void Viewer::recieveFromFibulaMesh(std::vector<int> &planes, std::vector<Vec> ve
         }
         else {
             int mandPlane = (planes[i]+2) / 2 - 2;
+            planes[i] = (planes[i]+2) / 2 - 1;
             normals[i] = poly.getWorldBoxTransform(ghostPlanes[static_cast<unsigned int>(mandPlane)]->getID(), normals[i]);
             verticies[i] = poly.getWorldBoxCoordinates(ghostPlanes[static_cast<unsigned int>(mandPlane)]->getID(), verticies[i]);
         }
     }
 
-    Q_EMIT sendFibulaToMesh(verticies, triangles, colours, normals, nbColours);
+    Q_EMIT sendFibulaToMesh(planes, verticies, triangles, colours, normals, nbColours);
 }
 
-void Viewer::toggleEditPlaneMode(bool b){
+void Viewer::toggleEditPlaneMode(unsigned int id, bool b){
     //leftPlane->toggleEditMode(b);
     //rightPlane->toggleEditMode(b);
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->toggleEditMode(b);
+    //for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->toggleEditMode(b);
+    ghostPlanes[id]->toggleEditMode(b);
     update();
 }
 
@@ -691,17 +746,37 @@ void Viewer::setBoxToCornerManipulator(unsigned int id, Vec manipulatorPosition)
     update();
 }
 
-void Viewer::toggleEditBoxMode(bool b){
+void Viewer::toggleEditBoxMode(unsigned int id, bool b){
+    poly.toggleBoxManipulators(id, b);
+    update();
+}
+
+void Viewer::toggleEditFirstCorner(unsigned int id, bool b){
+    poly.toggleFirstCornerManipulators(id, b);
+    update();
+}
+
+void Viewer::toggleEditEndCorner(unsigned int id, bool b){
+    poly.toggleEndCornerManipulators(id, b);
+    update();
+}
+
+void Viewer::toggleAllPlanes(bool b){
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->toggleEditMode(b);
+    update();
+}
+
+void Viewer::toggleAllBoxes(bool b){
     poly.activateBoxManipulators(b);
     update();
 }
 
-void Viewer::toggleEditFirstCorner(bool b){
+void Viewer::toggleAllFirstCorners(bool b){
     poly.activateFirstCornerManipulators(b);
     update();
 }
 
-void Viewer::toggleEditEndCorner(bool b){
+void Viewer::toggleAllEndCorners(bool b){
     poly.activateEndCornerManipulators(b);
     update();
 }

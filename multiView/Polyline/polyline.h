@@ -74,8 +74,11 @@ public:
     void setManipulatorsToBoxes();
     void setCornerManipulatorsToBoxes();
     void activateBoxManipulators(const bool &b);
+    void toggleBoxManipulators(unsigned int i,const bool &b);
     void activateFirstCornerManipulators(const bool &b);
+    void toggleFirstCornerManipulators(unsigned int i,const bool &b);
     void activateEndCornerManipulators(const bool &b);
+    void toggleEndCornerManipulators(unsigned int i,const bool &b);
     void toggleDrawBoxes(){ isDrawBoxes = !isDrawBoxes; }
     void toggleDrawLine(){ isDrawLine = !isDrawLine; }
 

@@ -3,6 +3,7 @@
 ViewerFibula::ViewerFibula(QWidget *parent, StandardCamera *camera, int sliderMax, int fibulaOffset) : Viewer (parent, camera, sliderMax)
 {
     polyRotation = 0;
+    isFibula = true;
 }
 
 void ViewerFibula::initSignals(){

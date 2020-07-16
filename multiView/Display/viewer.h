@@ -38,12 +38,16 @@ public Q_SLOTS:
     void toggleWireframe();
     void recieveFromFibulaMesh(std::vector<int>&, std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
     void sendNewNorms();
-    void toggleEditPlaneMode(bool b);
     void setBoxToManipulator(unsigned int, Vec);
     void setBoxToCornerManipulator(unsigned int, Vec);
-    void toggleEditBoxMode(bool b);
-    void toggleEditFirstCorner(bool b);
-    void toggleEditEndCorner(bool b);
+    void toggleEditPlaneMode(unsigned int id, bool b);
+    void toggleEditBoxMode(unsigned int id, bool b);
+    void toggleEditFirstCorner(unsigned int id, bool b);
+    void toggleEditEndCorner(unsigned int id, bool b);
+    void toggleAllPlanes(bool b);
+    void toggleAllBoxes(bool b);
+    void toggleAllFirstCorners(bool b);
+    void toggleAllEndCorners(bool b);
     void toggleDrawPolyline();
     void toggleDrawBoxes();
     void toggleDrawCurve();
@@ -56,16 +60,22 @@ Q_SIGNALS:
     void toUpdatePlaneOrientations(std::vector<Vec>&);
     void toRotatePolylineOnAxis(double);
     void planeMoved(double);
-    void sendFibulaToMesh(std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
+    void sendFibulaToMesh(std::vector<int>&, std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
     void cutFibula();
     void uncutFibula();
     void toReinitBox(unsigned int, std::vector<double>&);
     void toReinitPoly(unsigned int);
     void enableFragmentEditing();
     void disableFragmentEditing();
+    void editPlane(unsigned int);
+    void editBoxCentre(unsigned int);
+    void editBoxStart(unsigned int);
+    void editBoxEnd(unsigned int);
 
 protected:
     void draw();
+    void drawWithNames();
+    void postSelection(const QPoint &point);
     void init();
     virtual void initSignals();
     virtual void constructCurve();
@@ -116,6 +126,7 @@ protected:
     bool isCut;
     bool isPoly = false;
     bool isDrawMesh, isDrawCurve;
+    bool isFibula;
 
     int polyRotation;
 

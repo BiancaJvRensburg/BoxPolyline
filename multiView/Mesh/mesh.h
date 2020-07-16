@@ -37,6 +37,7 @@ public:
     Vec3Df& getSmoothVertex(unsigned int i){ return smoothedVerticies[i]; }
 
     void draw();
+    void drawFragment(unsigned int i);
 
     void recomputeNormals();
     void update();
@@ -66,7 +67,7 @@ public:
     std::vector<Vec> getMinNormalForPlane(unsigned int index, unsigned int neighbourIndex);
 
 public Q_SLOTS:
-    void recieveInfoFromFibula(std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
+    void recieveInfoFromFibula(std::vector<int>&, std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
 
 Q_SIGNALS:
     void sendInfoToManible(std::vector<int>&, std::vector<Vec>&, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>&, int);
@@ -77,7 +78,7 @@ protected:
     void computeVerticesNormals();
     void glTriangle(unsigned int i);
     void glTriangleSmooth(unsigned int i, std::vector <int> &coloursIndicies);
-    void glTriangleFibInMand(unsigned int i, std::vector <int> &coloursIndicies);
+    void glTriangleFragment(unsigned int index, unsigned int i, int colour);
     void getColour(unsigned int vertex, std::vector <int> &coloursIndicies);
     void collectOneRing(std::vector<std::vector<unsigned int>> &oneRing);
     void collectTriangleOneRing(std::vector<std::vector<unsigned int>> &oneTriangleRing);
@@ -122,10 +123,10 @@ protected:
 
     // The fibula in the manible
     std::vector<Vec3Df> fibInMandVerticies;
-    std::vector<Triangle> fibInMandTriangles;
     std::vector<int> fibInMandColour;       // Only the fibula bones will be coloured
     std::vector<Vec3Df> fibInMandNormals;
     int fibInMandNbColours;
+    std::vector<std::vector<Triangle>> fibulaFragmentTriangles;
 
     Side cuttingSide = Side::INTERIOR;
     bool isTransfer = true;

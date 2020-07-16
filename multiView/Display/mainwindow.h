@@ -44,6 +44,14 @@ private Q_SLOTS:
     void displayEditFragmentMenu();
     void displayFragmentMenuButton();
     void hideFragmentMenuButton();
+    void editPlane(unsigned int);
+    void editBoxCentre(unsigned int);
+    void editBoxStart(unsigned int);
+    void editBoxEnd(unsigned int);
+    void toEditPlane(bool);
+    void toEditBoxCentre(bool);
+    void toEditBoxStart(bool);
+    void toEditBoxEnd(bool);
 
 private:
     int sliderMax = 100;
@@ -54,6 +62,7 @@ private:
     QPushButton *editMenuButton, *editFragmentMenuButton, *toggleDrawMeshButton;
     bool isOpenMand = false;
     bool isOpenFib = false;
+    unsigned int currentBox, currentPlane;
 };
 
 #endif // MAINWINDOW_H

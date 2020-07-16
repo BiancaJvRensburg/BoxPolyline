@@ -283,6 +283,18 @@ void Polyline::activateEndCornerManipulators(const bool &b){
     for(unsigned int i=3; i<cornerManipulators.size()-2; i+=2) cornerManipulators[i]->setState(b);
 }
 
+void Polyline::toggleBoxManipulators(unsigned int i, const bool &b){
+    boxManipulators[i]->setState(b);
+}
+
+void Polyline::toggleFirstCornerManipulators(unsigned int i, const bool &b){
+    cornerManipulators[i*2]->setState(b);
+}
+
+void Polyline::toggleEndCornerManipulators(unsigned int i, const bool &b){
+    cornerManipulators[i*2+1]->setState(b);
+}
+
 // Update the points locations without updating their orientations
 void Polyline::updatePoints(const std::vector<Vec> &newPoints){
     points.clear();
