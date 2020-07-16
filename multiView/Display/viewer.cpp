@@ -909,6 +909,12 @@ void Viewer::resetState(SavedState s){
         poly.setBoxToManipulatorOrientation(i);
     }
     poly.setManipulatorsToBoxes();
+
+    sendNewNorms();
+    std::vector<double> distances;
+    poly.getDistances(distances);
+    Q_EMIT toReinitBox(0, distances);       // TODO the id index isn't currently used
+    update();
 }
 
 void Viewer::manipulatorReleased(){
