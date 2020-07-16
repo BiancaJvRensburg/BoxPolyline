@@ -349,7 +349,10 @@ void MainWindow::initToolBars () {
     QToolBar *fileToolBar = new QToolBar(this);
     fileToolBar->addActions(fileActionGroup->actions());
 
-    loadedMeshes = new QWidget();
+    loadedMeshes = new QDockWidget("Cutting Controls");
+    loadedMeshes->setFeatures(QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetMovable);
+    loadedMeshes->setVisible(false);
+    QWidget *controlWidget = new QWidget();
     QHBoxLayout *loadedMeshesLayout = new QHBoxLayout();
 
     QPushButton *cutMeshAction = new QPushButton("Cut", this);
@@ -374,11 +377,13 @@ void MainWindow::initToolBars () {
     loadedMeshesLayout->addWidget(cutMeshAction);
     loadedMeshesLayout->addWidget(uncutMeshAction);
     loadedMeshesLayout->addWidget(editFragmentMenuButton);
-    loadedMeshes->setLayout(loadedMeshesLayout);
-    // loadedMeshes->setVisible(false);
+    controlWidget->setLayout(loadedMeshesLayout);
+    loadedMeshes->setWidget(controlWidget);
 
     fileToolBar->addWidget(editMenuButton);
-    fileToolBar->addWidget(loadedMeshes);
+    //fileToolBar->addWidget(loadedMeshes);
+
+    this->addDockWidget(Qt::TopDockWidgetArea, loadedMeshes);
 
     addToolBar(fileToolBar);
 }
@@ -418,24 +423,28 @@ bool MainWindow::openJSON(Viewer *v){
 void MainWindow::editPlane(unsigned int i){
     currentPlane = i;
     radioFragPlanes->setChecked(true);
+    toEditPlane(false);
     skullViewer->toggleEditPlaneMode(i, true);
 }
 
 void MainWindow::editBoxCentre(unsigned int i){
     currentBox = i;
     radioFrag1->setChecked(true);
+    toEditBoxCentre(false);
     skullViewer->toggleEditBoxMode(i, true);
 }
 
 void MainWindow::editBoxStart(unsigned int i){
     currentBox = i;
     radioFrag2->setChecked(true);
+    toEditBoxStart(false);
     skullViewer->toggleEditFirstCorner(i, true);
 }
 
 void MainWindow::editBoxEnd(unsigned int i){
     currentBox = i;
     radioFrag3->setChecked(true);
+    toEditBoxEnd(false);
     skullViewer->toggleEditEndCorner(i, true);
 }
 
@@ -473,8 +482,9 @@ void MainWindow::openFibJSON(){
 
 void MainWindow::filesOpened(){
     if(isOpenMand && isOpenFib){
-        //loadedMeshes->setVisible(true);
+        loadedMeshes->setVisible(true);
         skullDockWidget->setVisible(true);
+        update();
     }
 }
 

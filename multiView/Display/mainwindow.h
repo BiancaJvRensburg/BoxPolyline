@@ -58,7 +58,7 @@ private:
     int fibulaOffsetMax;
     QRadioButton *radioFrag1, *radioFrag2, *radioFrag3, *radioFragPlanes;
     QGroupBox *groupRadioBox;
-    QWidget *loadedMeshes;
+    QDockWidget *loadedMeshes;
     QPushButton *editMenuButton, *editFragmentMenuButton, *toggleDrawMeshButton;
     bool isOpenMand = false;
     bool isOpenFib = false;
