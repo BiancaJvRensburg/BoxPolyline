@@ -295,7 +295,7 @@ void MainWindow::setFragRadios(){
         radioFrag2->setAutoExclusive(true);
         radioFrag3->setAutoExclusive(true);
         radioFragPlanes->setAutoExclusive(true);
-        radioFragPlanes->setChecked(true);
+        //radioFragPlanes->setChecked(true);
     }
 }
 
@@ -422,6 +422,7 @@ bool MainWindow::openJSON(Viewer *v){
 
 void MainWindow::editPlane(unsigned int i){
     currentPlane = i;
+    groupRadioBox->setChecked(true);
     radioFragPlanes->setChecked(true);
     toEditPlane(false);
     skullViewer->toggleEditPlaneMode(i, true);
@@ -429,6 +430,7 @@ void MainWindow::editPlane(unsigned int i){
 
 void MainWindow::editBoxCentre(unsigned int i){
     currentBox = i;
+    groupRadioBox->setChecked(true);
     radioFrag1->setChecked(true);
     toEditBoxCentre(false);
     skullViewer->toggleEditBoxMode(i, true);
@@ -436,6 +438,7 @@ void MainWindow::editBoxCentre(unsigned int i){
 
 void MainWindow::editBoxStart(unsigned int i){
     currentBox = i;
+    groupRadioBox->setChecked(true);
     radioFrag2->setChecked(true);
     toEditBoxStart(false);
     skullViewer->toggleEditFirstCorner(i, true);
@@ -443,6 +446,8 @@ void MainWindow::editBoxStart(unsigned int i){
 
 void MainWindow::editBoxEnd(unsigned int i){
     currentBox = i;
+    groupRadioBox->setChecked(true);
+    setFragRadios();
     radioFrag3->setChecked(true);
     toEditBoxEnd(false);
     skullViewer->toggleEditEndCorner(i, true);
