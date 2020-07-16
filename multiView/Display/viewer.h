@@ -7,6 +7,7 @@
 #include "Curve/curve.h"
 #include "Polyline/polyline.h"
 #include "Mesh/mesh.h"
+#include "Tools/savedstate.h"
 
 using namespace qglviewer;
 
@@ -38,15 +39,22 @@ public Q_SLOTS:
     void toggleWireframe();
     void recieveFromFibulaMesh(std::vector<int>&, std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
     void sendNewNorms();
-    void toggleEditPlaneMode(bool b);
     void setBoxToManipulator(unsigned int, Vec);
     void setBoxToCornerManipulator(unsigned int, Vec);
-    void toggleEditBoxMode(bool b);
-    void toggleEditFirstCorner(bool b);
-    void toggleEditEndCorner(bool b);
+    void toggleEditPlaneMode(unsigned int id, bool b);
+    void toggleEditBoxMode(unsigned int id, bool b);
+    void toggleEditFirstCorner(unsigned int id, bool b);
+    void toggleEditEndCorner(unsigned int id, bool b);
+    void toggleAllPlanes(bool b);
+    void toggleAllBoxes(bool b);
+    void toggleAllFirstCorners(bool b);
+    void toggleAllEndCorners(bool b);
     void toggleDrawPolyline();
     void toggleDrawBoxes();
     void toggleDrawCurve();
+    void saveCurrentState();
+    void manipulatorReleased();
+    void keyPressEvent(QKeyEvent *e);
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
@@ -63,6 +71,10 @@ Q_SIGNALS:
     void toReinitPoly(unsigned int);
     void enableFragmentEditing();
     void disableFragmentEditing();
+    void editPlane(unsigned int);
+    void editBoxCentre(unsigned int);
+    void editBoxStart(unsigned int);
+    void editBoxEnd(unsigned int);
 
 protected:
     void draw();
@@ -92,6 +104,8 @@ protected:
     void changePlaneDisplaySize(double width, double height);
     Vec projectBoxToPlane(Plane &p, Plane &endP, double& distShift);
     double euclideanDistance(const Vec &a, const Vec &b);
+    bool isViolatesContraint();
+    void restoreLastState();
 
 
     double angle(Vec a, Vec b);
@@ -124,6 +138,8 @@ protected:
 
     std::vector<Vec> segmentPoints;
 
+    std::deque< SavedState > Q;     // cntrl z
+
     // temporary for testing
    // std::vector<Vec> testPoints;
     Vec camCentre;
@@ -137,6 +153,8 @@ private:
     Plane& getPlaneFromID(unsigned int id);
     Plane& getOppositePlaneFromID(unsigned int id);
     double maxDouble(double a, double b);
+    SavedState saveState();
+    void resetState(SavedState s);
 
 };
 

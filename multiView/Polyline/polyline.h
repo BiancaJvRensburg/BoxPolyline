@@ -28,6 +28,8 @@ public:
     Vec getMeshBoxHighPoint(unsigned int i){ return getWorldCoordinates(boxes[i].getHighPoint()); }
     Vec getMeshBoxHighEnd(unsigned int i){ return getWorldCoordinates(boxes[i].getHighEnd()); }
 
+    std::vector<Box>& getBoxes(){ return boxes; }
+
     void setBoxLocation(unsigned int i, const Vec& v){ boxes[i].setPosition(v); }
 
     const double& getBoxHeight(unsigned int i) { return boxes[i].getHeight(); }
@@ -69,9 +71,11 @@ public:
     void toggleIsWireframe(){ isWireframe = !isWireframe; }
 
     void setBoxToManipulator(unsigned int id, Vec manipulatorPosition);
+    void setBoxToManipulatorOrientation(unsigned int id);
      void setBoxToCornerManipulator(unsigned int id, Vec manipulatorPosition);
     void setBoxToProjectionPoint(unsigned int id, Vec projPoint);
     void setManipulatorsToBoxes();
+    void setManipulatorOrientations(std::vector<Vec> &x, std::vector<Vec> &y, std::vector<Vec> &z);
     void setCornerManipulatorsToBoxes();
     void activateBoxManipulators(const bool &b);
     void toggleBoxManipulators(unsigned int i,const bool &b);

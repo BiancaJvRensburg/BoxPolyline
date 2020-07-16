@@ -258,3 +258,9 @@ bool Plane::isIntersectionPlane(Vec &v0, Vec &v1, Vec &v2, Vec &v3){
 
     return false;   // if we haven't found a line that meets the criteria
 }
+
+Quaternion Plane::getOrientation(){
+    double a, x, y, z;
+    cp.getFrame().getOrientation(a,x,y,z);
+     return Quaternion(a,x,y,z);
+}

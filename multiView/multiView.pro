@@ -12,6 +12,7 @@ HEADERS  = \
     Planes/plane.h \
     Tools/point3.h \
     Polyline/polyline.h \
+    Tools/savedstate.h \
     Tools/standardcamera.h \
     Tools/triangle.h \
     Tools/vec3D.h \
