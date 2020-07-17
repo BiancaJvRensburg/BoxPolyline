@@ -319,6 +319,17 @@ void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
     Q_EMIT polylineBent(relativeNorms, distances);      // Send the new normals and distances to the fibula TODO only send over the info for the corresponding point
 }
 
+void Viewer::fakeBend(){
+    std::vector<Vec> relativeNorms;
+    getPlaneBoxOrientations(relativeNorms);
+
+    // Get the new distances between each point in the mandible
+    std::vector<double> distances;
+    poly.getDistances(distances);
+
+    Q_EMIT polylineBent(relativeNorms, distances);
+}
+
 void Viewer::bendPolylineManually(unsigned int pointIndex, Vec v){
     bool isOriginallyCut = isCut;
     if(isOriginallyCut) uncut();

@@ -56,11 +56,12 @@ public Q_SLOTS:
     void manipulatorReleasedPlane();
     void manipulatorReleasedBox();
     void keyPressEvent(QKeyEvent *e);
+    void fakeBend();
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
-    void polylineBent(std::vector<Vec>&, const std::vector<double>&);
-    void constructPoly(const std::vector<double>&, const std::vector<Vec>&);
+    void polylineBent(std::vector<Vec>&, std::vector<double>&);
+    void constructPoly(std::vector<double>&, const std::vector<Vec>&);
     void toUpdateDistances(std::vector<double>&);
     void toUpdatePlaneOrientations(std::vector<Vec>&);
     void toRotatePolylineOnAxis(double);
