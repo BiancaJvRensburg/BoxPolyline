@@ -2,6 +2,8 @@
 #include "Mesh/meshreader.h"
 #include <QGLViewer/manipulatedFrame.h>
 
+static unsigned int max_operation_saved = 10;
+
 Viewer::Viewer(QWidget *parent, StandardCamera *cam, int sliderMax) : QGLViewer(parent) {
     Camera *c = camera();       // switch the cameras
     setCamera(c);
@@ -232,7 +234,11 @@ void Viewer::initGhostPlanes(Movable s){
 
     //connect(&(leftPlane->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);
     //connect(&(rightPlane->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) connect(&(ghostPlanes[i]->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);        // connnect the ghost planes
+    for(unsigned int i=0; i<ghostPlanes.size(); i++) {
+        connect(&(ghostPlanes[i]->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);
+        connect(&(ghostPlanes[i]->getManipulator()), &SimpleManipulator::mouseReleased, this, &Viewer::manipulatorReleasedPlane);
+    }
+    // connnect the ghost planes
 }
 
 void Viewer::updateCamera(const Vec& center, float radius){
@@ -435,8 +441,14 @@ void Viewer::cutMesh(){
 
     cut();
 
-    for(unsigned int i=1; i<poly.getNbPoints()-2; i++) connect(poly.getBoxManipulator(i), &SimpleManipulator::moved, this, &Viewer::setBoxToManipulator);
-    for(unsigned int i=1; i<(poly.getNbPoints()-2)*2; i++) connect(poly.getCornerManipulator(i), &SimpleManipulator::moved, this, &Viewer::setBoxToCornerManipulator);
+    for(unsigned int i=1; i<poly.getNbPoints()-2; i++) {
+        connect(poly.getBoxManipulator(i), &SimpleManipulator::moved, this, &Viewer::setBoxToManipulator);
+        connect(poly.getBoxManipulator(i), &SimpleManipulator::mouseReleased, this, &Viewer::manipulatorReleasedBox);
+    }
+    for(unsigned int i=1; i<(poly.getNbPoints()-2)*2; i++) {
+        connect(poly.getCornerManipulator(i), &SimpleManipulator::moved, this, &Viewer::setBoxToCornerManipulator);
+        connect(poly.getCornerManipulator(i), &SimpleManipulator::mouseReleased, this, &Viewer::manipulatorReleasedPlane);
+    }
 
     Q_EMIT enableFragmentEditing();
     update();
@@ -830,4 +842,89 @@ double Viewer::maxDouble(double a, double b){
 
 double Viewer::euclideanDistance(const Vec &a, const Vec &b){
     return sqrt(pow(a.x-b.x, 2.) + pow(a.y-b.y, 2.) + pow(a.z-b.z, 2.));
+}
+
+bool Viewer::isViolatesContraint(){
+
+}
+
+void Viewer::saveCurrentState(Modification m){
+    if( Q.size() == max_operation_saved )
+        Q.pop_front();
+
+    Q.push_back(saveState(m));
+}
+
+SavedState Viewer::saveState(Modification m){
+    SavedState s = SavedState(m);
+    s.addPlanes(ghostPlanes);
+    s.addBoxes(poly.getBoxes());
+    return s;
+}
+
+
+void Viewer::restoreLastState(){
+
+    if( Q.size() > 0 ){
+
+        if(Q.size() > 1) Q.pop_back();
+
+        resetState(Q.back());
+    }
+
+}
+
+void Viewer::resetState(SavedState s){
+    std::vector<Vec> bX, bY, bZ, bPos, pPos;
+    std::vector<double> bl;
+    std::vector<Quaternion> pOrient;
+    Modification m = s.getModification();
+
+    if(s.getModification()==Modification::PLANE){
+        s.getPlanePositions(pPos);
+        s.getPlaneOrientations(pOrient);
+        for(unsigned int i=0; i<ghostPlanes.size(); i++){
+            ghostPlanes[i]->setPosition(pPos[i]);
+            ghostPlanes[i]->setOrientation(pOrient[i]);
+        }
+        poly.setPointsToGhostPlanes(pPos);
+    }
+
+    s.getBoxLengths(bl);
+    s.getBoxPositions(bPos);
+    s.getBoxXOrientations(bX);
+    s.getBoxYOrientations(bY);
+    s.getBoxZOrientations(bZ);
+
+    for(unsigned int i=0; i<bl.size(); i++){
+        poly.setBoxLocation(i, bPos[i]);
+        poly.adjustBoxLength(i, bl[i]);
+        poly.setManipulatorOrientations(bX, bY, bZ);
+        poly.setBoxToManipulatorOrientation(i);
+    }
+    poly.setManipulatorsToBoxes();
+
+    sendNewNorms();
+    std::vector<double> distances;
+    poly.getDistances(distances);
+    Q_EMIT toReinitBox(0, distances);       // TODO the id index isn't currently used
+    update();
+}
+
+void Viewer::manipulatorReleasedPlane(){
+    saveCurrentState(Modification::PLANE);
+}
+
+void Viewer::manipulatorReleasedBox(){
+    saveCurrentState(Modification::BOX);
+}
+
+void Viewer::keyPressEvent(QKeyEvent *e)
+{
+    switch (e->key())
+    {
+    case Qt::Key_Z :
+        if(e->modifiers() & Qt::ControlModifier) restoreLastState(); update(); break;
+    default : QGLViewer::keyPressEvent(e);
+    }
 }

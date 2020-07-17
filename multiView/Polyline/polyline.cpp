@@ -207,6 +207,13 @@ void Polyline::setBoxToManipulator(unsigned int id, Vec manipulatorPosition){
 
 }
 
+void Polyline::setBoxToManipulatorOrientation(unsigned int id){
+    Vec x,y,z;
+    boxManipulators[id]->getOrientation(x,y,z);
+    boxes[id].setFrameFromBasis(x,y,z);
+    setCornerManipulatorsToBoxes();
+}
+
 void Polyline::setBoxToCornerManipulator(unsigned int id, Vec manipulatorPosition){
     //if(id%2==0) boxes[id/2].setPosition(manipulatorPosition);       // TODO block the end and recalculate the box
     //else boxes[id/2].setPosition(p);
@@ -246,6 +253,14 @@ void Polyline::setManipulatorsToBoxes(){
 
        Vec p = getMeshBoxPoint(i) + boxes[i].getLength()/2. * getWorldBoxTransform(i, boxes[i].getTangent()) + boxes[i].getHeight()/2. * getWorldBoxTransform(i, boxes[i].getBinormal()) + boxes[i].getWidth()/2. * getWorldBoxTransform(i, boxes[i].getNormal());
        boxManipulators[i]->setOrigin(p);
+    }
+}
+
+void Polyline::setManipulatorOrientations(std::vector<Vec> &x, std::vector<Vec> &y, std::vector<Vec> &z){
+    for(unsigned int i=0; i< x.size(); i++){
+        boxManipulators[i]->setRepX(x[i]);
+        boxManipulators[i]->setRepY(y[i]);
+        boxManipulators[i]->setRepZ(z[i]);
     }
 }
 
@@ -516,4 +531,11 @@ void Polyline::lowerPolyline(Vec localDirection, double distance){
 
 void Polyline::adjustBoxLength(unsigned int i, double &distShift){
     boxes[i].setLength(distShift);
+}
+
+// Set the polyline points to correspond to the ghost planes. This doesn't update anything. Used exclusively for cntrl-z
+void Polyline::setPointsToGhostPlanes(std::vector<Vec> &planePositions){
+    for(unsigned int i=0; i<planePositions.size(); i++){
+        points[i+2] = planePositions[i];
+    }
 }

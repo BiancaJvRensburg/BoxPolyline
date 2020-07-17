@@ -7,6 +7,7 @@
 #include "Curve/curve.h"
 #include "Polyline/polyline.h"
 #include "Mesh/mesh.h"
+#include "Tools/savedstate.h"
 
 using namespace qglviewer;
 
@@ -51,6 +52,10 @@ public Q_SLOTS:
     void toggleDrawPolyline();
     void toggleDrawBoxes();
     void toggleDrawCurve();
+    void saveCurrentState(Modification m);
+    void manipulatorReleasedPlane();
+    void manipulatorReleasedBox();
+    void keyPressEvent(QKeyEvent *e);
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
@@ -100,6 +105,8 @@ protected:
     void changePlaneDisplaySize(double width, double height);
     Vec projectBoxToPlane(Plane &p, Plane &endP, double& distShift);
     double euclideanDistance(const Vec &a, const Vec &b);
+    bool isViolatesContraint();
+    void restoreLastState();
 
 
     double angle(Vec a, Vec b);
@@ -132,6 +139,8 @@ protected:
 
     std::vector<Vec> segmentPoints;
 
+    std::deque< SavedState > Q;     // cntrl z
+
     // temporary for testing
    // std::vector<Vec> testPoints;
     Vec camCentre;
@@ -145,6 +154,8 @@ private:
     Plane& getPlaneFromID(unsigned int id);
     Plane& getOppositePlaneFromID(unsigned int id);
     double maxDouble(double a, double b);
+    SavedState saveState(Modification m);
+    void resetState(SavedState s);
 
 };
 

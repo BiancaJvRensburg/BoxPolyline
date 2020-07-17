@@ -29,6 +29,9 @@ public:
         cp.getFrame().setOrientation(q);
         setManipulatorToOrientation();
     }
+
+    Quaternion getOrientation();
+
     Quaternion fromRotatedBasis(Vec x, Vec y, Vec z);
     void setFrameFromBasis(Vec x, Vec y, Vec z);
     void setDisplayDimensions(double height, double width);
