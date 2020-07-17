@@ -404,18 +404,10 @@ void ViewerFibula::tryOffsetAngle(){
 
 void ViewerFibula::slidePolyline(int pos){
     polylineOffset = pos + 0.001;
-    std::vector<double> d(saveDistances.size());
 
-    uncut();
-    Q_EMIT requestFakeBend();
-    cut();
-
-    //for(unsigned int i=0; i<d.size(); i++) d[i] = saveDistances[i];
-    //bendPolylineNormals( d);
-
-   /* uncut();
-    setDistances(d);     // Reset the distances
-    reprojectToMesh();
-    Q_EMIT requestNewNorms();
-    cut();*/
+    if(isCut){
+        uncut();
+        Q_EMIT requestFakeBend();
+        cut();
+    }
 }
