@@ -156,6 +156,7 @@ private:
     double maxDouble(double a, double b);
     SavedState saveState(Modification m);
     void resetState(SavedState s);
+    void resetUndoQueue();
 
 };
 

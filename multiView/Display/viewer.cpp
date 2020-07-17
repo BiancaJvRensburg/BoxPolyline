@@ -451,6 +451,7 @@ void Viewer::cutMesh(){
     }
 
     Q_EMIT enableFragmentEditing();
+    saveCurrentState(Modification::PLANE);
     update();
 }
 
@@ -463,6 +464,8 @@ void Viewer::uncutMesh(){
 
     Q_EMIT disableFragmentEditing();
     //update();
+
+    resetUndoQueue();
 }
 
 void Viewer::moveLeftPlane(int position){
@@ -845,7 +848,7 @@ double Viewer::euclideanDistance(const Vec &a, const Vec &b){
 }
 
 bool Viewer::isViolatesContraint(){
-
+    return false;
 }
 
 void Viewer::saveCurrentState(Modification m){
@@ -878,7 +881,6 @@ void Viewer::resetState(SavedState s){
     std::vector<Vec> bX, bY, bZ, bPos, pPos;
     std::vector<double> bl;
     std::vector<Quaternion> pOrient;
-    Modification m = s.getModification();
 
     if(s.getModification()==Modification::PLANE){
         s.getPlanePositions(pPos);
@@ -909,6 +911,10 @@ void Viewer::resetState(SavedState s){
     poly.getDistances(distances);
     Q_EMIT toReinitBox(0, distances);       // TODO the id index isn't currently used
     update();
+}
+
+void Viewer::resetUndoQueue(){
+    Q.clear();
 }
 
 void Viewer::manipulatorReleasedPlane(){
