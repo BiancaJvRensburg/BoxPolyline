@@ -193,6 +193,8 @@ void Polyline::setBoxToManipulator(unsigned int id, Vec manipulatorPosition){
          boxes[id].setFrameFromBasis(x,y,z);
 
         // Set box to the manipulator position - half the length
+        manipulatorPosition = isDistanceViolation(id, manipulatorPosition);
+        boxManipulators[id]->setOrigin(manipulatorPosition);
         Vec p = getLocalCoordinates(manipulatorPosition - (boxes[id].getLength()/2. * getWorldBoxTransform(id, boxes[id].getTangent()) + boxes[id].getHeight()/2. * getWorldBoxTransform(id, boxes[id].getBinormal()) + boxes[id].getWidth()/2. * getWorldBoxTransform(id, boxes[id].getNormal())));
         boxes[id].setPosition(p);
     /*}
@@ -204,7 +206,20 @@ void Polyline::setBoxToManipulator(unsigned int id, Vec manipulatorPosition){
     }*/
 
         setCornerManipulatorsToBoxes();
+}
 
+Vec Polyline::isDistanceViolation(unsigned int id, const Vec &manipulatorPosition){
+    double maxDistance = 25.;
+
+    Vec midPoint = (points[id] + points[id+1]) / 2.0;
+    double d = euclideanDistance(midPoint, manipulatorPosition);
+
+    if(d <= maxDistance) return manipulatorPosition;
+
+    Vec furtherestPosition = (manipulatorPosition - midPoint);
+    furtherestPosition.normalize();
+
+    return midPoint + furtherestPosition*maxDistance;
 }
 
 void Polyline::setBoxToManipulatorOrientation(unsigned int id){

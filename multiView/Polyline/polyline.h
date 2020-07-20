@@ -108,6 +108,7 @@ private:
     void deleteManipulators();
     void deleteCornerManipulators();
     void reorientateBox(unsigned int index, const Vec &start, const Vec &end);
+    Vec isDistanceViolation(unsigned int id, const Vec &manipulatorPosition);
 
     Frame frame;
     const Vec tangent = Vec(1,0,0);
@@ -126,6 +127,7 @@ private:
     bool isDrawBoxes = false;
     bool isDrawLine = false;
     double manipulatorSize = 15.;
+
 };
 
 #endif // POLYLINE_H
