@@ -87,22 +87,25 @@ void SimpleManipulator::checkIfGrabsMouse(int x, int y, const qglviewer::Camera 
 
             ///////////////////////////////////////  Dilatations:   ///////////////////////////////////////
 
-            // Check on sx :
-            X = Origin + (1.5 * Xscale*display_scale) * RepX;
-            lambda = ( X-Eye )*( X-Eye ) - ( (X-Eye)*(Dir) ) * ( (X-Eye)*(Dir) )/(Dir * Dir);
-            if( lambda < display_scale*display_scale / 100 )
+            if(!isRotationActivated)
             {
-                mode_modification = 7;
-                setGrabsMouse(true);
-                return;
-            }
-            X = Origin - (1.5 * Xscale*display_scale) *RepX;
-            lambda = ( X-Eye )*( X-Eye ) - ( (X-Eye)*(Dir) ) * ( (X-Eye)*(Dir) )/(Dir * Dir);
-            if( lambda < display_scale*display_scale / 100 )
-            {
-                mode_modification = -7;
-                setGrabsMouse(true);
-                return;
+                // Check on sx :
+                X = Origin + (1.5 * Xscale*display_scale) * RepX;
+                lambda = ( X-Eye )*( X-Eye ) - ( (X-Eye)*(Dir) ) * ( (X-Eye)*(Dir) )/(Dir * Dir);
+                if( lambda < display_scale*display_scale / 100 )
+                {
+                    mode_modification = 7;
+                    setGrabsMouse(true);
+                    return;
+                }
+                X = Origin - (1.5 * Xscale*display_scale) *RepX;
+                lambda = ( X-Eye )*( X-Eye ) - ( (X-Eye)*(Dir) ) * ( (X-Eye)*(Dir) )/(Dir * Dir);
+                if( lambda < display_scale*display_scale / 100 )
+                {
+                    mode_modification = -7;
+                    setGrabsMouse(true);
+                    return;
+                }
             }
 
             // Check on sy :
@@ -425,7 +428,7 @@ void SimpleManipulator::clear()
 
 void SimpleManipulator::manipulatedCallback()
 {
-    Q_EMIT moved(id, Origin);
+    Q_EMIT moved(id, Origin, static_cast<unsigned int>(abs(mode_modification)));
 }
 
 void SimpleManipulator::fakeMouseDoubleClickEvent( QMouseEvent* const )

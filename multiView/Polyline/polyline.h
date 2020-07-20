@@ -70,7 +70,7 @@ public:
 
     void toggleIsWireframe(){ isWireframe = !isWireframe; }
 
-    void setBoxToManipulator(unsigned int id, Vec manipulatorPosition);
+    void setBoxToManipulator(unsigned int id, Vec manipulatorPosition, unsigned int s, Vec bX, Vec bY, Vec bZ);
     void setBoxToManipulatorOrientation(unsigned int id);
      void setBoxToCornerManipulator(unsigned int id, Vec manipulatorPosition);
     void setBoxToProjectionPoint(unsigned int id, Vec projPoint);
@@ -86,6 +86,8 @@ public:
     void toggleDrawBoxes(){ isDrawBoxes = !isDrawBoxes; }
     void toggleDrawLine(){ isDrawLine = !isDrawLine; }
 
+    void setPointsToGhostPlanes(std::vector<Vec> &planePositions);
+
 
     SimpleManipulator* getBoxManipulator(unsigned int i){ return boxManipulators[i]; }
     SimpleManipulator* getCornerManipulator(unsigned int i){ return cornerManipulators[i]; }
@@ -93,7 +95,7 @@ public:
     void adjustBoxLength(unsigned int i, double &distShift);
 
 private:
-    Vec projection(Vec &a, Vec &planeNormal);
+    Vec projection(Vec &a, const Vec &planeNormal);
     double angle(const Vec &a, const Vec &b);
     Vec vectorQuaternionRotation(double angle, const Vec &axis, const Vec &vectorToRotate);
     void recalculateBinormal(unsigned int index, const Vec &origin, const Vec &newPoint);
@@ -106,6 +108,9 @@ private:
     void deleteManipulators();
     void deleteCornerManipulators();
     void reorientateBox(unsigned int index, const Vec &start, const Vec &end);
+    Vec isDistanceViolation(unsigned int id, const Vec &manipulatorPosition);
+    void isAngleViolation(unsigned int id, Vec &x, Vec &y, Vec &z, unsigned int s, Vec &bX, Vec &bY, Vec &bZ);
+    void setToMaxRotation(unsigned int id, const double &maxRotation, const Vec &n, const Vec &b, const Vec& t, Vec a, Vec c, Vec &x, Vec &bX, Vec &bY, Vec &bZ);
 
     Frame frame;
     const Vec tangent = Vec(1,0,0);
@@ -124,6 +129,7 @@ private:
     bool isDrawBoxes = false;
     bool isDrawLine = false;
     double manipulatorSize = 15.;
+
 };
 
 #endif // POLYLINE_H

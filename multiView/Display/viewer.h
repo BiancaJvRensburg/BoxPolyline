@@ -22,7 +22,7 @@ public :
 
 public Q_SLOTS:
     void toUpdate();
-    void bendPolylineManually(unsigned int pointIndex, Vec v);
+    void bendPolylineManually(unsigned int pointIndex, Vec v, unsigned int s);
     void cutMesh();
     void uncutMesh();
     void placePlanes(const std::vector<Vec>&);
@@ -39,7 +39,7 @@ public Q_SLOTS:
     void toggleWireframe();
     void recieveFromFibulaMesh(std::vector<int>&, std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
     void sendNewNorms();
-    void setBoxToManipulator(unsigned int, Vec);
+    void setBoxToManipulator(unsigned int, Vec, unsigned int s);
     void setBoxToCornerManipulator(unsigned int, Vec);
     void toggleEditPlaneMode(unsigned int id, bool b);
     void toggleEditBoxMode(unsigned int id, bool b);
@@ -52,14 +52,16 @@ public Q_SLOTS:
     void toggleDrawPolyline();
     void toggleDrawBoxes();
     void toggleDrawCurve();
-    void saveCurrentState();
-    void manipulatorReleased();
+    void saveCurrentState(Modification m);
+    void manipulatorReleasedPlane();
+    void manipulatorReleasedBox();
     void keyPressEvent(QKeyEvent *e);
+    void fakeBend();
 
 Q_SIGNALS:
     void polylineUpdate(const std::vector<Vec>&);
-    void polylineBent(std::vector<Vec>&, const std::vector<double>&);
-    void constructPoly(const std::vector<double>&, const std::vector<Vec>&);
+    void polylineBent(std::vector<Vec>&, std::vector<double>&);
+    void constructPoly(std::vector<double>&, const std::vector<Vec>&);
     void toUpdateDistances(std::vector<double>&);
     void toUpdatePlaneOrientations(std::vector<Vec>&);
     void toRotatePolylineOnAxis(double);
@@ -153,8 +155,9 @@ private:
     Plane& getPlaneFromID(unsigned int id);
     Plane& getOppositePlaneFromID(unsigned int id);
     double maxDouble(double a, double b);
-    SavedState saveState();
+    SavedState saveState(Modification m);
     void resetState(SavedState s);
+    void resetUndoQueue();
 
 };
 

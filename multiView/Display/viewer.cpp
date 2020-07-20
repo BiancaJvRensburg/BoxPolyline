@@ -236,7 +236,7 @@ void Viewer::initGhostPlanes(Movable s){
     //connect(&(rightPlane->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);
     for(unsigned int i=0; i<ghostPlanes.size(); i++) {
         connect(&(ghostPlanes[i]->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);
-        connect(&(ghostPlanes[i]->getManipulator()), &SimpleManipulator::mouseReleased, this, &Viewer::manipulatorReleased);
+        connect(&(ghostPlanes[i]->getManipulator()), &SimpleManipulator::mouseReleased, this, &Viewer::manipulatorReleasedPlane);
     }
     // connnect the ghost planes
 }
@@ -319,7 +319,18 @@ void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
     Q_EMIT polylineBent(relativeNorms, distances);      // Send the new normals and distances to the fibula TODO only send over the info for the corresponding point
 }
 
-void Viewer::bendPolylineManually(unsigned int pointIndex, Vec v){
+void Viewer::fakeBend(){
+    std::vector<Vec> relativeNorms;
+    getPlaneBoxOrientations(relativeNorms);
+
+    // Get the new distances between each point in the mandible
+    std::vector<double> distances;
+    poly.getDistances(distances);
+
+    Q_EMIT polylineBent(relativeNorms, distances);
+}
+
+void Viewer::bendPolylineManually(unsigned int pointIndex, Vec v, unsigned int s){
     bool isOriginallyCut = isCut;
     if(isOriginallyCut) uncut();
     Q_EMIT toReinitPoly(poly.getNbPoints());
@@ -443,14 +454,15 @@ void Viewer::cutMesh(){
 
     for(unsigned int i=1; i<poly.getNbPoints()-2; i++) {
         connect(poly.getBoxManipulator(i), &SimpleManipulator::moved, this, &Viewer::setBoxToManipulator);
-        connect(poly.getBoxManipulator(i), &SimpleManipulator::mouseReleased, this, &Viewer::manipulatorReleased);
+        connect(poly.getBoxManipulator(i), &SimpleManipulator::mouseReleased, this, &Viewer::manipulatorReleasedBox);
     }
     for(unsigned int i=1; i<(poly.getNbPoints()-2)*2; i++) {
         connect(poly.getCornerManipulator(i), &SimpleManipulator::moved, this, &Viewer::setBoxToCornerManipulator);
-        connect(poly.getCornerManipulator(i), &SimpleManipulator::mouseReleased, this, &Viewer::manipulatorReleased);
+        connect(poly.getCornerManipulator(i), &SimpleManipulator::mouseReleased, this, &Viewer::manipulatorReleasedPlane);
     }
 
     Q_EMIT enableFragmentEditing();
+    saveCurrentState(Modification::PLANE);
     update();
 }
 
@@ -463,6 +475,8 @@ void Viewer::uncutMesh(){
 
     Q_EMIT disableFragmentEditing();
     //update();
+
+    resetUndoQueue();
 }
 
 void Viewer::moveLeftPlane(int position){
@@ -722,8 +736,9 @@ Plane& Viewer::getOppositePlaneFromID(unsigned int id){
     return *ghostPlanes[static_cast<unsigned int>(idOffset)];
 }
 
-void Viewer::setBoxToManipulator(unsigned int id, Vec manipulatorPosition){
-    poly.setBoxToManipulator(id, manipulatorPosition);
+void Viewer::setBoxToManipulator(unsigned int id, Vec manipulatorPosition, unsigned int s){
+    SavedState &ss = Q.back();
+    poly.setBoxToManipulator(id, manipulatorPosition, s, ss.getBoxX(id), ss.getBoxY(id), ss.getBoxZ(id));
 
     double distShift;
     Vec projPoint;
@@ -845,21 +860,18 @@ double Viewer::euclideanDistance(const Vec &a, const Vec &b){
 }
 
 bool Viewer::isViolatesContraint(){
-
+    return false;
 }
 
-void Viewer::saveCurrentState(){
-    std::cout << "Saving state" << std::endl;
-
+void Viewer::saveCurrentState(Modification m){
     if( Q.size() == max_operation_saved )
         Q.pop_front();
 
-    Q.push_back(saveState());
-
+    Q.push_back(saveState(m));
 }
 
-SavedState Viewer::saveState(){
-    SavedState s = SavedState();
+SavedState Viewer::saveState(Modification m){
+    SavedState s = SavedState(m);
     s.addPlanes(ghostPlanes);
     s.addBoxes(poly.getBoxes());
     return s;
@@ -870,15 +882,9 @@ void Viewer::restoreLastState(){
 
     if( Q.size() > 0 ){
 
-        if(Q.size() > 1)
-            Q.pop_back();
+        if(Q.size() > 1) Q.pop_back();
 
-        //setTopositions(Q.back());
-        std::cout << "Restoring state" << std::endl;
         resetState(Q.back());
-
-        if(Q.size() > 1)
-            Q.pop_back();
     }
 
 }
@@ -888,19 +894,21 @@ void Viewer::resetState(SavedState s){
     std::vector<double> bl;
     std::vector<Quaternion> pOrient;
 
+    if(s.getModification()==Modification::PLANE){
+        s.getPlanePositions(pPos);
+        s.getPlaneOrientations(pOrient);
+        for(unsigned int i=0; i<ghostPlanes.size(); i++){
+            ghostPlanes[i]->setPosition(pPos[i]);
+            ghostPlanes[i]->setOrientation(pOrient[i]);
+        }
+        poly.setPointsToGhostPlanes(pPos);
+    }
+
     s.getBoxLengths(bl);
     s.getBoxPositions(bPos);
     s.getBoxXOrientations(bX);
     s.getBoxYOrientations(bY);
     s.getBoxZOrientations(bZ);
-
-    s.getPlanePositions(pPos);
-    s.getPlaneOrientations(pOrient);
-
-    for(unsigned int i=0; i<ghostPlanes.size(); i++){
-        ghostPlanes[i]->setPosition(pPos[i]);
-        ghostPlanes[i]->setOrientation(pOrient[i]);
-    }
 
     for(unsigned int i=0; i<bl.size(); i++){
         poly.setBoxLocation(i, bPos[i]);
@@ -917,8 +925,16 @@ void Viewer::resetState(SavedState s){
     update();
 }
 
-void Viewer::manipulatorReleased(){
-    saveCurrentState();
+void Viewer::resetUndoQueue(){
+    Q.clear();
+}
+
+void Viewer::manipulatorReleasedPlane(){
+    saveCurrentState(Modification::PLANE);
+}
+
+void Viewer::manipulatorReleasedBox(){
+    saveCurrentState(Modification::BOX);
 }
 
 void Viewer::keyPressEvent(QKeyEvent *e)

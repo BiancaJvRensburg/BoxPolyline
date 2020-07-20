@@ -6,9 +6,13 @@
 #include "Planes/plane.h"
 #include "Polyline/box.h"
 
+enum Modification {PLANE, BOX};
+
 class SavedState {
 public:
-  inline SavedState(){}
+  inline SavedState(Modification m){
+      mod = m;
+  }
 
   inline virtual ~SavedState () {}
 
@@ -38,6 +42,11 @@ public:
   inline void getBoxZOrientations(std::vector<Vec> &v){ v = boxOrientationsZ; }
   inline void getBoxLengths(std::vector<double> &v){ v = boxLengths; }
   inline void getPlaneOrientations(std::vector<Quaternion> &v){ v = planeOrientations; }
+  inline Modification getModification() { return mod; }
+
+  inline const Vec getBoxX(unsigned int id){ return boxOrientationsX[id]; }
+  inline const Vec getBoxY(unsigned int id){ return boxOrientationsY[id]; }
+  inline const Vec getBoxZ(unsigned int id){ return boxOrientationsZ[id]; }
 
 private:
   std::vector<Vec> planePositions;
@@ -47,6 +56,7 @@ private:
   std::vector<Vec> boxOrientationsY;
   std::vector<Vec> boxOrientationsZ;
   std::vector<double> boxLengths;
+  Modification mod;
 };
 
 #endif

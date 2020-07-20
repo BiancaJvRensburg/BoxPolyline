@@ -11,13 +11,13 @@ void ViewerFibula::initSignals(){
 }
 
 // Set the start of the polyline and update the distances.
-void ViewerFibula::updateFibPolyline(const Vec& firstPoint, const std::vector<double>& distances){
+void ViewerFibula::updateFibPolyline(const Vec& firstPoint, std::vector<double>& distances){
     poly.setFirstPoint(firstPoint);
     setDistances(distances);
 }
 
 // Reset distances and place the planes on the updated polyline. Note: this is the end of the initial cut procedure
-void ViewerFibula::updateDistances(const std::vector<double>& distances){
+void ViewerFibula::updateDistances(std::vector<double>& distances){
     setDistances(distances);
     projectToMesh(distances);
     repositionPlanesOnPolyline();
@@ -33,7 +33,9 @@ void ViewerFibula::reprojectToMesh(){
 }
 
 // Re-initialise the polyline to a straight line with corresponding distances
-void ViewerFibula::setDistances(const std::vector<double> &distances){
+void ViewerFibula::setDistances(std::vector<double> &distances){
+    modifyDistances(distances);
+
     saveDistances.clear();
     saveDistances = distances;
 
@@ -46,7 +48,7 @@ void ViewerFibula::setDistances(const std::vector<double> &distances){
 }
 
 // This is activated by the mandible
-void ViewerFibula::bendPolylineNormals(std::vector<Vec>& normals, const std::vector<double>& distances){
+void ViewerFibula::bendPolylineNormals(std::vector<Vec>& normals, std::vector<double>& distances){
     updateFibPolyline(poly.getMeshPoint(0), distances);     // Reset the distances
 
     projectToMesh(distances);
@@ -183,7 +185,7 @@ void ViewerFibula::repositionPlanesOnPolyline(){
     rightPlane->setPosition(poly.getMeshBoxPoint(rightPlane->getID()));
 }
 
-void ViewerFibula::constructPolyline(const std::vector<double>& distances, const std::vector<Vec>& newPoints){
+void ViewerFibula::constructPolyline(std::vector<double>& distances, const std::vector<Vec>& newPoints){
     isPoly = true;       // if we have a polyline, it means that the fibula is cut. TODO The location of this may change when we actually cut the mesh
     rotatePolyline();   // Rotate the polyline so it matches the fibula as closely as it can
 
@@ -398,4 +400,14 @@ void ViewerFibula::positionBoxes(){
 void ViewerFibula::tryOffsetAngle(){
 
     update();
+}
+
+void ViewerFibula::slidePolyline(int pos){
+    polylineOffset = pos + 0.001;
+
+    if(isCut){
+        uncut();
+        Q_EMIT requestFakeBend();
+        cut();
+    }
 }
