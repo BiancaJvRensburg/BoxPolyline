@@ -4,6 +4,21 @@ ViewerFibula::ViewerFibula(QWidget *parent, StandardCamera *camera, int sliderMa
 {
     polyRotation = 0;
     isFibula = true;
+    pandaManipulator.setDisplayScale(25.);
+
+    connect(&pandaManipulator, &SimpleManipulator::moved, this, &ViewerFibula::handlePandaManipulated);
+}
+
+void ViewerFibula::draw(){
+    Viewer::draw();
+
+    glPushMatrix();
+    glMultMatrixd(viewerFrame->matrix());
+
+    panda.draw();
+    pandaManipulator.draw();
+
+    glPopMatrix();
 }
 
 void ViewerFibula::initSignals(){
@@ -410,4 +425,22 @@ void ViewerFibula::slidePolyline(int pos){
         Q_EMIT requestFakeBend();
         cut();
     }
+}
+
+void ViewerFibula::setPanda(){
+    positionPanda();
+    pandaManipulator.activate();
+}
+
+void ViewerFibula::positionPanda(){
+    panda.setLocation(leftPlane->getPosition());
+    panda.setOrientation(leftPlane->getOrientation());
+    panda.rotate(Vec(0,1,0), M_PI/2);
+    pandaManipulator.setOrigin(leftPlane->getPosition());
+    update();
+}
+
+void ViewerFibula::handlePandaManipulated(unsigned int id, Vec origin, int mode){
+    panda.setLocation(origin);
+    update();
 }

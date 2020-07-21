@@ -2,6 +2,8 @@ TEMPLATE = app
 TARGET   = multiView
 
 HEADERS  = \
+    Mesh/panda.h \
+    Mesh/simplemesh.h \
     Polyline/box.h \
     Curve/controlpoint.h \
     Planes/curvepoint.h \
@@ -23,6 +25,8 @@ HEADERS  = \
     Tools/GLUtilityMethods.h \
     Manipulator/simplemanipulator.h
 SOURCES  = main.cpp \
+    Mesh/panda.cpp \
+    Mesh/simplemesh.cpp \
     Polyline/box.cpp \
     Curve/controlpoint.cpp \
     Planes/curvepoint.cpp \

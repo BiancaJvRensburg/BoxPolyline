@@ -70,9 +70,9 @@ public:
 
     void toggleIsWireframe(){ isWireframe = !isWireframe; }
 
-    void setBoxToManipulator(unsigned int id, Vec manipulatorPosition);
+    void setBoxToManipulator(unsigned int id, Vec manipulatorPosition, int s, Vec bX, Vec bY, Vec bZ);
     void setBoxToManipulatorOrientation(unsigned int id);
-     void setBoxToCornerManipulator(unsigned int id, Vec manipulatorPosition);
+    void setBoxToCornerManipulator(unsigned int id, Vec manipulatorPosition);
     void setBoxToProjectionPoint(unsigned int id, Vec projPoint);
     void setManipulatorsToBoxes();
     void setManipulatorOrientations(std::vector<Vec> &x, std::vector<Vec> &y, std::vector<Vec> &z);
@@ -95,7 +95,7 @@ public:
     void adjustBoxLength(unsigned int i, double &distShift);
 
 private:
-    Vec projection(Vec &a, Vec &planeNormal);
+    Vec projection(Vec &a, const Vec &planeNormal);
     double angle(const Vec &a, const Vec &b);
     Vec vectorQuaternionRotation(double angle, const Vec &axis, const Vec &vectorToRotate);
     void recalculateBinormal(unsigned int index, const Vec &origin, const Vec &newPoint);
@@ -109,6 +109,8 @@ private:
     void deleteCornerManipulators();
     void reorientateBox(unsigned int index, const Vec &start, const Vec &end);
     Vec isDistanceViolation(unsigned int id, const Vec &manipulatorPosition);
+    void isAngleViolation(unsigned int id, Vec &x, Vec &y, Vec &z, int s, Vec &bX, Vec &bY, Vec &bZ);
+    void setToMaxRotation(unsigned int id, const double &maxRotation, int comp, Vec a, Vec c, Vec &x, Vec &bX, Vec &bY, Vec &bZ, int s);
 
     Frame frame;
     const Vec tangent = Vec(1,0,0);

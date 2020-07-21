@@ -375,6 +375,11 @@ void MainWindow::initToolBars () {
     editMenuButton->setCheckable(true);
     editMenuButton->setChecked(false);
 
+    QPushButton *pandaButton = new QPushButton("Set panda", this);
+    connect(pandaButton, &QPushButton::clicked, fibulaViewer, &ViewerFibula::setPanda);
+    pandaButton->setCheckable(true);
+    pandaButton->setChecked(false);
+
     editFragmentMenuButton = new QPushButton("Edit Fragments", this);
     connect(editFragmentMenuButton, &QPushButton::clicked, this, &MainWindow::displayEditFragmentMenu);
     editFragmentMenuButton->setCheckable(true);
@@ -383,6 +388,7 @@ void MainWindow::initToolBars () {
     loadedMeshesLayout->addWidget(cutMeshAction);
     loadedMeshesLayout->addWidget(uncutMeshAction);
     loadedMeshesLayout->addWidget(editFragmentMenuButton);
+    loadedMeshesLayout->addWidget(pandaButton);
     controlWidget->setLayout(loadedMeshesLayout);
     loadedMeshes->setWidget(controlWidget);
 

@@ -173,40 +173,93 @@ void Polyline::initCornerManipulators(){
     setCornerManipulatorsToBoxes();
 }
 
-void Polyline::setBoxToManipulator(unsigned int id, Vec manipulatorPosition){
-    // Set the orientation
+void Polyline::setBoxToManipulator(unsigned int id, Vec manipulatorPosition, int s, Vec bX, Vec bY, Vec bZ){
     Vec x,y,z;
     boxManipulators[id]->getOrientation(x,y,z);
 
-    /*const Vec& n = segmentNormals[id];
+    // Set the orientation
+    isAngleViolation(id, x, y, z, s, bX, bY, bZ);
+
+   // Set box to the manipulator position - half the length
+   manipulatorPosition = isDistanceViolation(id, manipulatorPosition);
+   boxManipulators[id]->setOrigin(manipulatorPosition);
+   Vec p = getLocalCoordinates(manipulatorPosition - (boxes[id].getLength()/2. * getWorldBoxTransform(id, boxes[id].getTangent()) + boxes[id].getHeight()/2. * getWorldBoxTransform(id, boxes[id].getBinormal()) + boxes[id].getWidth()/2. * getWorldBoxTransform(id, boxes[id].getNormal())));
+   boxes[id].setPosition(p);
+
+    setCornerManipulatorsToBoxes();
+}
+
+void Polyline::isAngleViolation(unsigned int id, Vec &x, Vec &y, Vec &z, int s, Vec &bX, Vec &bY, Vec &bZ){
+     double maxRotation = M_PI / 8.;
+
+    const Vec& n = segmentNormals[id];
     const Vec& b = segmentBinormals[id];
-    Vec t  =-cross(n,b);
+    const Vec t  =-cross(n,b);
 
     // x -> t, y -> b, z -> n
-    double nTheta = angle(n,z);
-    double bTheta = angle(b,y);
-    double tTheta = angle(t,x);
+    bool isSet = false;
 
-    double epsilon = M_PI / 8.;*/
+    switch (abs(s)) {
+    case 6:     // xy
+        if(abs(angle(t,x)) > maxRotation) {setToMaxRotation(id, maxRotation, 1, t, bX, x, bX, bY, bZ, s); isSet = true;}
+        //if(abs(angle(b,y)) > maxRotation) {setToMaxRotation(id, maxRotation, 0, b, bY, y, bX, bY, bZ, s); isSet = true;}
+    break;
 
-   // if(nTheta <= epsilon && bTheta <= epsilon && tTheta <= epsilon){    // If the angle isn't too great
-         boxes[id].setFrameFromBasis(x,y,z);
+    case 5:     // xz
+        if(abs(angle(n,z)) > maxRotation) {setToMaxRotation(id, maxRotation, 0, n, bZ, z, bX, bY, bZ, s); isSet = true;}
+        //if(abs(angle(t,x)) > maxRotation) {setToMaxRotation(id, maxRotation, 2, t, bX, x, bX, bY, bZ, s); isSet = true;}
+        break;
 
-        // Set box to the manipulator position - half the length
-        manipulatorPosition = isDistanceViolation(id, manipulatorPosition);
-        boxManipulators[id]->setOrigin(manipulatorPosition);
-        Vec p = getLocalCoordinates(manipulatorPosition - (boxes[id].getLength()/2. * getWorldBoxTransform(id, boxes[id].getTangent()) + boxes[id].getHeight()/2. * getWorldBoxTransform(id, boxes[id].getBinormal()) + boxes[id].getWidth()/2. * getWorldBoxTransform(id, boxes[id].getNormal())));
-        boxes[id].setPosition(p);
-    /*}
-    else{       // Else don't move the box and reset the orientation of the manipulator to the box  TODO set both to the greatest angle possible
-        boxes[id].getOrientation(x,y,z);
-        boxManipulators[id]->setRepX(x);
-        boxManipulators[id]->setRepY(y);
-        boxManipulators[id]->setRepZ(z);
-    }*/
+    case 4:    // zy
+        if(abs(angle(n,z)) > maxRotation) {setToMaxRotation(id, maxRotation, 1, n, bZ, z, bX, bY, bZ, s); isSet = true;}
+        //if(abs(angle(b,y)) > maxRotation) {setToMaxRotation(id, maxRotation, 2, b, bY, y, bX, bY, bZ, s); isSet = true;}
+        break;
 
-        setCornerManipulatorsToBoxes();
+    default:
+        break;
+    }
+
+    if(!isSet) boxes[id].setFrameFromBasis(x,y,z);
 }
+
+void Polyline::setToMaxRotation(unsigned int id, const double &maxRotation, int comp, Vec a, Vec c, Vec &x, Vec &bX, Vec &bY, Vec &bZ, int s){
+    double theta = angle(a, c);
+
+    Quaternion q(a, x);     // The current rotation between the polyline and manipulator axis
+    Frame f;
+    Quaternion base;
+    base.setFromRotatedBasis(bX, bY, bZ);       // Initialise a frame to the previous manipulator axis
+    f.setOrientation(base);
+
+    // compare c and x, get the direction
+   /* Vec lx = f.localTransformOf(x);
+    Vec la = f.localTransformOf(a);
+    if(lx[comp] > 0) s *= -1;
+
+    double alpha;
+    int sSign = s/abs(s);
+    int lSign = 1;
+    if(la[comp] < 0) lSign = -1;
+    std::cout << sSign << " , " << lSign << std::endl;
+    if(sSign == lSign) alpha = maxRotation - theta;
+    else alpha = maxRotation + theta;
+
+    if(s < 0) alpha *= -1;*/
+
+    double alpha = maxRotation - theta;
+
+    Quaternion maxQ(q.axis(), alpha);     // The rotation between the polyline and the previous manipulator axis
+
+    f.rotate(maxQ);         // Rotate the previous manipulator to its max
+    Vec x0 = f.localInverseTransformOf(Vec(1,0,0));     // Get the x,y,z vectors of the max frame
+    Vec y0 = f.localInverseTransformOf(Vec(0,1,0));
+    Vec z0 = f.localInverseTransformOf(Vec(0,0,1));
+    boxes[id].setFrameFromBasis(x0,y0,z0);
+    boxManipulators[id]->setRepX(x0);
+    boxManipulators[id]->setRepY(y0);
+    boxManipulators[id]->setRepZ(z0);
+}
+
 
 Vec Polyline::isDistanceViolation(unsigned int id, const Vec &manipulatorPosition){
     double maxDistance = 25.;
@@ -347,7 +400,7 @@ double Polyline::angle(const Vec &a, const Vec &b){
     return acos(val);
 }
 
-Vec Polyline::projection(Vec &a, Vec &planeNormal){
+Vec Polyline::projection(Vec &a, const Vec &planeNormal){
     double alpha = (a * planeNormal);
     return a - planeNormal * alpha;
 }

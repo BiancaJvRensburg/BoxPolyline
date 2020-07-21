@@ -28,6 +28,13 @@ void Viewer::draw() {
      mesh.draw();
 
      if(isCurve){
+
+         if(isCut && !isFibula){
+             for(unsigned int i=0; i<ghostPlanes.size()+1; i++){
+                 mesh.drawFragment(i);
+             }
+         }
+
          glColor4f(0., 1., 0., leftPlane->getAlpha());
          leftPlane->draw();
          glColor4f(1., 0, 0., leftPlane->getAlpha());
@@ -36,12 +43,6 @@ void Viewer::draw() {
          for(unsigned int i=0; i<ghostPlanes.size(); i++){
              glColor4f(0., 1., 1., ghostPlanes[i]->getAlpha());
              ghostPlanes[i]->draw();
-         }
-
-         if(isCut && !isFibula){
-             for(unsigned int i=0; i<ghostPlanes.size()+1; i++){
-                 mesh.drawFragment(i);
-             }
          }
 
          if(isDrawCurve) curve.draw();
@@ -330,7 +331,7 @@ void Viewer::fakeBend(){
     Q_EMIT polylineBent(relativeNorms, distances);
 }
 
-void Viewer::bendPolylineManually(unsigned int pointIndex, Vec v){
+void Viewer::bendPolylineManually(unsigned int pointIndex, Vec v, unsigned int s){
     bool isOriginallyCut = isCut;
     if(isOriginallyCut) uncut();
     Q_EMIT toReinitPoly(poly.getNbPoints());
@@ -736,8 +737,9 @@ Plane& Viewer::getOppositePlaneFromID(unsigned int id){
     return *ghostPlanes[static_cast<unsigned int>(idOffset)];
 }
 
-void Viewer::setBoxToManipulator(unsigned int id, Vec manipulatorPosition){
-    poly.setBoxToManipulator(id, manipulatorPosition);
+void Viewer::setBoxToManipulator(unsigned int id, Vec manipulatorPosition, int s){
+    SavedState &ss = Q.back();
+    poly.setBoxToManipulator(id, manipulatorPosition, s, ss.getBoxX(id), ss.getBoxY(id), ss.getBoxZ(id));
 
     double distShift;
     Vec projPoint;

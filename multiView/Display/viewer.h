@@ -8,6 +8,7 @@
 #include "Polyline/polyline.h"
 #include "Mesh/mesh.h"
 #include "Tools/savedstate.h"
+#include "Mesh/panda.h"
 
 using namespace qglviewer;
 
@@ -22,7 +23,7 @@ public :
 
 public Q_SLOTS:
     void toUpdate();
-    void bendPolylineManually(unsigned int pointIndex, Vec v);
+    void bendPolylineManually(unsigned int pointIndex, Vec v, unsigned int s);
     void cutMesh();
     void uncutMesh();
     void placePlanes(const std::vector<Vec>&);
@@ -39,7 +40,7 @@ public Q_SLOTS:
     void toggleWireframe();
     void recieveFromFibulaMesh(std::vector<int>&, std::vector<Vec>, std::vector<std::vector<int>>&, std::vector<int>&, std::vector<Vec>, int);
     void sendNewNorms();
-    void setBoxToManipulator(unsigned int, Vec);
+    void setBoxToManipulator(unsigned int, Vec, int s);
     void setBoxToCornerManipulator(unsigned int, Vec);
     void toggleEditPlaneMode(unsigned int id, bool b);
     void toggleEditBoxMode(unsigned int id, bool b);
@@ -79,7 +80,7 @@ Q_SIGNALS:
     void editBoxEnd(unsigned int);
 
 protected:
-    void draw();
+    virtual void draw();
     void drawWithNames();
     void postSelection(const QPoint &point);
     void init();

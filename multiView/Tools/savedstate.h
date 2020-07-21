@@ -44,6 +44,10 @@ public:
   inline void getPlaneOrientations(std::vector<Quaternion> &v){ v = planeOrientations; }
   inline Modification getModification() { return mod; }
 
+  inline const Vec getBoxX(unsigned int id){ return boxOrientationsX[id]; }
+  inline const Vec getBoxY(unsigned int id){ return boxOrientationsY[id]; }
+  inline const Vec getBoxZ(unsigned int id){ return boxOrientationsZ[id]; }
+
 private:
   std::vector<Vec> planePositions;
   std::vector<Vec> boxPositions;

@@ -64,7 +64,7 @@ public:
 
 Q_SIGNALS:
     void mouseReleased();
-    void moved(unsigned int, qglviewer::Vec);
+    void moved(unsigned int, qglviewer::Vec, int);
 
 private:
     void setState( int e ){ this->state = e; }

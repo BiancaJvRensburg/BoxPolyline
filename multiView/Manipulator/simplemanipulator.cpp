@@ -428,7 +428,7 @@ void SimpleManipulator::clear()
 
 void SimpleManipulator::manipulatedCallback()
 {
-    Q_EMIT moved(id, Origin);
+    Q_EMIT moved(id, Origin, mode_modification);
 }
 
 void SimpleManipulator::fakeMouseDoubleClickEvent( QMouseEvent* const )
