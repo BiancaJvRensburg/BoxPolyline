@@ -30,7 +30,7 @@ protected:
     std::vector <Triangle> triangles;       // starting triangles
     std::vector<Vec3Df> verticesNormals;
 
-    int normalDirection;
+    double normalDirection = 1.;
 };
 
 #endif // SIMPLEMESH_H

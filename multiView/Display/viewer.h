@@ -9,6 +9,7 @@
 #include "Mesh/mesh.h"
 #include "Tools/savedstate.h"
 #include "Mesh/panda.h"
+#include "Manipulator/pandamanipulator.h"
 
 using namespace qglviewer;
 
@@ -80,7 +81,7 @@ Q_SIGNALS:
     void editBoxEnd(unsigned int);
 
 protected:
-    virtual void draw();
+    void draw();
     void drawWithNames();
     void postSelection(const QPoint &point);
     void init();
@@ -147,6 +148,10 @@ protected:
    // std::vector<Vec> testPoints;
     Vec camCentre;
    // Vec projPoint;
+
+
+    Panda panda;
+    PandaManipulator pandaManipulator;
 
 private:
     void constructPolyline(const std::vector<Vec>& polyPoints);

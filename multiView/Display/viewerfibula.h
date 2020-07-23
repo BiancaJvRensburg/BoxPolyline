@@ -15,7 +15,7 @@ public:
     void toggleIsPolyline();
     void repositionPlanesOnPolyline();  
     void initSignals();
-    void draw();
+   // void draw();
 
 public Q_SLOTS:
     void bendPolylineNormals(std::vector<Vec>&, std::vector<double>&);
@@ -34,7 +34,7 @@ public Q_SLOTS:
     void reprojectToMesh();
     void slidePolyline(int);
     void setPanda();
-    void handlePandaManipulated(unsigned int, Vec, int);
+    void handlePandaManipulated(Vec);
 
 Q_SIGNALS:
     void okToPlacePlanes(const std::vector<Vec>&);
@@ -67,8 +67,6 @@ private:
     std::vector<double> saveDistances;
     double polylineOffset = 0.001;
 
-    Panda panda;
-    SimpleManipulator pandaManipulator;
 };
 
 #endif // VIEWERFIBULA_H

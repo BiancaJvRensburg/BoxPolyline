@@ -15,15 +15,23 @@ public:
 
     void draw();
 
-    void setLocation(const Vec &v){ f.setPosition(v); }
-    void setOrientation(const Quaternion &q){ f.setOrientation(q); }
+    void setPandaLinkLocation(const Vec &v){ f.setPosition(v); }
+    Vec getPandaLinkLocation(){ return f.position(); }
+    void setLocation(const Vec &v);
+    void setOrientation(const Quaternion &q);
+    void setToPlane(const Vec &v, const Quaternion &q);
     void rotate(Vec axis, double angle){ f.rotate(Quaternion(axis, angle)); }
+    void checkPanda();
+    void setFrames();
+    void getFreeAxes(Vec &v1, Vec &v2) { v1 = ftcp.inverseTransformOf(Vec(0,1,0)); v2 = ftcp.inverseTransformOf(Vec(0,0,1)); }
 
 private:
+    void drawFrame(Frame &frame);
     void openOFF(QString f, SimpleMesh &m);
 
     SimpleMesh effector, navex, marker, wrj;
-    Frame f;
+    Frame f, fsw, ftcp;     // f : panda_link8
+    Vec tcpPanda[4];
 };
 
 #endif // PANDA_H

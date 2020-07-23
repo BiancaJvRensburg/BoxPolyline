@@ -52,6 +52,8 @@ void Viewer::draw() {
 
     if(isPoly) poly.draw();
 
+    if(isFibula){ panda.draw(); pandaManipulator.draw();}
+
     glPopMatrix();
 }
 

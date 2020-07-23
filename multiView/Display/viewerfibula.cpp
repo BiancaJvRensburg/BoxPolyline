@@ -6,10 +6,10 @@ ViewerFibula::ViewerFibula(QWidget *parent, StandardCamera *camera, int sliderMa
     isFibula = true;
     pandaManipulator.setDisplayScale(25.);
 
-    connect(&pandaManipulator, &SimpleManipulator::moved, this, &ViewerFibula::handlePandaManipulated);
+    connect(&pandaManipulator, &PandaManipulator::moved, this, &ViewerFibula::handlePandaManipulated);
 }
 
-void ViewerFibula::draw(){
+/*void ViewerFibula::draw(){
     Viewer::draw();
 
     glPushMatrix();
@@ -19,7 +19,7 @@ void ViewerFibula::draw(){
     pandaManipulator.draw();
 
     glPopMatrix();
-}
+}*/
 
 void ViewerFibula::initSignals(){
     connect(&mesh, &Mesh::sendInfoToManible, this, &ViewerFibula::recieveFromFibulaMesh);
@@ -428,19 +428,21 @@ void ViewerFibula::slidePolyline(int pos){
 }
 
 void ViewerFibula::setPanda(){
-    positionPanda();
     pandaManipulator.activate();
+    positionPanda();
 }
 
 void ViewerFibula::positionPanda(){
-    panda.setLocation(leftPlane->getPosition());
-    panda.setOrientation(leftPlane->getOrientation());
-    panda.rotate(Vec(0,1,0), M_PI/2);
-    pandaManipulator.setOrigin(leftPlane->getPosition());
+    panda.setToPlane(leftPlane->getPosition(), leftPlane->getOrientation());
+    pandaManipulator.setOrigin(panda.getPandaLinkLocation());
+    Vec y,z;
+    panda.getFreeAxes(y,z);
+    pandaManipulator.setRepY(y);
+    pandaManipulator.setRepZ(z);
     update();
 }
 
-void ViewerFibula::handlePandaManipulated(unsigned int id, Vec origin, int mode){
-    panda.setLocation(origin);
+void ViewerFibula::handlePandaManipulated(Vec origin){
+    panda.setPandaLinkLocation(origin);
     update();
 }
