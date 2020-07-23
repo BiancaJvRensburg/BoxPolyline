@@ -35,6 +35,9 @@ public Q_SLOTS:
     void slidePolyline(int);
     void setPanda();
     void handlePandaManipulated(Vec);
+    void printPandaResults();
+    void nextPandaPlane();
+    void prevPandaPlane();
 
 Q_SIGNALS:
     void okToPlacePlanes(const std::vector<Vec>&);
@@ -66,6 +69,8 @@ private:
     double prevRotation = 0.;
     std::vector<double> saveDistances;
     double polylineOffset = 0.001;
+
+    int currentPandaPlane = 0;
 
 };
 

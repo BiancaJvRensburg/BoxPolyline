@@ -161,3 +161,17 @@ void Panda::setToPlane(const Vec &v, const Quaternion &q){
 
     f.setPositionAndOrientation(pos, rotation);
 }
+
+void Panda::printResults(){
+    Vec x,y,z,p;
+
+    x = f.localInverseTransformOf(ftcp.localInverseTransformOf(Vec(1,0,0)));
+    y = f.localInverseTransformOf(ftcp.localInverseTransformOf(Vec(0,1,0)));
+    z = f.localInverseTransformOf(ftcp.localInverseTransformOf(Vec(0,0,1)));
+    p = f.localInverseCoordinatesOf(ftcp.localInverseCoordinatesOf(Vec(0,0,0)));
+
+    for(int i=0; i<3; i++){
+        std::cout << x[i] << " " << y[i] << " " << z[i] << " " << p[i] << std::endl;
+    }
+    std::cout << "0 0 0 1" << std::endl;
+}

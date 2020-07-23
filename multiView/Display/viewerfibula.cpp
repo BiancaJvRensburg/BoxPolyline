@@ -433,7 +433,11 @@ void ViewerFibula::setPanda(){
 }
 
 void ViewerFibula::positionPanda(){
-    panda.setToPlane(leftPlane->getPosition(), leftPlane->getOrientation());
+    if(currentPandaPlane == 0) panda.setToPlane(leftPlane->getPosition(), leftPlane->getOrientation());
+    else if(currentPandaPlane <= ghostPlanes.size()) panda.setToPlane(ghostPlanes[currentPandaPlane-1]->getPosition(), ghostPlanes[currentPandaPlane-1]->getOrientation());
+    else panda.setToPlane(rightPlane->getPosition(), rightPlane->getOrientation());
+
+    // Set the manipulator
     pandaManipulator.setOrigin(panda.getPandaLinkLocation());
     Vec y,z;
     panda.getFreeAxes(y,z);
@@ -445,4 +449,18 @@ void ViewerFibula::positionPanda(){
 void ViewerFibula::handlePandaManipulated(Vec origin){
     panda.setPandaLinkLocation(origin);
     update();
+}
+
+void ViewerFibula::printPandaResults(){
+    panda.printResults();
+}
+
+void ViewerFibula::nextPandaPlane(){
+    if(currentPandaPlane < static_cast<int>(ghostPlanes.size())+1) currentPandaPlane++;
+    positionPanda();
+}
+
+void ViewerFibula::prevPandaPlane(){
+    if(currentPandaPlane > 0) currentPandaPlane--;
+    positionPanda();
 }

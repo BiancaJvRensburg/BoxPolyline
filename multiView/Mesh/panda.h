@@ -24,6 +24,7 @@ public:
     void checkPanda();
     void setFrames();
     void getFreeAxes(Vec &v1, Vec &v2) { v1 = ftcp.inverseTransformOf(Vec(0,1,0)); v2 = ftcp.inverseTransformOf(Vec(0,0,1)); }
+    void printResults();
 
 private:
     void drawFrame(Frame &frame);

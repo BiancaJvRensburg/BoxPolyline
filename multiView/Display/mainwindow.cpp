@@ -380,6 +380,21 @@ void MainWindow::initToolBars () {
     pandaButton->setCheckable(true);
     pandaButton->setChecked(false);
 
+    QPushButton *pandaResultButton = new QPushButton("Print result", this);
+    connect(pandaResultButton, &QPushButton::clicked, fibulaViewer, &ViewerFibula::printPandaResults);
+    pandaResultButton->setCheckable(true);
+    pandaResultButton->setChecked(false);
+
+    QPushButton *pandaNextButton = new QPushButton("Next plane", this);
+    connect(pandaNextButton, &QPushButton::clicked, fibulaViewer, &ViewerFibula::nextPandaPlane);
+    pandaNextButton->setCheckable(true);
+    pandaNextButton->setChecked(false);
+
+    QPushButton *pandaPrevButton = new QPushButton("Prev plane", this);
+    connect(pandaPrevButton, &QPushButton::clicked, fibulaViewer, &ViewerFibula::prevPandaPlane);
+    pandaPrevButton->setCheckable(true);
+    pandaPrevButton->setChecked(false);
+
     editFragmentMenuButton = new QPushButton("Edit Fragments", this);
     connect(editFragmentMenuButton, &QPushButton::clicked, this, &MainWindow::displayEditFragmentMenu);
     editFragmentMenuButton->setCheckable(true);
@@ -389,6 +404,9 @@ void MainWindow::initToolBars () {
     loadedMeshesLayout->addWidget(uncutMeshAction);
     loadedMeshesLayout->addWidget(editFragmentMenuButton);
     loadedMeshesLayout->addWidget(pandaButton);
+    loadedMeshesLayout->addWidget(pandaNextButton);
+    loadedMeshesLayout->addWidget(pandaPrevButton);
+    loadedMeshesLayout->addWidget(pandaResultButton);
     controlWidget->setLayout(loadedMeshesLayout);
     loadedMeshes->setWidget(controlWidget);
 
