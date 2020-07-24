@@ -14,6 +14,7 @@ public:
     Panda();
 
     void draw();
+    void init();
 
     void setPandaLinkLocation(const Vec &v){ f.setPosition(v); }
     Vec getPandaLinkLocation(){ return f.position(); }

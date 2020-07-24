@@ -3,6 +3,10 @@
 
 Panda::Panda()
 {
+
+}
+
+void Panda::init(){
     openOFF("effector.off", effector);
     openOFF("marker.off", marker);
     openOFF("Navex.off", navex);
@@ -23,8 +27,8 @@ void Panda::draw(){
     QGLViewer::drawAxis(50.);
 
     //drawFrame(f);
-    drawFrame(fsw);
-    drawFrame(ftcp);
+    //drawFrame(fsw);
+    //drawFrame(ftcp);
 
     glPopMatrix();
 }

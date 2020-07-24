@@ -4,8 +4,9 @@ ViewerFibula::ViewerFibula(QWidget *parent, StandardCamera *camera, int sliderMa
 {
     polyRotation = 0;
     isFibula = true;
-    pandaManipulator.setDisplayScale(25.);
 
+    panda.init();
+    pandaManipulator.setDisplayScale(25.);
     connect(&pandaManipulator, &PandaManipulator::moved, this, &ViewerFibula::handlePandaManipulated);
 }
 
