@@ -30,19 +30,17 @@ void Viewer::draw() {
      if(isCurve){
 
          if(isCut && !isFibula){
-             for(unsigned int i=0; i<ghostPlanes.size()+1; i++){
-                 mesh.drawFragment(i);
-             }
+             for(unsigned int i=0; i<ghostPlanes.size()+1; i++) mesh.drawFragment(i);
          }
 
          glColor4f(0., 1., 0., leftPlane->getAlpha());
-         leftPlane->draw();
+         leftPlane->draw(isCut);
          glColor4f(1., 0, 0., leftPlane->getAlpha());
-         rightPlane->draw();
+         rightPlane->draw(isCut);
 
          for(unsigned int i=0; i<ghostPlanes.size(); i++){
              glColor4f(0., 1., 1., ghostPlanes[i]->getAlpha());
-             ghostPlanes[i]->draw();
+             ghostPlanes[i]->draw(isCut);
          }
 
          if(isDrawCurve) curve.draw();
@@ -60,51 +58,42 @@ void Viewer::draw() {
     glPopMatrix();
 }
 
+// GL function to allow object selection
 void Viewer::drawWithNames(){
     if(isCurve){
-        glPushName(0);
-        glColor4f(0., 1., 0., leftPlane->getAlpha());
-        leftPlane->draw();
-        glPopName();
-
-        glPushName(1);
-        glColor4f(1., 0, 0., leftPlane->getAlpha());
-        rightPlane->draw();
-        glPopName();
-
-
         for(unsigned int i=0; i<ghostPlanes.size(); i++){
-            glPushName(i+2);
+            glPushName(i);
             glColor4f(0., 1., 1., ghostPlanes[i]->getAlpha());
-            ghostPlanes[i]->draw();
+            ghostPlanes[i]->draw(isCut);
             glPopName();
         }
 
         for(unsigned int i=0; i<ghostPlanes.size()+1; i++){
-            glPushName(ghostPlanes.size()+2+i);
+            glPushName(ghostPlanes.size()+i);
             mesh.drawFragment(i);
             glPopName();
         }
-
     }
 }
 
+/*
+ * A function inherited from libqglviewer that defines what happens when a selectable object (a ghost plane or a bone fragement) is selected.
+ */
 void Viewer::postSelection(const QPoint &point) {
   Vec orig, dir;
   camera()->convertClickToLine(point, orig, dir);
 
   bool found;
-  Vec selectedPoint = camera()->pointUnderPixel(point, found);
-  selectedPoint -= 0.01f * dir;
+  Vec selectedPoint = camera()->pointUnderPixel(point, found);      // If there's a selectable object under the pixel clicked
+  selectedPoint -= 0.01 * dir;
 
   int name = selectedName();
 
-  //if(name == 0) leftPlane->toggleEditMode(true);
-  //else if(name == 1) rightPlane->toggleEditMode(true);
-  if(name < ghostPlanes.size() + 2) Q_EMIT editPlane(name-2); //ghostPlanes[name-2]->toggleEditMode(true);
-  else if (name != -1) Q_EMIT editBoxCentre(name-ghostPlanes.size()-1);// poly.toggleBoxManipulators(name-ghostPlanes.size()-1, true);
+  if(name < static_cast<int>(ghostPlanes.size())) Q_EMIT editPlane(static_cast<unsigned int>(name));       // If the selected object is a plane, send a signal to the slot in the main window editPlane
+  else if (name != -1) Q_EMIT editBoxCentre(static_cast<unsigned int>(name)-static_cast<unsigned int>(ghostPlanes.size())+1);     // If it's a fragment, send a signal to the slot in the main window editPlane
 }
 
+// Used to update this viewer from the fibula viewer
 void Viewer::toUpdate(){
     update();
 }
@@ -117,7 +106,7 @@ void Viewer::init() {
   viewerFrame = new ManipulatedFrame();
   setManipulatedFrame(viewerFrame);
   setAxisIsDrawn(false);
-  poly.init(viewerFrame, 1);
+  poly.init(1);
 
   // Camera without mesh
   Vec centre(0,0,0);
@@ -134,7 +123,7 @@ void Viewer::init() {
   initSignals();
 }
 
-// Initialise the planes on the curve
+// Initialise the planes on the curve (this is before the polyline ie. before the mesh is cut)
 void Viewer::initCurvePlanes(Movable s){
     curveIndexR = nbU - 1;
     curveIndexL = 0;
@@ -183,6 +172,13 @@ void Viewer::initPolyPlanes(Movable s){
     initGhostPlanes(s);
 }
 
+/*
+ *  Toggle where the polyline is: in the centre or on the corner of the planes.
+ *  Note: the polyline always passes through the origin of the planes, but the origin of a plane changes between the centre and the corner.
+ *  The polyline needs to be on the edge of the planes in order for it to match the polyline in the fibula.
+ *  It is a lot easier to place the planes in the fibula if the polyline is attached to the corner.
+ *  The polyline, however, is created by joining the origin of the planes.
+ */
 void Viewer::toggleIsPolyline(){
     Vec direction = Vec(1,1,0);
     double displaySize = 30.;
@@ -205,12 +201,17 @@ void Viewer::toggleIsPolyline(){
     changePlaneDisplaySize(displaySize, displaySize);
 }
 
+/*
+ *  Change the display size of the planes without changing their actual sizes.
+ *  We can't change the actual sizes without the risk that the planes don't cut the entire mesh.
+ */
 void Viewer::changePlaneDisplaySize(double width, double height){
     for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setDisplayDimensions(width, height);
     leftPlane->setDisplayDimensions(width, height);
     rightPlane->setDisplayDimensions(width, height);
 }
 
+// Lower the points of the polyline by localDirection*size
 void Viewer::lowerPoints(double size, Vec localDirection){
     poly.lowerPoint(endLeft->getID(), endLeft->getMeshVectorFromLocal(localDirection)*size);
     poly.lowerPoint(endRight->getID(), endRight->getMeshVectorFromLocal(localDirection)*size);
@@ -220,6 +221,7 @@ void Viewer::lowerPoints(double size, Vec localDirection){
     for(unsigned int i=0; i<ghostPlanes.size(); i++) poly.lowerPoint(i+2, ghostPlanes[i]->getMeshVectorFromLocal(localDirection)*size);
 }
 
+// Position the planes on the polyline according to its corresponding polyline control point
 void Viewer::repositionPlanesOnPolyline(){
     leftPlane->setPosition(poly.getMeshPoint(leftPlane->getID()));
     for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setPosition(poly.getMeshPoint(ghostPlanes[i]->getID()));
@@ -238,13 +240,11 @@ void Viewer::initGhostPlanes(Movable s){
         ghostPlanes.push_back(p);
     }
 
-    //connect(&(leftPlane->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);
-    //connect(&(rightPlane->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);
-    for(unsigned int i=0; i<ghostPlanes.size(); i++) {
+    // Connect the planes' manipulators
+     for(unsigned int i=0; i<ghostPlanes.size(); i++) {
         connect(&(ghostPlanes[i]->getManipulator()), &SimpleManipulator::moved, this, &Viewer::bendPolylineManually);
         connect(&(ghostPlanes[i]->getManipulator()), &SimpleManipulator::mouseReleased, this, &Viewer::manipulatorReleasedPlane);
     }
-    // connnect the ghost planes
 }
 
 void Viewer::updateCamera(const Vec& center, float radius){
@@ -325,6 +325,11 @@ void Viewer::bendPolyline(unsigned int pointIndex, Vec v){
     Q_EMIT polylineBent(relativeNorms, distances);      // Send the new normals and distances to the fibula TODO only send over the info for the corresponding point
 }
 
+/*
+ *  Simulate a bend without actually modifying the polyline.
+ * This exists in order to move the starting plane position in the fibula.
+ * Connected to requestFakeBend
+ */
 void Viewer::fakeBend(){
     std::vector<Vec> relativeNorms;
     getPlaneBoxOrientations(relativeNorms);
@@ -336,6 +341,7 @@ void Viewer::fakeBend(){
     Q_EMIT polylineBent(relativeNorms, distances);
 }
 
+// Called when a plane manipulator is moved (ie. when the polyline is modified manually)
 void Viewer::bendPolylineManually(unsigned int pointIndex, Vec v, unsigned int s){
     bool isOriginallyCut = isCut;
     if(isOriginallyCut) uncut();
@@ -485,6 +491,7 @@ void Viewer::uncutMesh(){
     resetUndoQueue();
 }
 
+// Move the left plane along the curve (before the mesh is cut)
 void Viewer::moveLeftPlane(int position){
     if(isPoly) return;       // disable the ability to move the planes once the mesh is cut
 
@@ -622,12 +629,13 @@ double Viewer::angle(Vec a, Vec b){
     return acos(val);
 }
 
+// Called by the main viewer when we want to change the original position of the polyline in the fibula
 void Viewer::rotatePolylineOnAxis(int position){
     double r = (position/360.*2.*M_PI);
 
     // send over the new norms
     sendNewNorms();
-    Q_EMIT toRotatePolylineOnAxis(r);
+    Q_EMIT toRotatePolylineOnAxis(r);       // Rotate it in the fibula
     update();
 }
 
@@ -677,6 +685,7 @@ void Viewer::setPlaneAlpha(int position){
     update();
 }
 
+// Cut the mesh
 void Viewer::cut(){
     mesh.setIsCut(Side::INTERIOR, true, true);
     Q_EMIT cutFibula();
@@ -694,6 +703,7 @@ void Viewer::initSignals(){
     connect(&mesh, &Mesh::updateViewer, this, &Viewer::toUpdate);
 }
 
+// Recieve the fibula fragments from the fibula mesh, convert the coordinates, then send it to the mandible mesh.
 void Viewer::recieveFromFibulaMesh(std::vector<int> &planes, std::vector<Vec> verticies, std::vector<std::vector<int>> &triangles, std::vector<int> &colours, std::vector<Vec> normals, int nbColours){
     /*
      * 0 : left plane
@@ -722,10 +732,8 @@ void Viewer::recieveFromFibulaMesh(std::vector<int> &planes, std::vector<Vec> ve
     Q_EMIT sendFibulaToMesh(planes, verticies, triangles, colours, normals, nbColours);
 }
 
+// Toggle whether we can manipulate the plane
 void Viewer::toggleEditPlaneMode(unsigned int id, bool b){
-    //leftPlane->toggleEditMode(b);
-    //rightPlane->toggleEditMode(b);
-    //for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->toggleEditMode(b);
     ghostPlanes[id]->toggleEditMode(b);
     update();
 }
@@ -742,6 +750,7 @@ Plane& Viewer::getOppositePlaneFromID(unsigned int id){
     return *ghostPlanes[static_cast<unsigned int>(idOffset)];
 }
 
+// Set the box to match the manipulator
 void Viewer::setBoxToManipulator(unsigned int id, Vec manipulatorPosition, int s){
     SavedState &ss = Q.back();
     poly.setBoxToManipulator(id, manipulatorPosition, s, ss.getBoxX(id), ss.getBoxY(id), ss.getBoxZ(id));
@@ -760,6 +769,7 @@ void Viewer::setBoxToManipulator(unsigned int id, Vec manipulatorPosition, int s
     update();
 }
 
+// Set the box to match the corner manipulator
 void Viewer::setBoxToCornerManipulator(unsigned int id, Vec manipulatorPosition){
     poly.setBoxToCornerManipulator(id, manipulatorPosition);
 
@@ -829,6 +839,7 @@ void Viewer::toggleDrawCurve(){
     update();
 }
 
+// Project the box onto its two planes (when the box is moved)
 Vec Viewer::projectBoxToPlane(Plane &p, Plane &endP, double &distShift){
     unsigned int boxIndex = p.getID();
 
@@ -840,16 +851,6 @@ Vec Viewer::projectBoxToPlane(Plane &p, Plane &endP, double &distShift){
     // Side two projection
     Vec worldBoxEnd = poly.getMeshBoxEnd(boxIndex);
     Vec projEnd = endP.getAxisProjection(worldBoxEnd, -worldProjectionAxis);
-
-    // High projection
-    /*Vec worldBoxHighPoint = poly.getMeshBoxHighPoint(boxIndex);
-    Vec projHighPoint = p.getAxisProjection(worldBoxHighPoint, worldProjectionAxis);
-
-    // High end projection
-    Vec worldBoxHighEnd = poly.getMeshBoxHighEnd(boxIndex);
-    Vec projHighEnd = endP.getAxisProjection(worldBoxHighEnd, -worldProjectionAxis);
-
-    distShift = maxDouble(euclideanDistance(projPoint, projEnd), euclideanDistance(projHighPoint, projHighEnd));*/
 
     distShift = euclideanDistance(projPoint, projEnd);
 
@@ -865,9 +866,7 @@ double Viewer::euclideanDistance(const Vec &a, const Vec &b){
     return sqrt(pow(a.x-b.x, 2.) + pow(a.y-b.y, 2.) + pow(a.z-b.z, 2.));
 }
 
-bool Viewer::isViolatesContraint(){
-    return false;
-}
+// CONTROL Z
 
 void Viewer::saveCurrentState(Modification m){
     if( Q.size() == max_operation_saved )

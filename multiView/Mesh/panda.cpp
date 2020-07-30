@@ -26,10 +26,6 @@ void Panda::draw(){
 
     QGLViewer::drawAxis(50.);
 
-    //drawFrame(f);
-    //drawFrame(fsw);
-    //drawFrame(ftcp);
-
     glPopMatrix();
 }
 
@@ -39,12 +35,6 @@ void Panda::drawFrame(Frame &frame){
     Vec x = frame.localInverseTransformOf(Vec(1,0,0))*size + centre;
     Vec y = frame.localInverseTransformOf(Vec(0,1,0))*size + centre;
     Vec z = frame.localInverseTransformOf(Vec(0,0,1))*size + centre;
-
-    /*std::cout << "Coord x: " << x.x << "," << x.y << "," << x.z << std::endl;
-
-    std::cout << "Coord y: " << y.x << "," << y.y << "," << y.z << std::endl;
-
-    std::cout << "Coord : " << z.x << "," << z.y << "," << z.z << std::endl;*/
 
     glColor3f(1,0,0);
     glLineWidth(5.);
@@ -108,6 +98,7 @@ void Panda::setFrames(){
     tcpPanda[3] = ftcp.localCoordinatesOf(Vec(0,0,0));
 }
 
+// Used for debugging
 void Panda::checkPanda(){
     Vec x = fsw.localInverseTransformOf(Vec(1,0,0));
     Vec y = fsw.localInverseTransformOf(Vec(0,1,0));

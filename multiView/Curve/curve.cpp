@@ -13,16 +13,8 @@ void Curve::init(unsigned int nbCP, std::vector<Vec>& cntrlPoints){
     for(unsigned int i=0; i<nbCP; i++){
         TabControlPoint.push_back(new ControlPoint(cntrlPoints[i]));
     }
-
-    initConnections();
 }
 
-// If a control point is moved, reinitialise the curve
-void Curve::initConnections(){
-    for(unsigned int i=0; i<nbControlPoint; i++){
-        connect(TabControlPoint[i], &ControlPoint::cntrlPointTranslated, this, &Curve::reintialiseCurve);
-    }
-}
 
 // Catmul-Rom generation process (this is the only public creation method)
 void Curve::generateCatmull(unsigned int& n){

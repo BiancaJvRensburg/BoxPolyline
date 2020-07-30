@@ -12,9 +12,7 @@ class Box
 public:
     Box();
     void draw(double offset);
-    void init(const Frame *ref);
     void setPosition(const Vec& v){ f.setPosition(v); }
-    //void setEndPosition(const Vec &v);
     void setFrameFromBasis(Vec x, Vec y, Vec z);
     void setLength(double l){ dimensions.x = l; }
     void setWidth(double l){ dimensions.y = l; }

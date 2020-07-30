@@ -6,9 +6,7 @@ Polyline::Polyline()
     frame = Frame();
 }
 
-// This is only called once. Used to set the reference frame.
-void Polyline::init(const Frame *const refFrame, unsigned int nbPoints){
-    //frame.setReferenceFrame(refFrame);
+void Polyline::init(unsigned int nbPoints){
     reinit(nbPoints);
 }
 
@@ -29,10 +27,7 @@ void Polyline::reinit(unsigned int nbPoints){
     for(unsigned int i=0; i<points.size()-1; i++) segmentBinormals.push_back(binormal);
     for(unsigned int i=1; i<points.size()-1; i++) cuttingLines.push_back(normal);
     for(unsigned int i=1; i<points.size()-1; i++) cuttingBinormals.push_back(binormal);
-    for(unsigned int i=0; i<points.size()-1; i++){
-        boxes.push_back(Box());
-        boxes[i].init(frame.referenceFrame());
-    }
+    for(unsigned int i=0; i<points.size()-1; i++) boxes.push_back(Box());
     initManipulators();
     initCornerManipulators();
 }
@@ -51,7 +46,7 @@ void Polyline::draw(){
     if(isDrawLine){
         // The polyline
         glLineWidth(5.);
-        glColor3f(0,0,1);
+        glColor3f(1,0,0);
         glBegin(GL_LINES);
         for(unsigned int i=0; i<points.size()-1; i++){
             glVertex3d(points[i].x, points[i].y, points[i].z);
@@ -189,6 +184,8 @@ void Polyline::setBoxToManipulator(unsigned int id, Vec manipulatorPosition, int
     setCornerManipulatorsToBoxes();
 }
 
+// The angle constraint
+
 void Polyline::isAngleViolation(unsigned int id, Vec &x, Vec &y, Vec &z, int s, Vec &bX, Vec &bY, Vec &bZ){
      double maxRotation = M_PI / 8.;
 
@@ -260,7 +257,7 @@ void Polyline::setToMaxRotation(unsigned int id, const double &maxRotation, int 
     boxManipulators[id]->setRepZ(z0);
 }
 
-
+// The distance constraint
 Vec Polyline::isDistanceViolation(unsigned int id, const Vec &manipulatorPosition){
     double maxDistance = 25.;
 
@@ -283,8 +280,6 @@ void Polyline::setBoxToManipulatorOrientation(unsigned int id){
 }
 
 void Polyline::setBoxToCornerManipulator(unsigned int id, Vec manipulatorPosition){
-    //if(id%2==0) boxes[id/2].setPosition(manipulatorPosition);       // TODO block the end and recalculate the box
-    //else boxes[id/2].setPosition(p);
     unsigned int boxID = id/2;
     if(id%2==0){
         reorientateBox(boxID, manipulatorPosition, getMeshBoxEnd(boxID));
@@ -306,6 +301,7 @@ void Polyline::reorientateBox(unsigned int index, const Vec &start, const Vec &e
     boxes[index].setFrameFromBasis(-cross(n,b),b,n);
 }
 
+// Adjust the box so its projected onto the plane
 void Polyline::setBoxToProjectionPoint(unsigned int id, Vec projPoint){
     Vec p = getLocalCoordinates(projPoint);
     boxes[id].setPosition(p);
@@ -389,6 +385,7 @@ void Polyline::updatePoints(const std::vector<Vec> &newPoints){
     }
 }
 
+// Angle between two vectors
 double Polyline::angle(const Vec &a, const Vec &b){
     double na = a.norm();
     double nb = b.norm();
@@ -418,6 +415,7 @@ void Polyline::resetBox(unsigned int index){
     setCornerManipulatorsToBoxes();
 }
 
+// Bend the polyline
 void Polyline::bend(unsigned int index, Vec &newPosition, std::vector<Vec>& planeNormals, std::vector<Vec>& planeBinormals){
     if(index >= points.size()) return;
 

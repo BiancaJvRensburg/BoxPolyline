@@ -10,18 +10,6 @@ ViewerFibula::ViewerFibula(QWidget *parent, StandardCamera *camera, int sliderMa
     connect(&pandaManipulator, &PandaManipulator::moved, this, &ViewerFibula::handlePandaManipulated);
 }
 
-/*void ViewerFibula::draw(){
-    Viewer::draw();
-
-    glPushMatrix();
-    glMultMatrixd(viewerFrame->matrix());
-
-    panda.draw();
-    pandaManipulator.draw();
-
-    glPopMatrix();
-}*/
-
 void ViewerFibula::initSignals(){
     connect(&mesh, &Mesh::sendInfoToManible, this, &ViewerFibula::recieveFromFibulaMesh);
 }
@@ -41,6 +29,7 @@ void ViewerFibula::updateDistances(std::vector<double>& distances){
     positionBoxes();
 }
 
+// Reproject the polyline to the mesh
 void ViewerFibula::reprojectToMesh(){
     projectToMesh(saveDistances);
     repositionPlanesOnPolyline();
@@ -119,6 +108,7 @@ void ViewerFibula::initGhostPlanes(Movable s){
     for(unsigned int i=0; i<ghostPlanes.size(); i++) ghostPlanes[i]->setDisplayDimensions(displaySize, displaySize);
 }
 
+// Construct the curve from the JSON
 void ViewerFibula::constructCurve(){
     nbU = 2000;
     curve.init(control.size(), control);
@@ -173,7 +163,7 @@ void ViewerFibula::matchDistances(const std::vector<double> &distances, std::vec
     }
 }
 
-// Get the closest index to the target distance. Search within an index radius
+// Get the closest index on the curve to the target distance. Search within an index radius
 unsigned int ViewerFibula::getClosestDistance(unsigned int index, const double &targetDistance, std::vector<unsigned int> &segIndexes, std::vector<Vec> &outputPoints, unsigned int searchRadius){
     double minDist = DBL_MAX;
     unsigned int minIndex = segIndexes[index+1];
@@ -301,6 +291,7 @@ void ViewerFibula::cut(){
     update();
 }
 
+// Recieve the fibula fragments from the mesh, convert the coordinates, then send it to the mandible
 void ViewerFibula::recieveFromFibulaMesh(std::vector<int> &planes, std::vector<Vec> &verticies, std::vector<std::vector<int>> &triangles, std::vector<int>& colours, std::vector<Vec> &normals, int nbColours){
     // Convert to box coordinates
     for(unsigned int i=0; i<verticies.size(); i++){
@@ -340,6 +331,7 @@ double ViewerFibula::getBoxPlaneAngle(Plane &p){
     return angle(p.getMeshVectorFromLocal(binormal), poly.getMeshBoxTransform(p.getID(), binormal));
 }
 
+// Get the current distance the plane has to move in order to cut the entire mesh
 Vec ViewerFibula::getOffsetDistanceToMeshBorder(std::vector<Vec> &projections, Plane &p){
     Vec minN(0,0,0);
     for(unsigned int i=0; i<projections.size(); i++){
@@ -413,11 +405,7 @@ void ViewerFibula::positionBoxes(){
     Q_EMIT requestNewNorms();
 }
 
-void ViewerFibula::tryOffsetAngle(){
-
-    update();
-}
-
+// Slide the polyline along the mesh
 void ViewerFibula::slidePolyline(int pos){
     polylineOffset = pos + 0.001;
 
@@ -427,6 +415,8 @@ void ViewerFibula::slidePolyline(int pos){
         cut();
     }
 }
+
+// HANDLE THE PANDA
 
 void ViewerFibula::setPanda(){
     pandaManipulator.activate();

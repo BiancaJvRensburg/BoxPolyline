@@ -55,8 +55,6 @@ private:
 
     void generateCatmullKnotVector(double alpha, std::vector<double>& knotV);
 
-    void initConnections();
-
     unsigned int getClosestDistance(double target, unsigned int indexS, unsigned int a, unsigned int b);       // get the index which is closest to the target distance
 
     // Frenet frame

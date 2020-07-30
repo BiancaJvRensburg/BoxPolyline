@@ -41,7 +41,7 @@ public:
     void setPlaneRotation(Vec axis, double angle);
     void constrainZRotation(){ cp.getFrame().setConstraint(&constraint); }
     void freeZRotation(){ cp.getFrame().setConstraint(&constraintFree); }
-    void draw();
+    void draw(bool isFrame);
     const Frame* getReferenceFrame(){ return cp.getReferenceFrame(); }
 
     const Vec& getManipulatorPosition(){ return manipulator.getPosition(); }

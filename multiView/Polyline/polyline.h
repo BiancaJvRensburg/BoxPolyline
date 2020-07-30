@@ -13,12 +13,13 @@ public:
 
     void draw();
     void drawBox(unsigned int index);
-    void init(const Frame *const refFrame, unsigned int nbPoints);
+    void init(unsigned int nbPoints);
     void reinit(unsigned int nbPoints);
     void updatePoints(const std::vector<Vec> &newPoints);
      void reinitAngles(unsigned int nbPoints);
     unsigned int getNbPoints(){ return points.size(); }
 
+    // Note : mesh point = point represented in the same frame as the mesh (so the world frame)
     Vec& getPoint(unsigned int i){return points[i];}
     Vec getMeshPoint(unsigned int i){ return getWorldCoordinates(points[i]); }
     Vec getMeshBoxPoint(unsigned int i){ return getWorldCoordinates(boxes[i].getLocation()); }

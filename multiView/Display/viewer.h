@@ -108,7 +108,6 @@ protected:
     void changePlaneDisplaySize(double width, double height);
     Vec projectBoxToPlane(Plane &p, Plane &endP, double& distShift);
     double euclideanDistance(const Vec &a, const Vec &b);
-    bool isViolatesContraint();
     void restoreLastState();
 
 

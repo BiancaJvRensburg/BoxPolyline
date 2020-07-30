@@ -15,9 +15,9 @@ public:
 
 private:
     // Main viewers
-    Viewer *skullViewer;
+    Viewer *mandViewer;
     ViewerFibula *fibulaViewer;
-    QDockWidget *skullDockWidget;
+    QDockWidget *mandDockWidget;
     QDockWidget *editMenuWidget;
     QDockWidget *editFragmentDockWidget;
     void initDisplayDockWidgets();

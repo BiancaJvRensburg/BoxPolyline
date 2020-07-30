@@ -77,9 +77,12 @@ void Plane::getCorners(Vec &v0, Vec &v1, Vec &v2, Vec &v3){
     v3 = getMeshCoordinatesFromLocal(points[3]);
 }
 
-void Plane::draw(){
+void Plane::draw(bool isFrame){
     glPushMatrix();
     glMultMatrixd(cp.getFrame().matrix());
+
+    glLineWidth(3.);
+    if(isFrame) glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
 
     if(isVisible){
         glEnable(GL_DEPTH);
@@ -97,13 +100,8 @@ void Plane::draw(){
     }
 
     glColor3f(1,1,1);
-    //QGLViewer::drawAxis(size/2.);
 
-    /*if(status==Movable::DYNAMIC){
-        cp.toggleSwitchFrames();
-        cp.draw();
-        cp.toggleSwitchFrames();
-    }*/
+    if(isFrame) glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 
     glPopMatrix();
 

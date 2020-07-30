@@ -274,7 +274,7 @@ void SimpleManipulator::draw()
         if( mode_grabbing == 0 )
         {
             // display a simple sphere of center origin : TODO
-            glColor3f(0.2,0.2,0.9);
+            glColor4d(0.2,0.2,0.9, 0.5);
             glClear(GL_DEPTH_BUFFER_BIT);
             glEnable(GL_LIGHTING);
             glEnable(GL_DEPTH_TEST);

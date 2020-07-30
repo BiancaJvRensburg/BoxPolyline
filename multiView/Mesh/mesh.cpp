@@ -110,7 +110,6 @@ void Mesh::glTriangle(unsigned int i){
     }
 
     glColor4f(1.0, 1.0, 1.0, alphaTransparency);
-    //glColor3f(1.0, 1.0, 1.0);
 }
 
 void Mesh::glTriangleSmooth(unsigned int i, std::vector <int> &coloursIndicies){
@@ -120,12 +119,11 @@ void Mesh::glTriangleSmooth(unsigned int i, std::vector <int> &coloursIndicies){
         if(cuttingSide==Side::EXTERIOR) getColour(t.getVertex(j), coloursIndicies);
         glNormal(verticesNormals[t.getVertex(j)]*normalDirection);
         glVertex(smoothedVerticies[t.getVertex(j)]);
-       // glVertex(vertices[t.getVertex(j)]);
     }
 
     glColor4f(1.0, 1.0, 1.0, alphaTransparency);
-   // glColor3f(1.0, 1.0, 1.0);
 }
+
 
 void Mesh::glTriangleFragment(unsigned int index, unsigned int i, int colour){
     const Triangle &t = fibulaFragmentTriangles[index][i];
@@ -134,9 +132,6 @@ void Mesh::glTriangleFragment(unsigned int index, unsigned int i, int colour){
         glNormal(fibInMandNormals[t.getVertex(j)]*normalDirection);
         glVertex(fibInMandVerticies[t.getVertex(j)]);
     }
-
-    //glColor4f(1.0, 1.0, 1.0, alphaTransparency);
-   // glColor3f(1.0, 1.0, 1.0);
 }
 
 void Mesh::getColour(unsigned int vertex, std::vector <int> &coloursIndicies){

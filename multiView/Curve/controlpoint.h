@@ -35,12 +35,6 @@ public:
 
     void toggleSwitchFrames(){ isSwitchFrames = !isSwitchFrames; }
 
-public Q_SLOTS:
-    virtual void cntrlMoved();
-
-Q_SIGNALS:
-    void cntrlPointTranslated();
-
 protected:
     Frame mf;
     Vec p;
